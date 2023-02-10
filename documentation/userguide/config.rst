@@ -206,7 +206,7 @@ terminal section
 =========== =========== ===========
 key         type        description
 =========== =========== ===========
-friendly    string      Label to display against the terminal when muxing to stdout.
+friendly    string      Label to display against the terminal when muxing to stdout. An empty string disables the prefix for the output.
 port_regex  string      Regex to use to find the TCP port of the terminal when parsing the FVP stdout. Must have single capture group.
 type        enum-string Terminal type. See below for options.
 =========== =========== ===========

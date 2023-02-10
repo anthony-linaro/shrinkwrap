@@ -67,7 +67,8 @@ class Logger:
 		# Make the tag.
 		if len(tag) > self._tag_size:
 			tag = tag[:self._tag_size-3] + '...'
-		tag = f'{{:>{self._tag_size}}}'.format(tag)
+		if len(tag):
+			tag = f'{{:>{self._tag_size}}}'.format(tag)
 
 		lines = splitlines(data)
 		start = 0
@@ -94,7 +95,8 @@ class Logger:
 
 	def print(self, text, tag, cont, color=None, on_color=None, attrs=None, **kwargs):
 		# Ensure that any '\r's only rewind to the end of the tag.
-		tag = f'[ {tag} ] '
+		if len(tag):
+			tag = f'[ {tag} ] '
 		text = text.replace('\r', f'\r{tag}')
 
 		if not cont:
