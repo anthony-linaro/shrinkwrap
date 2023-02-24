@@ -99,7 +99,7 @@ def dispatch(args):
 		if len(t['friendly']) > name_field:
 			name_field = min(len(t['friendly']), max_name_field)
 
-	log = logger.Logger(name_field, not args.no_color)
+	log = logger.Logger(name_field)
 
 	def _strip_telnet_header(pm, proc, data, streamid):
 		"""
@@ -120,6 +120,14 @@ def dispatch(args):
 						pm.set_handler(log.log)
 			else:
 				log.log(pm, proc, line, streamid)
+
+	def _colorize(global_no_color, terminal):
+		if global_no_color:
+			return False
+		elif 'no_color' in terminal:
+			return not terminal['no_color']
+		else:
+			return True
 
 	def _find_term_ports(pm, proc, data, streamid):
 		"""
@@ -155,19 +163,20 @@ def dispatch(args):
 				name = t['friendly']
 				type = t['type']
 				port = t["port"]
+				colorize = _colorize(args.no_color, t)
 
 				if type in ['stdout']:
 					cmd = f'nc localhost {port}'
 					pm.add(process.Process(cmd,
-							False,
-							(log.alloc_data(name), k),
-							False))
+						False,
+						(log.alloc_data(name, colorize), k),
+						False))
 				if type in ['stdinout']:
 					cmd = f'telnet localhost {port}'
 					pm.add(process.Process(cmd,
-							True,
-							(log.alloc_data(name), k),
-							False))
+						True,
+						(log.alloc_data(name, colorize), k),
+						False))
 					t['strip'] = True
 					strip = True
 				if type in ['xterm']:
@@ -221,9 +230,9 @@ def dispatch(args):
 			# the fvp has gone.
 			pm = process.ProcessManager(_find_term_ports, _complete)
 			pm.add(process.Process(f'bash {tmpfilename}',
-					False,
-					(log.alloc_data('fvp'),),
-					True))
+				False,
+				(log.alloc_data('fvp', not args.no_color),),
+				True))
 
 			rt_ip = runtime.get().ip_address()
 

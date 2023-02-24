@@ -38,3 +38,4 @@ run:
     bp.terminal_0:
       friendly: ''
       type: stdinout
+      no_color: true

@@ -6,6 +6,13 @@ from collections import namedtuple
 import re
 termcolor = None
 
+
+def _import_termcolor():
+	global termcolor
+	import termcolor as tc
+	termcolor = tc
+
+
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _colors = ['blue', 'cyan', 'green', 'yellow', 'magenta']
 Data = namedtuple("Data", "id tag color")
@@ -23,27 +30,30 @@ def splitlines(string):
 
 
 class Logger:
-	def __init__(self, tag_size, colorize):
+	def __init__(self, tag_size):
 		self._tag_size = tag_size
-		self._colorize = colorize
 		self._id_next = 0
+		self._color_next = 0
 		self._prev_id = None
 		self._prev_char = '\n'
 
-		if self._colorize:
-			global termcolor
-			import termcolor as tc
-			termcolor = tc
-
-	def alloc_data(self, tag):
+	def alloc_data(self, tag, colorize):
 		"""
 		Returns the object that should be stashed in proc.data[0] when
 		log() is called. Includes the tag for the process and an
 		allocated colour.
 		"""
+		if colorize:
+			_import_termcolor()
+			color = self._color_next
+			self._color_next += 1
+			color = _colors[color % len(_colors)]
+		else:
+			color = None
+
 		id = self._id_next
 		self._id_next += 1
-		color = _colors[id % len(_colors)]
+
 		return Data(id, tag, color)
 
 	def log(self, pm, proc, data, streamid):
@@ -105,6 +115,6 @@ class Logger:
 		self._print(text, color, on_color, attrs, **kwargs)
 
 	def _print(self, text, color=None, on_color=None, attrs=None, **kwargs):
-		if self._colorize:
+		if color:
 			text = termcolor.colored(text, color, on_color, attrs)
 		print(text, **kwargs)
