@@ -13,16 +13,22 @@ description: >-
   prebuild list to modify the config (e.g. `./scripts/config ...`) or even
   replace the .config, as required.
 
+  A higher level layer can optionally request kselftests to be built by
+  specifying `export BUILD_KSELFTESTS=true` in the prebuild section. If
+  specified, the kselftests package is exported in a tgz archive as the
+  KSELFTESTS artifact.
+
 build:
   linux:
     repo:
       remote: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
       revision: v6.1
 
-    toolchain: aarch64-none-elf-
+    toolchain: aarch64-linux-gnu-
 
     prebuild:
       - export BUILD_KMODULES=false
+      - export BUILD_KSELFTESTS=false
       - export ARCH=arm64
       - make -j${param:jobs} O=${param:builddir} defconfig
 
@@ -46,6 +52,17 @@ build:
       -   touch ${param:builddir}/modules.tgz
       - fi
 
+      - if [ "$$BUILD_KSELFTESTS" = "true" ]; then
+          # Make kselftests and package into tgz archive.
+      -   make -j${param:jobs} O=${param:builddir} headers_install
+      -   make -j${param:jobs} O=${param:builddir} -C tools/testing/selftests install INSTALL_PATH=${param:builddir}/kselftests
+      -   tar -caf ${param:builddir}/kselftests.tgz -C ${param:builddir}/kselftests .
+      -   rm -rf ${param:builddir}/kselftests
+      - else
+          # Dummy kselftests archive to keep artifacts happy.
+      -   touch ${param:builddir}/kselftests.tgz
+      - fi
+
     clean:
       - export ARCH=arm64
       - make -j${param:jobs} O=${param:builddir} clean
@@ -53,3 +70,4 @@ build:
     artifacts:
       KERNEL: ${param:builddir}/arch/arm64/boot/Image
       KMODULES: ${param:builddir}/modules.tgz
+      KSELFTESTS: ${param:builddir}/kselftests.tgz

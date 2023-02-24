@@ -87,6 +87,12 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		build-essential \
 		pkg-config
 
+# Install packages requried by Linux.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		build-essential \
+		fakeroot \
+		rsync
+
 # TODO: Install any packages required by U-Boot, OP-TEE, Trusty, etc.
 
 # Install the aarch64-linux-gnu- toolchain. We use the stock Debian packages for
