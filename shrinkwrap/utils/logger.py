@@ -8,7 +8,7 @@ termcolor = None
 
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _colors = ['blue', 'cyan', 'green', 'yellow', 'magenta']
-Data = namedtuple("Data", "tag color")
+Data = namedtuple("Data", "id tag color")
 
 
 def splitlines(string):
@@ -26,8 +26,8 @@ class Logger:
 	def __init__(self, tag_size, colorize):
 		self._tag_size = tag_size
 		self._colorize = colorize
-		self._color_next = 0
-		self._prev_tag = None
+		self._id_next = 0
+		self._prev_id = None
 		self._prev_char = '\n'
 
 		if self._colorize:
@@ -41,11 +41,10 @@ class Logger:
 		log() is called. Includes the tag for the process and an
 		allocated colour.
 		"""
-		idx = self._color_next
-		self._color_next += 1
-		self._color_next %= len(_colors)
-		color = _colors[idx]
-		return Data(tag, color)
+		id = self._id_next
+		self._id_next += 1
+		color = _colors[id % len(_colors)]
+		return Data(id, tag, color)
 
 	def log(self, pm, proc, data, streamid):
 		"""
@@ -61,6 +60,7 @@ class Logger:
 		if len(data) == 0:
 			return
 
+		id = proc.data[0].id
 		tag = proc.data[0].tag
 		color = proc.data[0].color
 
@@ -78,7 +78,7 @@ class Logger:
 		# the first part of the line has a different owner, insert a
 		# newline and add a tag for the new owner.
 		if self._prev_char != '\n':
-			if self._prev_tag == tag:
+			if self._prev_id == id:
 				self.print(lines[0], tag, True, color, end='')
 				start = 1
 			else:
@@ -87,7 +87,7 @@ class Logger:
 		for line in lines[start:]:
 			self.print(line, tag, False, color, end='')
 
-		self._prev_tag = tag
+		self._prev_id = id
 		self._prev_char = lines[-1][-1]
 
 		sys.stdout.flush()
