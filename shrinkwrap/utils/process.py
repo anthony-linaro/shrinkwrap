@@ -121,7 +121,9 @@ class ProcessManager:
 			# to correctly return the carriage for interactive
 			# terminals. Telnet sometimes gives '\r\r\n' too, which
 			# would be incorrectly translated to '\n\n'.
-			proc._stdout = io.TextIOWrapper(proc._stdout, newline='')
+			proc._stdout = io.TextIOWrapper(proc._stdout,
+							newline='',
+							errors='replace')
 			# stdout and stderr get merged into pty, so can't tell
 			# them apart. This isn't a problem for the emit build
 			# warnings use case.
@@ -132,7 +134,8 @@ class ProcessManager:
 						       stdin=subprocess.DEVNULL,
 						       stdout=subprocess.PIPE,
 						       stderr=subprocess.PIPE,
-						       universal_newlines=True)
+						       universal_newlines=True,
+						       errors='replace')
 
 			proc._stdin = None
 			proc._stdout = proc._popen.stdout
