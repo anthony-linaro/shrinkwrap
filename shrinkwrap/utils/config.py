@@ -434,6 +434,18 @@ def resolveb(config, clivars={}):
 					raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
 				artifacts.add(m['name'])
 
+			for scope in ['prebuild', 'build', 'postbuild', 'clean']:
+				for s in component[scope]:
+					for t in _string_tokenize(str(s)):
+						if t['type'] != 'macro':
+							continue
+						m = t['value']
+						if m['type'] != 'artifact':
+							continue
+						if m['name'] is None:
+							raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
+						artifacts.add(m['name'])
+
 			importers[name] = sorted(list(artifacts))
 
 		artifacts_exp = {}
