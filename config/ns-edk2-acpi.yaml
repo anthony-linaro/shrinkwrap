@@ -95,5 +95,6 @@ run:
       friendly: ''
       type: stdinout
       no_color: true
+      no_escapes: 'EFI stub: Booting Linux Kernel...'
     bp.terminal_1:
       friendly: edk2

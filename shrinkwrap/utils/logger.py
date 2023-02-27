@@ -15,7 +15,19 @@ def _import_termcolor():
 
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _colors = ['blue', 'cyan', 'green', 'yellow', 'magenta']
-Data = namedtuple("Data", "id tag color")
+Data = namedtuple("Data", "id tag color noesc escbuf")
+
+
+class MatchBuf:
+	def __init__(self, match):
+		self._match = match
+		self._buf = ''
+
+	def match(self, data):
+		self._buf += data
+		found = self._buf.find(self._match) >= 0
+		self._buf = self._buf[1 - len(self._match):]
+		return found
 
 
 def splitlines(string):
@@ -37,7 +49,7 @@ class Logger:
 		self._prev_id = None
 		self._prev_char = '\n'
 
-	def alloc_data(self, tag, colorize):
+	def alloc_data(self, tag, colorize, no_escapes=False):
 		"""
 		Returns the object that should be stashed in proc.data[0] when
 		log() is called. Includes the tag for the process and an
@@ -54,7 +66,14 @@ class Logger:
 		id = self._id_next
 		self._id_next += 1
 
-		return Data(id, tag, color)
+		if type(no_escapes) == str:
+			noesc = True
+			escbuf = MatchBuf(no_escapes)
+		else:
+			noesc = no_escapes
+			escbuf = None
+
+		return Data(id, tag, color, [noesc], escbuf)
 
 	def log(self, pm, proc, data, streamid):
 		"""
@@ -62,17 +81,20 @@ class Logger:
 		terminals) to the terminal. Text is colored and a tag is added
 		on the left to identify the originating process.
 		"""
-		# Remove any ansi escape sequences since we are just outputting
-		# text to stdout. This defends against EDK2's agregious use of
-		# screen clearing. But it does have the side effect that
-		# legitimate shell usage can get a bit wonky.
-		data = _ansi_escape.sub('', data)
-		if len(data) == 0:
-			return
-
 		id = proc.data[0].id
 		tag = proc.data[0].tag
 		color = proc.data[0].color
+		noesc = proc.data[0].noesc
+		escbuf = proc.data[0].escbuf
+
+		# Remove any ansi escape sequences if requested.
+		if noesc[0]:
+			if escbuf and escbuf.match(data):
+				noesc[0] = False
+			else:
+				data = _ansi_escape.sub('', data)
+				if len(data) == 0:
+					return
 
 		# Make the tag.
 		if len(tag) > self._tag_size:

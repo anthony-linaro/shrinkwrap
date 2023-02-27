@@ -129,6 +129,12 @@ def dispatch(args):
 		else:
 			return True
 
+	def _escape(terminal):
+		if 'no_escapes' in terminal:
+			return terminal['no_escapes']
+		else:
+			return False
+
 	def _find_term_ports(pm, proc, data, streamid):
 		"""
 		Initial handler function called by ProcessManager. When the fvp
@@ -164,18 +170,19 @@ def dispatch(args):
 				type = t['type']
 				port = t["port"]
 				colorize = _colorize(args.no_color, t)
+				escape = _escape(t)
 
 				if type in ['stdout']:
 					cmd = f'nc localhost {port}'
 					pm.add(process.Process(cmd,
 						False,
-						(log.alloc_data(name, colorize), k),
+						(log.alloc_data(name, colorize, escape), k),
 						False))
 				if type in ['stdinout']:
 					cmd = f'telnet localhost {port}'
 					pm.add(process.Process(cmd,
 						True,
-						(log.alloc_data(name, colorize), k),
+						(log.alloc_data(name, colorize, escape), k),
 						False))
 					t['strip'] = True
 					strip = True
