@@ -36,5 +36,5 @@ run:
 
   terminals:
     bp.terminal_0:
-      friendly: linux
+      friendly: ''
       type: stdinout

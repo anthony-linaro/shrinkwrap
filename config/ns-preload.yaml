@@ -79,5 +79,5 @@ run:
 
   terminals:
     bp.terminal_0:
-      friendly: tfa+linux
+      friendly: ''
       type: stdinout

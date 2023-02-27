@@ -92,7 +92,7 @@ run:
 
   terminals:
     bp.terminal_0:
-      friendly: tfa+edk2+linux
+      friendly: ''
       type: stdinout
     bp.terminal_1:
       friendly: edk2
