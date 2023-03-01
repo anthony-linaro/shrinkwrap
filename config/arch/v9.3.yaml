@@ -19,4 +19,7 @@ run:
     -C cluster1.has_arm_v9-3: 1
     -C cluster0.has_brbe_v1p1: 1                                      # If true, implements FEAT_BRBEv1p1.
     -C cluster1.has_brbe_v1p1: 1
-    -C SVE.ScalableVectorExtension.has_sme2: 1                        # Whether SME2 is implemented (FEAT_SME2)
+
+    # Disable SME2 for now because TF-A hasn't merged support yet but the kernel
+    # support has been merged now and people are running into trouble.
+    # -C SVE.ScalableVectorExtension.has_sme2: 1                      # Whether SME2 is implemented (FEAT_SME2)
