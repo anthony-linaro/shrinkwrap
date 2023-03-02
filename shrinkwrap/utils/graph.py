@@ -113,7 +113,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 
 	queue = []
 	active = 0
-	log = logger.Logger(27, colorize)
+	log = logger.Logger(27)
 	ts = graphlib.TopologicalSorter(graph)
 
 	def _pump(pm):
@@ -127,7 +127,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 				       frag.config,
 				       frag.component,
 				       frag.summary + '...')
-			data = (log.alloc_data(str(frag)), [])
+			data = (log.alloc_data(str(frag), colorize), [])
 			_run_script(pm, data, frag)
 			active += 1
 

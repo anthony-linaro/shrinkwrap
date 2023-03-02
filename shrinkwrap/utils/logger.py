@@ -6,9 +6,28 @@ from collections import namedtuple
 import re
 termcolor = None
 
+
+def _import_termcolor():
+	global termcolor
+	import termcolor as tc
+	termcolor = tc
+
+
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _colors = ['blue', 'cyan', 'green', 'yellow', 'magenta']
-Data = namedtuple("Data", "tag color")
+Data = namedtuple("Data", "id tag color noesc escbuf")
+
+
+class MatchBuf:
+	def __init__(self, match):
+		self._match = match
+		self._buf = ''
+
+	def match(self, data):
+		self._buf += data
+		found = self._buf.find(self._match) >= 0
+		self._buf = self._buf[1 - len(self._match):]
+		return found
 
 
 def splitlines(string):
@@ -23,29 +42,38 @@ def splitlines(string):
 
 
 class Logger:
-	def __init__(self, tag_size, colorize):
+	def __init__(self, tag_size):
 		self._tag_size = tag_size
-		self._colorize = colorize
+		self._id_next = 0
 		self._color_next = 0
-		self._prev_tag = None
+		self._prev_id = None
 		self._prev_char = '\n'
 
-		if self._colorize:
-			global termcolor
-			import termcolor as tc
-			termcolor = tc
-
-	def alloc_data(self, tag):
+	def alloc_data(self, tag, colorize, no_escapes=False):
 		"""
 		Returns the object that should be stashed in proc.data[0] when
 		log() is called. Includes the tag for the process and an
 		allocated colour.
 		"""
-		idx = self._color_next
-		self._color_next += 1
-		self._color_next %= len(_colors)
-		color = _colors[idx]
-		return Data(tag, color)
+		if colorize:
+			_import_termcolor()
+			color = self._color_next
+			self._color_next += 1
+			color = _colors[color % len(_colors)]
+		else:
+			color = None
+
+		id = self._id_next
+		self._id_next += 1
+
+		if type(no_escapes) == str:
+			noesc = True
+			escbuf = MatchBuf(no_escapes)
+		else:
+			noesc = no_escapes
+			escbuf = None
+
+		return Data(id, tag, color, [noesc], escbuf)
 
 	def log(self, pm, proc, data, streamid):
 		"""
@@ -53,21 +81,26 @@ class Logger:
 		terminals) to the terminal. Text is colored and a tag is added
 		on the left to identify the originating process.
 		"""
-		# Remove any ansi escape sequences since we are just outputting
-		# text to stdout. This defends against EDK2's agregious use of
-		# screen clearing. But it does have the side effect that
-		# legitimate shell usage can get a bit wonky.
-		data = _ansi_escape.sub('', data)
-		if len(data) == 0:
-			return
-
+		id = proc.data[0].id
 		tag = proc.data[0].tag
 		color = proc.data[0].color
+		noesc = proc.data[0].noesc
+		escbuf = proc.data[0].escbuf
+
+		# Remove any ansi escape sequences if requested.
+		if noesc[0]:
+			if escbuf and escbuf.match(data):
+				noesc[0] = False
+			else:
+				data = _ansi_escape.sub('', data)
+				if len(data) == 0:
+					return
 
 		# Make the tag.
 		if len(tag) > self._tag_size:
 			tag = tag[:self._tag_size-3] + '...'
-		tag = f'{{:>{self._tag_size}}}'.format(tag)
+		if len(tag):
+			tag = f'{{:>{self._tag_size}}}'.format(tag)
 
 		lines = splitlines(data)
 		start = 0
@@ -78,7 +111,7 @@ class Logger:
 		# the first part of the line has a different owner, insert a
 		# newline and add a tag for the new owner.
 		if self._prev_char != '\n':
-			if self._prev_tag == tag:
+			if self._prev_id == id:
 				self.print(lines[0], tag, True, color, end='')
 				start = 1
 			else:
@@ -87,14 +120,15 @@ class Logger:
 		for line in lines[start:]:
 			self.print(line, tag, False, color, end='')
 
-		self._prev_tag = tag
+		self._prev_id = id
 		self._prev_char = lines[-1][-1]
 
 		sys.stdout.flush()
 
 	def print(self, text, tag, cont, color=None, on_color=None, attrs=None, **kwargs):
 		# Ensure that any '\r's only rewind to the end of the tag.
-		tag = f'[ {tag} ] '
+		if len(tag):
+			tag = f'[ {tag} ] '
 		text = text.replace('\r', f'\r{tag}')
 
 		if not cont:
@@ -103,6 +137,6 @@ class Logger:
 		self._print(text, color, on_color, attrs, **kwargs)
 
 	def _print(self, text, color=None, on_color=None, attrs=None, **kwargs):
-		if self._colorize:
+		if color:
 			text = termcolor.colored(text, color, on_color, attrs)
 		print(text, **kwargs)

@@ -114,8 +114,9 @@ run:
 
   terminals:
     bp.terminal_0:
-      friendly: tfa+linux
+      friendly: ''
       type: stdinout
+      no_color: true
 
     bp.terminal_1:
       friendly: tfa-rt
