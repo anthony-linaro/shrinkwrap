@@ -35,6 +35,9 @@ build:
       ENABLE_SME_FOR_SWD: 0
       ENABLE_FEAT_HCX: 0
 
+      # MTE is not supported by RMM yet.
+      CTX_INCLUDE_MTE_REGS: 0
+
   linux:
     repo:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
@@ -111,6 +114,9 @@ run:
     # SME is not supported concurrently with CCA yet.
     -C SVE.ScalableVectorExtension.has_sme: 0
 
+    # MTE is not supported by RMM yet.
+    -C cluster0.memory_tagging_support_level: 0
+    -C cluster1.memory_tagging_support_level: 0
 
   terminals:
     bp.terminal_0:
