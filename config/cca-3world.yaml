@@ -118,6 +118,11 @@ run:
     -C cluster0.memory_tagging_support_level: 0
     -C cluster1.memory_tagging_support_level: 0
 
+    # CCA-specific SMMU settings.
+    -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0: 3
+    -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 0x43B
+    -C pci.pci_smmuv3.mmu.root_register_page_offset: 0x20000
+
   terminals:
     bp.terminal_0:
       friendly: ''

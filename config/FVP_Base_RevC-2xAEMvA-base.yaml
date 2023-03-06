@@ -69,9 +69,6 @@ run:
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR1: 0xA0000002
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR2: 0
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
-    -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0: 3
-    -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 0x43B
-    -C pci.pci_smmuv3.mmu.root_register_page_offset: 0x20000
 
   terminals:
     bp.terminal_0:
