@@ -1,0 +1,37 @@
+# Copyright (c) 2024, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  This provides the baseline for OPTEE 64-bit build.
+
+build:
+  optee:
+    repo:
+      remote: https://github.com/OP-TEE/optee_os.git
+      revision: 4.2.0
+
+    toolchain: aarch64-linux-gnu-
+
+    params:
+      CFG_ARM_GICV3: y
+      CFG_ARM64_core: y
+      CFG_CALLOUT: y
+      CFG_CORE_HEAP_SIZE: 131072
+      CFG_DEBUG_INFO: y
+      CFG_NOTIF_TEST_WD: y
+      CFG_TEE_CORE_LOG_LEVEL: 2
+      CFG_USER_TA_TARGETS: ta_arm64
+      CROSS_COMPILE: aarch64-linux-gnu-
+      CROSS_COMPILE_core: aarch64-linux-gnu-
+      CROSS_COMPILE_ta_arm64: aarch64-linux-gnu-
+      DEBUG: 0
+      PLATFORM: vexpress-fvp
+    build:
+      - make O=${param:builddir} ${param:join_equal} all
+
+    artifacts:
+      OPTEE_HDR_BIN: ${param:builddir}/core/tee-header_v2.bin
+      OPTEE_PAGER_BIN: ${param:builddir}/core/tee-pager_v2.bin
+      OPTEE_PAGEABLE_BIN: ${param:builddir}/core/tee-pageable_v2.bin
