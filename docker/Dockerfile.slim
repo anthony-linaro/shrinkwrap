@@ -60,6 +60,58 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 RUN pip3 install \
 		fdt
 
+# Install packages requried by OPTEE.
+# From https://optee.readthedocs.io/en/latest/building/prerequisites.html
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		adb \
+		acpica-tools \
+		autoconf \
+		automake \
+		bc \
+		bison \
+		build-essential \
+		ccache \
+		cscope \
+		curl \
+		device-tree-compiler \
+		e2tools \
+		expect \
+		fastboot \
+		flex \
+		ftp-upload \
+		gdisk \
+		libattr1-dev \
+		libcap-dev \
+		libfdt-dev \
+		libftdi-dev \
+		libglib2.0-dev \
+		libgmp3-dev \
+		libhidapi-dev \
+		libmpc-dev \
+		libncurses5-dev \
+		libpixman-1-dev \
+		libslirp-dev \
+		libssl-dev \
+		libtool \
+		libusb-1.0-0-dev \
+		make \
+		mtools \
+		netcat \
+		ninja-build \
+		python3-cryptography \
+		python3-pip \
+		python3-pyelftools \
+		python3-serial \
+		python-is-python3 \
+		rsync \
+		swig \
+		unzip \
+		uuid-dev \
+		xdg-utils \
+		xterm \
+		xz-utils \
+		zlib1g-dev
+
 # Install packages requried by EDK2.
 # From https://developer.arm.com/documentation/102571/0100/Build-firmware-on-a-Linux-host.
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
