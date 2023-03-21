@@ -29,6 +29,7 @@ build:
     prebuild:
       - export BUILD_KMODULES=false
       - export BUILD_KSELFTESTS=false
+      - export KBUILD_BUILD_HOST="shrinkwrap"
       - export ARCH=arm64
       - make -j${param:jobs} O=${param:builddir} defconfig
 
