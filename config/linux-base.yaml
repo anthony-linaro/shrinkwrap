@@ -33,6 +33,11 @@ build:
       - export ARCH=arm64
       - make -j${param:jobs} O=${param:builddir} defconfig
 
+      # Unconditionally add the virtio-rng driver so we can use the device on
+      # FVP to speed up CRNG init.
+      - ./scripts/config --file ${param:builddir}/.config --enable CONFIG_HW_RANDOM
+      - ./scripts/config --file ${param:builddir}/.config --enable CONFIG_HW_RANDOM_VIRTIO
+
     build:
       # Finalize the config.
       - make -j${param:jobs} O=${param:builddir} olddefconfig
