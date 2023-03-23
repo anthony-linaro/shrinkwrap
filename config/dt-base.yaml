@@ -55,6 +55,49 @@ build:
       -   ( dtc -q -O dts -I dtb $${DTB_INTER} ; echo -e "/ { chosen { $${CHOSEN} }; };" ) | dtc -q -O dtb -o $${DTB_FINAL}
       - fi
 
+      # When using the default fvp-base-revc.dts, an overlay is added which adds
+      # extra properties that TFA requires. This allows embedding this DT
+      # directly in the FIP rather than having TFA use its own DT then inject
+      # this at a higher level. It's also not always possible to inject the DT
+      # at a higher level anyway, due to TFA constraints. Included in the
+      # overlay: a 64MB carve-out is reserved at the end of the first memory
+      # bank, which is used by tfa and (if present) the rmm, timer frequency,
+      # some extra psci properties, and cpu-map to map the cores to clusters.
+      - if [ "$${DTS}" = "fvp-base-revc.dts" ]; then
+      - >-
+          OVERLAY="/ {
+            reserved-memory {
+              fw: fw@7C000000 {
+                reg = <0x00000000 0xFC000000 0 0x04000000>;
+                no-map;
+              };
+            };
+            timer {
+              clock-frequency = <100000000>;
+            };
+            psci {
+              compatible = \"arm,psci-1.0\", \"arm,psci-0.2\";
+              max-pwr-lvl = <2>;
+            };
+            cpus {
+              cpu-map {
+                cluster0 {
+                  core0 { cpu = <&{/cpus/cpu@0}>; };
+                  core1 { cpu = <&{/cpus/cpu@100}>; };
+                  core2 { cpu = <&{/cpus/cpu@200}>; };
+                  core3 { cpu = <&{/cpus/cpu@300}>; };
+                };
+                cluster1 {
+                  core0 { cpu = <&{/cpus/cpu@10000}>; };
+                  core1 { cpu = <&{/cpus/cpu@10100}>; };
+                  core2 { cpu = <&{/cpus/cpu@10200}>; };
+                  core3 { cpu = <&{/cpus/cpu@10300}>; };
+                };
+              };
+            };
+          };"
+      -   ( dtc -q -O dts -I dtb $${DTB_FINAL} ; echo -e "$${OVERLAY}" ) | dtc -q -O dtb -o $${DTB_FINAL}
+      - fi
     clean:
       - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} clean
 

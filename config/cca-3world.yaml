@@ -16,6 +16,7 @@ concrete: true
 layers:
   - tfa-base.yaml
   - rmm-base.yaml
+  - dt-base.yaml
   - linux-base.yaml
   - kvmtool-base.yaml
   - FVP_Base_RevC-2xAEMvA-base.yaml
@@ -29,6 +30,7 @@ build:
       CTX_INCLUDE_EL2_REGS: 1
       ARM_LINUX_KERNEL_AS_BL33: 1
       PRELOADED_BL33_BASE: 0x84000000
+      FVP_HW_CONFIG: ${artifact:DTB}
 
       # SME is not supported concurrently with CCA yet.
       ENABLE_SME_FOR_NS: 0
@@ -37,6 +39,17 @@ build:
 
       # MTE is not supported by RMM yet.
       CTX_INCLUDE_MTE_REGS: 0
+
+  dt:
+    params:
+      # Current RMM version (0.2.0) can only handle first bank of DRAM. This
+      # should be fixed in the nect release. But for now, limit the amount of
+      # DRAM Linux sees so that it only delegates DRAM in the first bank.
+      mem: 1G
+      console: ttyAMA0
+      earlycon: pl011,0x1c090000
+      root: /dev/vda
+      ip: dhcp
 
   linux:
     repo:
