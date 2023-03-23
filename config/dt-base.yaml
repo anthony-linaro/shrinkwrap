@@ -63,6 +63,9 @@ build:
       # overlay: a 64MB carve-out is reserved at the end of the first memory
       # bank, which is used by tfa and (if present) the rmm, timer frequency,
       # some extra psci properties, and cpu-map to map the cores to clusters.
+      # By default the virtio-rng is disabled (because it was not present in
+      # older builds of the rev C FVP), so enable it here, so Linux can use it
+      # to initialize its RNG and speed up boot.
       - if [ "$${DTS}" = "fvp-base-revc.dts" ]; then
       - >-
           OVERLAY="/ {
@@ -92,6 +95,15 @@ build:
                   core1 { cpu = <&{/cpus/cpu@10100}>; };
                   core2 { cpu = <&{/cpus/cpu@10200}>; };
                   core3 { cpu = <&{/cpus/cpu@10300}>; };
+                };
+              };
+            };
+            bus@8000000 {
+              motherboard-bus@8000000 {
+                iofpga-bus@300000000 {
+                  virtio@200000 {
+                    status = \"okay\";
+                  };
                 };
               };
             };

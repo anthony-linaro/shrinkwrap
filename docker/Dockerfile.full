@@ -29,3 +29,30 @@ RUN cd /tools \
 	&& cd -
 ENV TCH_PATH_AARCH32="/tools/${TCH_PATH_AARCH32}"
 ENV PATH="${TCH_PATH_AARCH32}:${PATH}"
+
+# Install packages required to compile Linux kselftests. We install the target
+# versions for cross-compiling, and the native versions for good measure.
+RUN dpkg --add-architecture arm64 \
+	&& apt-get update
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		libcap-dev \
+		libcap-ng-dev \
+		libelf-dev \
+		libfuse-dev \
+		libmnl-dev \
+		libnuma-dev \
+		libpopt-dev \
+		libasound-dev \
+		liburing-dev \
+		libz-dev
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		libcap-dev:arm64 \
+		libcap-ng-dev:arm64 \
+		libelf-dev:arm64 \
+		libfuse-dev:arm64 \
+		libmnl-dev:arm64 \
+		libnuma-dev:arm64 \
+		libpopt-dev:arm64 \
+		libasound-dev:arm64 \
+		liburing-dev:arm64 \
+		libz-dev:arm64

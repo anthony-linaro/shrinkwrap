@@ -70,6 +70,10 @@ run:
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR2: 0
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
 
+    # Enable virtio-rng. If Linux/DT is correctly configured, it can use this to
+    # speed up RNG init.
+    -C bp.virtio_rng.enabled: 1
+
   terminals:
     bp.terminal_0:
       friendly: term0
