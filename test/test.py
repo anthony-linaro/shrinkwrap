@@ -21,8 +21,7 @@ ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
 
 CONFIGS = [
 	'ns-preload.yaml',
-	'ns-edk2-acpi.yaml',
-	'ns-edk2-dt.yaml',
+	'ns-edk2.yaml',
 ]
 
 
