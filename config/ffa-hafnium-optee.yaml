@@ -1,0 +1,52 @@
+# Copyright (c) 2023, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Brings together a software stack to demonstrate Arm FF-A running on FVP.
+  Includes TF-A in secure EL3 running SPMD(Secure Partition Manager
+  Dispatcher), Hafnium as secure Hypervisor at secure EL2 running SPMC
+  (Secure Partition Manager Core) and OPTEE as a secure partition/VM
+  in secure EL1 and Linux in Normal world.
+
+concrete: true
+
+layers:
+  - ns-edk2.yaml
+  - hafnium-base.yaml
+  - optee-base.yaml
+  - arch/v8.5.yaml
+
+build:
+  optee:
+    params:
+      CFG_CORE_SEL2_SPMC: y
+      CFG_CORE_ASYNC_NOTIF: y
+      CFG_CORE_HAFNIUM_INTC: y
+      CFG_ARM_GICV3: n
+      CFG_CORE_WORKAROUND_NSITR_CACHE_PRIME: n
+
+  tfa:
+    repo:
+      # Temporary until we move tfa-base.yaml to release version with this
+      revision: a169b8fbc2b184f2a38e7c6ee29371407b15c634
+    prebuild:
+    - cat <<EOF > ${param:builddir}/sp_layout.json
+    - "{"
+    -   "\"op-tee\" : {"
+    -     "\"image\" : \"${artifact:OPTEE_PAGER_BIN}\","
+    -     "\"pm\" : \"${param:sourcedir}/plat/arm/board/fvp/fdts/optee_sp_manifest.dts\""
+    -   "}"
+    - "}"
+    - EOF
+    params:
+      # This DEPENDS_ON_PARAM is not used by TF-A but just to ensure OPTEE is
+      # built before TF-A though it is not used by TF-A directly but
+      # indirectly via SP_LAYOUT_FILE
+      DEPENDS_ON_PARAM: ${artifact:OPTEE_PAGER_BIN}
+      ARM_SPMC_MANIFEST_DTS: ${param:sourcedir}/plat/arm/board/fvp/fdts/fvp_spmc_optee_sp_manifest.dts
+      SP_LAYOUT_FILE: ${param:builddir}/sp_layout.json
+      BL32: ${artifact:HAFNIUM}
+      SPMD_SPM_AT_SEL2: 1
+      SPD: spmd
