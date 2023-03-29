@@ -20,8 +20,9 @@ ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
 
 
 CONFIGS = [
-	'ns-preload.yaml',
-	'ns-edk2.yaml',
+	('ns-preload.yaml', {}),
+	('ns-edk2.yaml', {}),
+	('ns-edk2.yaml', {'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'}),
 ]
 
 
@@ -146,10 +147,15 @@ def run_config(config, overlay=None, runargs=None, runtime=120):
 	results.append(result)
 
 
-def run_config_kern(config, kernel, rootfs, overlay=None, runtime=120):
+def run_config_kern(config, kernel, rootfs, overlay=None, runtime=120, rtvars={}):
 	kernel = f'-r KERNEL={kernel}'
 	rootfs = f'-r ROOTFS={rootfs}'
-	run_config(config, overlay, f'{kernel} {rootfs}', runtime)
+
+	rtcmds = ''
+	for k, v in rtvars.items():
+		rtcmds += f'-r {k}={v}'
+
+	run_config(config, overlay, f'{kernel} {rootfs} {rtcmds}', runtime)
 
 
 def run_config_bootwrap(config, bootwrap, rootfs, overlay=None, runtime=120):
@@ -162,9 +168,9 @@ def do_main(smoke_test):
 	arches = [ARCHES[-1]] if smoke_test else ARCHES
 
 	for arch in arches:
-		build_configs(CONFIGS, arch)
-		for config in CONFIGS:
-			run_config_kern(config, KERNEL, ROOTFS, arch)
+		build_configs([c for c, r in CONFIGS], arch)
+		for config, rtvars in CONFIGS:
+			run_config_kern(config, KERNEL, ROOTFS, arch, rtvars=rtvars)
 
 	for arch in arches:
 		build_configs(['bootwrapper.yaml'], arch)
