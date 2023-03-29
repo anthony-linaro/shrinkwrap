@@ -1,0 +1,31 @@
+# Copyright (c) 2023, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  The Trusted Firmware-A Tests (TF-A-Tests) is a suite of baremetal tests that
+  exercise the Trusted Firmware-A (TF-A) features. This provides a baseline
+  configuration that can be customized by higher layers.
+
+build:
+  tftf:
+    repo:
+      remote: https://git.trustedfirmware.org/TF-A/tf-a-tests.git
+      revision: v2.8
+
+    toolchain: aarch64-none-elf-
+
+    params:
+      PLAT: fvp
+
+    build:
+      # TODO: tfa-tests has makefile dependency bug that prevents parallel make (-j > 1).
+      - make BUILD_BASE=${param:builddir} ${param:join_equal} all pack_realm
+
+    clean:
+      - make BUILD_BASE=${param:builddir} realclean
+
+    artifacts:
+      SP_LAYOUT: ${param:builddir}/fvp/release/sp_layout.json
+

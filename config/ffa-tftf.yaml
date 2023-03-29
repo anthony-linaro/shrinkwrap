@@ -1,0 +1,27 @@
+# Copyright (c) 2023, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Brings together a software stack to demonstrate Arm FF-A running on FVP.
+  Includes TF-A in secure EL3, Hafnium in secure EL2 and some demo TF-A
+  test secure partitions.
+
+concrete: true
+
+layers:
+  - ns-edk2.yaml
+  - hafnium-base.yaml
+  - tftf-base.yaml
+  - arch/v8.5.yaml
+
+build:
+  tfa:
+    params:
+      BL33: ${artifact:EDK2}
+      SPD: spmd
+      SPMD_SPM_AT_SEL2: 1
+      CTX_INCLUDE_EL2_REGS: 1
+      SP_LAYOUT_FILE: ${artifact:SP_LAYOUT}
+      BL32: ${artifact:HAFNIUM}

@@ -17,6 +17,8 @@ concrete: true
 layers:
   - cca-3world.yaml
   - hafnium-base.yaml
+  # Provides secure partitions that run under Hafnium for demonstration.
+  - tftf-base.yaml
 
 build:
   tfa:
@@ -25,28 +27,6 @@ build:
       SPMD_SPM_AT_SEL2: 1
       SP_LAYOUT_FILE: ${artifact:SP_LAYOUT}
       BL32: ${artifact:HAFNIUM}
-
-  # Provides secure partitions that run under Hafnium for demonstration.
-  tfa-tests:
-    repo:
-      remote: https://git.trustedfirmware.org/TF-A/tf-a-tests.git
-      revision: v2.8
-
-    toolchain: aarch64-none-elf-
-
-    params:
-      PLAT: fvp
-      DEBUG: 1
-
-    build:
-      # TODO: tfa-tests has makefile dependency bug that prevents parallel make (-j > 1).
-      - make BUILD_BASE=${param:builddir} ${param:join_equal} all pack_realm
-
-    clean:
-      - make BUILD_BASE=${param:builddir} realclean
-
-    artifacts:
-      SP_LAYOUT: ${param:builddir}/fvp/debug/sp_layout.json
 
 run:
   terminals:
