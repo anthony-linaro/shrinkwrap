@@ -106,13 +106,13 @@ sensible/common optional features.
 The yaml files are in the ``arch`` subdirectory of the config store. (You can
 see them by running the ``inspect`` command with the ``--all`` option).
 
-The below will build the ``ns-edk2-acpi`` config for Armv8.8 and run it on the
-FVP configured for the same revision.
+The below will build the ``ns-edk2`` config for Armv8.8 and run it on the FVP
+configured for the same revision.
 
 .. code-block:: shell
 
-  shrinkwrap build ns-edk2-acpi.yaml --overlay=arch/v8.8.yaml
-  shrinkwrap run ns-edk2-acpi.yaml --rtvar=KERNEL=path/to/Image
+  shrinkwrap build ns-edk2.yaml --overlay=arch/v8.8.yaml
+  shrinkwrap run ns-edk2.yaml --rtvar=KERNEL=path/to/Image
 
 .. warning::
 
@@ -136,20 +136,20 @@ Clean an entire config (all components in config):
 
 .. code-block:: shell
 
-  shrinkwrap clean ns-edk2-dt.yaml
+  shrinkwrap clean ns-edk2.yaml
 
 Clean a specific set of components from a config (in this case, clean the tfa
 and dt components):
 
 .. code-block:: shell
 
-  shrinkwrap clean ns-edk2-dt.yaml --filter=tfa --filter=dt
+  shrinkwrap clean ns-edk2.yaml --filter=tfa --filter=dt
 
 Then rebuild the config and the cleaned components are rebuilt from scratch:
 
 .. code-block:: shell
 
-  shrinkwrap build ns-edk2-dt.yaml
+  shrinkwrap build ns-edk2.yaml
 
 ******************************************************
 Workaround for TF-A not Noticing Modified Build Params
@@ -166,9 +166,9 @@ revisions:
 
 .. code-block:: shell
 
-  shrinkwrap build ns-edk2-dt.yaml --overlay=arch/v8.7.yaml
-  shrinkwrap clean ns-edk2-dt.yaml --filter=tfa
-  shrinkwrap build ns-edk2-dt.yaml --overlay=arch/v9.3.yaml
+  shrinkwrap build ns-edk2.yaml --overlay=arch/v8.7.yaml
+  shrinkwrap clean ns-edk2.yaml --filter=tfa
+  shrinkwrap build ns-edk2.yaml --overlay=arch/v9.3.yaml
 
 ************************
 Use a Custom FVP Version
@@ -190,8 +190,8 @@ the PATH.
   wget -q -O FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz https://developer.arm.com/-/media/Files/downloads/ecosystem-models/FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz
   tar xf FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz
   export PATH=$PWD/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3:$PWD/Base_RevC_AEMvA_pkg/plugins/Linux64_GCC-9.3:$PATH
-  shrinkwrap build ns-edk2-dt.yaml
-  shrinkwrap --runtime=null run ns-edk2-dt.yaml --rtvar=KERNEL=path/to/Image
+  shrinkwrap build ns-edk2.yaml
+  shrinkwrap --runtime=null run ns-edk2.yaml --rtvar=KERNEL=path/to/Image
 
 ******************************
 Use an Alternative Device Tree
@@ -230,6 +230,18 @@ has a different IP address to the host system. Shrinkwrap helpfully prints out
 the runtime environment's IP address when starting the FVP. This is the IP
 address you need to use to (e.g.) connect the debugger or to SSH into the hosted
 Linux system.
+
+********************
+Boot Linux with ACPI
+********************
+
+``ns-edk2.yaml`` uses EDK2 to boot Linux, and defaults to using the Device Tree.
+You can change the behaviour to boot with ACPI by passing ``acpi=force`` on the
+comand line:
+
+.. code-block:: shell
+
+  shrinkwrap run ns-edk2.yaml --rtvar=KERNEL=path/to/Image --rtvar=CMDLINE="console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force"
 
 ******************************************
 Example Linux Feature Development Use Case
