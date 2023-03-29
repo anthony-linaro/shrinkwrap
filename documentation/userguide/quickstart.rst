@@ -148,15 +148,84 @@ concrete config. You can view non-concrete fragments by providing extra args).
 
   --------------------------------------------------------------------------------
 
-  name:                ns-edk2-acpi.yaml
+  name:                cca-3world.yaml
+
+  description:         Brings together a software stack to demonstrate Arm CCA
+                       running on FVP in a three-world configuration. Includes
+                       TF-A in root world, RMM in realm world, and Linux in Normal
+                       world.
+
+                       In order to launch realm VMs, the user must bring their own
+                       rootfs that contains a realm-aware kvmtool and an RSI-aware
+                       guest kernel image.
+
+  concrete:            True
+
+  run-time variables:  LOCAL_NET_PORT:         8022
+                       BL1:                    ${artifact:BL1}
+                       FIP:                    ${artifact:FIP}
+                       KERNEL:                 ${artifact:KERNEL}
+                       ROOTFS:
+
+  --------------------------------------------------------------------------------
+
+  name:                cca-4world.yaml
+
+  description:         Brings together a software stack to demonstrate Arm CCA
+                       running on FVP in a four-world configuration. Includes TF-A
+                       in root world, Hafnium and some demo secure partitions in
+                       secure world, RMM in realm world, and Linux in Normal
+                       world.
+
+                       In order to launch realm VMs, the user must bring their own
+                       rootfs that contains a realm-aware kvmtool and an RSI-aware
+                       guest kernel image.
+
+  concrete:            True
+
+  run-time variables:  LOCAL_NET_PORT:         8022
+                       BL1:                    ${artifact:BL1}
+                       FIP:                    ${artifact:FIP}
+                       KERNEL:                 ${artifact:KERNEL}
+                       ROOTFS:
+
+  --------------------------------------------------------------------------------
+
+  name:                ffa-tftf.yaml
+
+  description:         Brings together a software stack to demonstrate Arm FF-A
+                       running on FVP. Includes TF-A in secure EL3, Hafnium in
+                       secure EL2 and some demo TF-A test secure partitions.
+
+  concrete:            True
+
+  run-time variables:  LOCAL_NET_PORT:         8022
+                       BL1:                    ${artifact:BL1}
+                       FIP:                    ${artifact:FIP}
+                       DTB:                    ${artifact:DTB}
+                       CMDLINE:                console=ttyAMA0
+                                               earlycon=pl011,0x1c090000
+                                               root=/dev/vda ip=dhcp
+                       KERNEL:                 None
+                       ROOTFS:
+                       EDK2FLASH:              ${artifact:EDK2FLASH}
+
+  --------------------------------------------------------------------------------
+
+  name:                ns-edk2.yaml
 
   description:         Best choice for: I want to run Linux on FVP, booting with
-                       ACPI, and have easy control over its command line.
+                       ACPI/DT, and have easy control over its command line.
 
                        Brings together TF-A and EDK2 to provide a simple non-
                        secure world environment running on FVP. Allows easy
                        specification of the kernel image and command line, and
                        rootfs at runtime (see rtvars). ACPI is provided by UEFI.
+
+                       An extra rtvar is added (DTB) which allows specification of
+                       a custom device tree. By default (if not overriding the
+                       rtvar), the upstream kernel device tree is used. DT is
+                       enabled by default. Use 'acpi=force' to enable ACPI boot.
 
                        By default (if not overriding the rtvars) a sensible
                        command line is used that will set up the console for
@@ -182,40 +251,13 @@ concrete config. You can view non-concrete fragments by providing extra args).
   run-time variables:  LOCAL_NET_PORT:         8022
                        BL1:                    ${artifact:BL1}
                        FIP:                    ${artifact:FIP}
-                       CMDLINE:                console=ttyAMA0
-                                               earlycon=pl011,0x1c090000
-                                               root=/dev/vda ip=dhcp
-                       KERNEL:                 None
-                       ROOTFS:
-                       EDK2FLASH:              ${artifact:EDK2FLASH}
-
-  --------------------------------------------------------------------------------
-
-  name:                ns-edk2-dt.yaml
-
-  description:         Best choice for: I want to run Linux on FVP, booting with
-                       device tree, and have easy control over its command line.
-
-                       Builds on ns-edk2-acpi.yaml, but adds a device tree that is
-                       passed to the kernel to use instead of ACPI. See the
-                       description in that file for details.
-
-                       An extra rtvar is added (DTB) which allows specification of
-                       a custom device tree. By default (if not overriding the
-                       rtvar), the upstream kernel device tree is used.
-
-  concrete:            True
-
-  run-time variables:  LOCAL_NET_PORT:         8022
-                       BL1:                    ${artifact:BL1}
-                       FIP:                    ${artifact:FIP}
-                       CMDLINE:                console=ttyAMA0
-                                               earlycon=pl011,0x1c090000
-                                               root=/dev/vda ip=dhcp
-                       KERNEL:                 None
-                       ROOTFS:
-                       EDK2FLASH:              ${artifact:EDK2FLASH}
                        DTB:                    ${artifact:DTB}
+                       CMDLINE:                console=ttyAMA0
+                                               earlycon=pl011,0x1c090000
+                                               root=/dev/vda ip=dhcp
+                       KERNEL:                 None
+                       ROOTFS:
+                       EDK2FLASH:              ${artifact:EDK2FLASH}
 
   --------------------------------------------------------------------------------
 
@@ -257,13 +299,14 @@ concrete config. You can view non-concrete fragments by providing extra args).
   </details>
   </p>
 
-Now build the ``ns-edk2-dt.yaml`` config. This is the simplest config that
-allows booting a kernel on FVP. (optionally add ``--verbose`` to see all the
-output from the component build systems).
+Now build the ``ns-edk2.yaml`` config. This allows booting a kernel on FVP,
+using edk2 as the bootloader (it uses DT by default, but can be made to use ACPI
+by passing ``acpi=false`` at runtime). (optionally add ``--verbose`` to see all
+the output from the component build systems).
 
 .. code-block:: shell
 
-  shrinkwrap build --overlay=arch/v9.3.yaml ns-edk2-dt.yaml
+  shrinkwrap build --overlay=arch/v9.3.yaml ns-edk2.yaml
 
 This will sync all the required repos, build the components and package the
 artifacts.
@@ -273,7 +316,7 @@ run:
 
 .. code-block:: shell
 
-  shrinkwrap build --overlay=arch/v9.3.yaml --dry-run ns-edk2-dt.yaml
+  shrinkwrap build --overlay=arch/v9.3.yaml --dry-run ns-edk2.yaml
 
 .. raw:: html
 
@@ -286,45 +329,45 @@ run:
   #!/bin/bash
   # SHRINKWRAP AUTOGENERATED SCRIPT.
 
-  # Exit on error and echo commands.
-  set -ex
+  # Exit on error.
+  set -e
 
   # Remove old package.
-  rm -rf <root>/package/ns-edk2-dt.yaml > /dev/null 2>&1 || true
-  rm -rf <root>/package/ns-edk2-dt > /dev/null 2>&1 || true
+  rm -rf /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2.yaml > /dev/null 2>&1 || true
+  rm -rf /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2 > /dev/null 2>&1 || true
 
   # Create directory structure.
-  mkdir -p <root>/build/source/ns-edk2-dt/dt
-  mkdir -p <root>/build/source/ns-edk2-dt/edk2
-  mkdir -p <root>/build/source/ns-edk2-dt/edk2flash
-  mkdir -p <root>/build/source/ns-edk2-dt/tfa
-  mkdir -p <root>/package/ns-edk2-dt
+  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/dt
+  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
+  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2flash
+  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/tfa
+  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2
 
-  # Sync git repo for config=ns-edk2-dt component=dt.
-  pushd <root>/build/source/ns-edk2-dt
+  # Sync git repo for config=ns-edk2 component=dt.
+  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2
   if [ ! -d "dt/.git" ] || [ -f "./.dt_sync" ]; then
   	rm -rf dt > /dev/null 2>&1 || true
   	mkdir -p .
   	touch ./.dt_sync
-  	git clone git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git dt
+  	git clone --quiet git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git dt
   	pushd dt
-  	git checkout --force v6.0-dts
-  	git submodule update --init --checkout --recursive --force
+  	git checkout --quiet --force v6.1-dts
+  	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm ./.dt_sync
   fi
   popd
 
-  # Sync git repo for config=ns-edk2-dt component=edk2.
-  pushd <root>/build/source/ns-edk2-dt
+  # Sync git repo for config=ns-edk2 component=edk2.
+  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2
   if [ ! -d "edk2/edk2/.git" ] || [ -f "edk2/.edk2_sync" ]; then
   	rm -rf edk2/edk2 > /dev/null 2>&1 || true
   	mkdir -p edk2
   	touch edk2/.edk2_sync
-  	git clone https://github.com/tianocore/edk2.git edk2/edk2
+  	git clone --quiet https://github.com/tianocore/edk2.git edk2/edk2
   	pushd edk2/edk2
-  	git checkout --force edk2-stable202208
-  	git submodule update --init --checkout --recursive --force
+  	git checkout --quiet --force edk2-stable202211
+  	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm edk2/.edk2_sync
   fi
@@ -332,10 +375,10 @@ run:
   	rm -rf edk2/edk2-platforms > /dev/null 2>&1 || true
   	mkdir -p edk2
   	touch edk2/.edk2-platforms_sync
-  	git clone https://github.com/tianocore/edk2-platforms.git edk2/edk2-platforms
+  	git clone --quiet https://github.com/tianocore/edk2-platforms.git edk2/edk2-platforms
   	pushd edk2/edk2-platforms
-  	git checkout --force ad00518399fc624688d434321693439062c39bde
-  	git submodule update --init --checkout --recursive --force
+  	git checkout --quiet --force 20e07099d8f11889d101dd710ca85001be20e179
+  	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm edk2/.edk2-platforms_sync
   fi
@@ -343,74 +386,132 @@ run:
   	rm -rf edk2/acpica > /dev/null 2>&1 || true
   	mkdir -p edk2
   	touch edk2/.acpica_sync
-  	git clone https://github.com/acpica/acpica.git edk2/acpica
+  	git clone --quiet https://github.com/acpica/acpica.git edk2/acpica
   	pushd edk2/acpica
-  	git checkout --force R03_31_22
-  	git submodule update --init --checkout --recursive --force
+  	git checkout --quiet --force R10_20_22
+  	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm edk2/.acpica_sync
   fi
   popd
 
 
-  # Sync git repo for config=ns-edk2-dt component=tfa.
-  pushd <root>/build/source/ns-edk2-dt
+  # Sync git repo for config=ns-edk2 component=tfa.
+  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2
   if [ ! -d "tfa/.git" ] || [ -f "./.tfa_sync" ]; then
   	rm -rf tfa > /dev/null 2>&1 || true
   	mkdir -p .
   	touch ./.tfa_sync
-  	git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git tfa
+  	git clone --quiet https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git tfa
   	pushd tfa
-  	git checkout --force v2.7.0
-  	git submodule update --init --checkout --recursive --force
+  	git checkout --quiet --force v2.8.0
+  	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm ./.tfa_sync
   fi
   popd
 
-  # Build for config=ns-edk2-dt component=dt.
+  # Build for config=ns-edk2 component=dt.
   export CROSS_COMPILE=aarch64-none-elf-
-  pushd <root>/build/source/ns-edk2-dt/dt
-  DTS_IN=<root>/build/source/ns-edk2-dt/dt/src/arm64/arm/fvp-base-revc.dts
-  DTS_OUT=<root>/build/source/ns-edk2-dt/dt/src/arm64/arm/fvp-base-revc_args.dts
-  if [ -z "" ]; then
-  cp $DTS_IN $DTS_OUT
-  else
-  ESC_PARAMS=$(printf '%s\n' "" | sed -e 's/[\/&]/\\&/g')
-  sed "s/chosen {.*};/chosen { bootargs = \"$ESC_PARAMS\"; };/g" $DTS_IN > $DTS_OUT
+  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/dt
+  DTS=fvp-base-revc.dts
+  INITRD_START=
+  INITRD_END=
+  DT_BASENAME=$(basename ${DTS} .dts)
+  DTB_INTER=src/arm64/arm/${DT_BASENAME}.dtb
+  DTB_FINAL=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/dt/dt_bootargs.dtb
+  make CPP=${CROSS_COMPILE}cpp -j28 ${DTB_INTER}
+  CHOSEN=
+  if [ ! -z "" ]; then
+  CHOSEN="${CHOSEN}bootargs = \"\";\n"
   fi
-  make CPP=${CROSS_COMPILE}cpp -j4 src/arm64/arm/fvp-base-revc_args.dtb
+  if [ ! -z "${INITRD_START}" ] && [ ! -z "${INITRD_END}" ]; then
+  INITRD_START_HI=$(((${INITRD_START} >> 32) & 0xffffffff))
+  INITRD_START_LO=$((${INITRD_START} & 0xffffffff))
+  INITRD_END_HI=$(((${INITRD_END} >> 32) & 0xffffffff))
+  INITRD_END_LO=$((${INITRD_END} & 0xffffffff))
+  CHOSEN="${CHOSEN}linux,initrd-start = <${INITRD_START_HI} ${INITRD_START_LO}>;\n"
+  CHOSEN="${CHOSEN}linux,initrd-end = <${INITRD_END_HI} ${INITRD_END_LO}>;\n"
+  fi
+  if [ -z "${CHOSEN}" ]; then
+  cp ${DTB_INTER} ${DTB_FINAL}
+  else
+  ( dtc -q -O dts -I dtb ${DTB_INTER} ; echo -e "/ { chosen { ${CHOSEN} }; };" ) | dtc -q -O dtb -o ${DTB_FINAL}
+  fi
+  if [ "${DTS}" = "fvp-base-revc.dts" ]; then
+  OVERLAY="/ {
+    reserved-memory {
+      fw: fw@7C000000 {
+        reg = <0x00000000 0xFC000000 0 0x04000000>;
+        no-map;
+      };
+    };
+    timer {
+      clock-frequency = <100000000>;
+    };
+    psci {
+      compatible = \"arm,psci-1.0\", \"arm,psci-0.2\";
+      max-pwr-lvl = <2>;
+    };
+    cpus {
+      cpu-map {
+        cluster0 {
+          core0 { cpu = <&{/cpus/cpu@0}>; };
+          core1 { cpu = <&{/cpus/cpu@100}>; };
+          core2 { cpu = <&{/cpus/cpu@200}>; };
+          core3 { cpu = <&{/cpus/cpu@300}>; };
+        };
+        cluster1 {
+          core0 { cpu = <&{/cpus/cpu@10000}>; };
+          core1 { cpu = <&{/cpus/cpu@10100}>; };
+          core2 { cpu = <&{/cpus/cpu@10200}>; };
+          core3 { cpu = <&{/cpus/cpu@10300}>; };
+        };
+      };
+    };
+    bus@8000000 {
+      motherboard-bus@8000000 {
+        iofpga-bus@300000000 {
+          virtio@200000 {
+            status = \"okay\";
+          };
+        };
+      };
+    };
+  };"
+  ( dtc -q -O dts -I dtb ${DTB_FINAL} ; echo -e "${OVERLAY}" ) | dtc -q -O dtb -o ${DTB_FINAL}
+  fi
   popd
 
-  # Build for config=ns-edk2-dt component=edk2.
+  # Build for config=ns-edk2 component=edk2.
   export CROSS_COMPILE=aarch64-none-elf-
-  pushd <root>/build/source/ns-edk2-dt/edk2
-  export WORKSPACE=<root>/build/source/ns-edk2-dt/edk2
+  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
+  export WORKSPACE=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
   export GCC5_AARCH64_PREFIX=$CROSS_COMPILE
   export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms
   export IASL_PREFIX=$WORKSPACE/acpica/generate/unix/bin/
   export PYTHON_COMMAND=/usr/bin/python3
-  make -j4 -C acpica
+  make -j28 -C acpica
   source edk2/edksetup.sh
-  make -j4 -C edk2/BaseTools
-  build -n 4 -D EDK2_OUT_DIR=<root>/build/build/ns-edk2-dt/edk2 -a AARCH64 -t GCC5 -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
+  make -j28 -C edk2/BaseTools
+  build -n 28 -D EDK2_OUT_DIR=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/edk2 -a AARCH64 -t GCC5 -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
   popd
 
 
-  # Build for config=ns-edk2-dt component=tfa.
+  # Build for config=ns-edk2 component=tfa.
   export CROSS_COMPILE=aarch64-none-elf-
-  pushd <root>/build/source/ns-edk2-dt/tfa
-  make BUILD_BASE=<root>/build/build/ns-edk2-dt/tfa PLAT=fvp DEBUG=0 LOG_LEVEL=40 ARM_DISABLE_TRUSTED_WDOG=1 FVP_HW_CONFIG_DTS=fdts/fvp-base-gicv3-psci-1t.dts BL33=<root>/build/build/ns-edk2-dt/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd ARM_ARCH_MINOR=5 ENABLE_SVE_FOR_NS=1 ENABLE_SVE_FOR_SWD=1 CTX_INCLUDE_PAUTH_REGS=1 BRANCH_PROTECTION=1 CTX_INCLUDE_MTE_REGS=1 ENABLE_FEAT_HCX=1 CTX_INCLUDE_AARCH32_REGS=0 ENABLE_SME_FOR_NS=1 ENABLE_SME_FOR_SWD=1 all fip
+  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/tfa
+  make BUILD_BASE=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa PLAT=fvp DEBUG=0 LOG_LEVEL=40 ARM_DISABLE_TRUSTED_WDOG=1 FVP_HW_CONFIG_DTS=fdts/fvp-base-gicv3-psci-1t.dts BL33=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd ARM_ARCH_MINOR=5 ENABLE_SVE_FOR_NS=1 ENABLE_SVE_FOR_SWD=1 CTX_INCLUDE_PAUTH_REGS=1 BRANCH_PROTECTION=1 CTX_INCLUDE_MTE_REGS=1 ENABLE_FEAT_HCX=1 CTX_INCLUDE_AARCH32_REGS=0 ENABLE_SME_FOR_NS=1 ENABLE_SME_FOR_SWD=1 all fip
   popd
 
-  # Copy artifacts for config=ns-edk2-dt.
-  cp <root>/build/source/ns-edk2-dt/dt/src/arm64/arm/fvp-base-revc_args.dtb <root>/package/ns-edk2-dt/fvp-base-revc_args.dtb
-  cp <root>/build/build/ns-edk2-dt/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd <root>/package/ns-edk2-dt/FVP_AARCH64_EFI.fd
-  cp ./shrinkwrap/config/edk2-flash.img <root>/package/ns-edk2-dt/edk2-flash.img
-  cp <root>/build/build/ns-edk2-dt/tfa/fvp/release/bl1.bin <root>/package/ns-edk2-dt/bl1.bin
-  cp <root>/build/build/ns-edk2-dt/tfa/fvp/release/bl2.bin <root>/package/ns-edk2-dt/bl2.bin
-  cp <root>/build/build/ns-edk2-dt/tfa/fvp/release/bl31.bin <root>/package/ns-edk2-dt/bl31.bin
-  cp <root>/build/build/ns-edk2-dt/tfa/fvp/release/fip.bin <root>/package/ns-edk2-dt/fip.bin
+  # Copy artifacts for config=ns-edk2.
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/dt/dt_bootargs.dtb /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/dt_bootargs.dtb
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/FVP_AARCH64_EFI.fd
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/shrinkwrap/config/edk2-flash.img /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/edk2-flash.img
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/bl1.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/bl1.bin
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/bl2.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/bl2.bin
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/bl31.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/bl31.bin
+  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/fip.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/fip.bin
 
 .. raw:: html
 
@@ -421,14 +522,14 @@ Now start the FVP. We will pass our own kernel and rootfs disk image as runtime
 variables. A config can define any number of runtime variables which may have
 default values (see ``inspect`` command above). If a variable has no default
 value, then the user must provide a value when invoking the ``run`` command. The
-``ns-edk2-dt.yaml`` config requires the user to provide a kernel, but the rootfs
+``ns-edk2.yaml`` config requires the user to provide a kernel, but the rootfs
 is optional. If the rootfs was omitted, the kernel would boot to the point where
 it attempts to mount the rootfs then panic (which is sufficient for some
 development use cases!).
 
 .. code-block:: shell
 
-  shrinkwrap run --rtvar=KERNEL=path/to/Image --rtvar=ROOTFS=path/to/rootfs.img ns-edk2-dt.yaml
+  shrinkwrap run --rtvar=KERNEL=path/to/Image --rtvar=ROOTFS=path/to/rootfs.img ns-edk2.yaml
 
 This starts the FVP and multiplexes all the UART terminals to stdout and
 forwards stdin to the ``tfa+linux`` uart terminal. This allows the user to
@@ -501,7 +602,7 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
 
 .. code-block:: shell
 
-  shrinkwrap run --rtvar=KERNEL=path/to/Image --rtvar=ROOTFS=path/to/rootfs.img --dry-run ns-edk2-dt.yaml
+  shrinkwrap run --rtvar=KERNEL=path/to/Image --rtvar=ROOTFS=path/to/rootfs.img --dry-run ns-edk2.yaml
 
 .. raw:: html
 
@@ -522,7 +623,7 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
   function finish { rm -rf $SEMIHOSTDIR; }
   trap finish EXIT
   cp ./path/to/Image ${SEMIHOSTDIR}/Image
-  cp <root>/package/ns-edk2-dt/fvp-base-revc_args.dtb ${SEMIHOSTDIR}/fdt.dtb
+  cp <root>/package/ns-edk2/fvp-base-revc_args.dtb ${SEMIHOSTDIR}/fdt.dtb
   cat <<EOF > ${SEMIHOSTDIR}/startup.nsh
   Image dtb=fdt.dtb console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
   EOF
@@ -536,14 +637,14 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
       -C SVE.ScalableVectorExtension.has_sve2=1 \
       -C bp.dram_metadata.is_enabled=1 \
       -C bp.dram_size=4 \
-      -C bp.flashloader0.fname=<root>/package/ns-edk2-dt/fip.bin \
-      -C bp.flashloader1.fname=<root>/package/ns-edk2-dt/edk2-flash.img \
+      -C bp.flashloader0.fname=<root>/package/ns-edk2/fip.bin \
+      -C bp.flashloader1.fname=<root>/package/ns-edk2/edk2-flash.img \
       -C bp.hostbridge.userNetPorts=8022=22 \
       -C bp.hostbridge.userNetworking=1 \
       -C bp.refcounter.non_arch_start_at_default=1 \
       -C bp.refcounter.use_real_time=0 \
       -C bp.secure_memory=1 \
-      -C bp.secureflashloader.fname=<root>/package/ns-edk2-dt/bl1.bin \
+      -C bp.secureflashloader.fname=<root>/package/ns-edk2/bl1.bin \
       -C bp.smsc_91c111.enabled=1 \
       -C bp.terminal_0.mode=telnet \
       -C bp.terminal_0.start_telnet=0 \
@@ -670,7 +771,7 @@ command:
 
 .. code-block:: shell
 
-  shrinkwrap process --action=merge --overlay=arch/v9.3.yaml ns-edk2-dt.yaml
+  shrinkwrap process --action=merge --overlay=arch/v9.3.yaml ns-edk2.yaml
 
 .. raw:: html
 
@@ -682,16 +783,32 @@ command:
 
   %YAML 1.2
   ---
-  name: ns-edk2-dt
-  fullname: ns-edk2-dt.yaml
-  description: 'Best choice for: I want to run Linux on FVP, booting with device tree,
-    and have easy control over its command line.
+  name: ns-edk2
+  fullname: ns-edk2.yaml
+  description: 'Best choice for: I want to run Linux on FVP, booting with ACPI/DT, and
+    have easy control over its command line.
 
-    Builds on ns-edk2-acpi.yaml, but adds a device tree that is passed to the kernel
-    to use instead of ACPI. See the description in that file for details.
+    Brings together TF-A and EDK2 to provide a simple non-secure world environment running
+    on FVP. Allows easy specification of the kernel image and command line, and rootfs
+    at runtime (see rtvars). ACPI is provided by UEFI.
 
     An extra rtvar is added (DTB) which allows specification of a custom device tree.
-    By default (if not overriding the rtvar), the upstream kernel device tree is used.'
+    By default (if not overriding the rtvar), the upstream kernel device tree is used.
+    DT is enabled by default. Use ''acpi=force'' to enable ACPI boot.
+
+    By default (if not overriding the rtvars) a sensible command line is used that will
+    set up the console for logging and attempt to mount the rootfs image from the FVP''s
+    virtio block device. However the default rootfs image is empty, so the kernel will
+    panic when attempting to mount; the user must supply a rootfs if it is required
+    that the kernel completes its boot. No default kernel image is supplied and the
+    config will refuse to run unless it is explicitly specified.
+
+    Note that by default, a pre-canned flash image is loaded into the model, which contains
+    UEFI variables directing EDK2 to boot to the shell. This will cause startup.nsh
+    to be executed and will start the kernel boot. This way everything is automatic.
+    By default, all EDK2 output is muxed to stdout. If you prefer booting UEFI to its
+    UI, override the EDK2FLASH rtvar with an empty string and override terminals.''bp.terminal_0''.type
+    to ''telnet''.'
   concrete: true
   graph: {}
   build:
@@ -699,38 +816,70 @@ command:
       repo:
         .:
           remote: git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git
-          revision: v6.0-dts
+          revision: v6.1-dts
       sourcedir: null
       builddir: null
       toolchain: aarch64-none-elf-
       params: {}
       prebuild:
-      - DTS_IN=${param:sourcedir}/src/arm64/arm/fvp-base-revc.dts
-      - DTS_OUT=${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dts
-      - if [ -z "${param:join_equal}" ]; then
-      - cp $$DTS_IN $$DTS_OUT
-      - else
-      - ESC_PARAMS=$$(printf '%s\n' "${param:join_equal}" | sed -e 's/[\/&]/\\&/g')
-      - sed "s/chosen {.*};/chosen { bootargs = \"$$ESC_PARAMS\"; };/g" $$DTS_IN > $$DTS_OUT
-      - fi
+      - DTS=fvp-base-revc.dts
+      - INITRD_START=
+      - INITRD_END=
       build:
-      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} src/arm64/arm/fvp-base-revc_args.dtb
+      - DT_BASENAME=$$(basename $${DTS} .dts)
+      - DTB_INTER=src/arm64/arm/$${DT_BASENAME}.dtb
+      - DTB_FINAL=${param:builddir}/dt_bootargs.dtb
+      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} $${DTB_INTER}
+      - CHOSEN=
+      - if [ ! -z "${param:join_equal}" ]; then
+      - CHOSEN="$${CHOSEN}bootargs = \"${param:join_equal}\";\n"
+      - fi
+      - if [ ! -z "$${INITRD_START}" ] && [ ! -z "$${INITRD_END}" ]; then
+      - INITRD_START_HI=$$((($${INITRD_START} >> 32) & 0xffffffff))
+      - INITRD_START_LO=$$(($${INITRD_START} & 0xffffffff))
+      - INITRD_END_HI=$$((($${INITRD_END} >> 32) & 0xffffffff))
+      - INITRD_END_LO=$$(($${INITRD_END} & 0xffffffff))
+      - CHOSEN="$${CHOSEN}linux,initrd-start = <$${INITRD_START_HI} $${INITRD_START_LO}>;\n"
+      - CHOSEN="$${CHOSEN}linux,initrd-end = <$${INITRD_END_HI} $${INITRD_END_LO}>;\n"
+      - fi
+      - if [ -z "$${CHOSEN}" ]; then
+      - cp $${DTB_INTER} $${DTB_FINAL}
+      - else
+      - ( dtc -q -O dts -I dtb $${DTB_INTER} ; echo -e "/ { chosen { $${CHOSEN} }; };"
+        ) | dtc -q -O dtb -o $${DTB_FINAL}
+      - fi
+      - if [ "$${DTS}" = "fvp-base-revc.dts" ]; then
+      - "OVERLAY=\"/ {\n  reserved-memory {\n    fw: fw@7C000000 {\n      reg = <0x00000000\
+        \ 0xFC000000 0 0x04000000>;\n      no-map;\n    };\n  };\n  timer {\n    clock-frequency\
+        \ = <100000000>;\n  };\n  psci {\n    compatible = \\\"arm,psci-1.0\\\", \\\"\
+        arm,psci-0.2\\\";\n    max-pwr-lvl = <2>;\n  };\n  cpus {\n    cpu-map {\n \
+        \     cluster0 {\n        core0 { cpu = <&{/cpus/cpu@0}>; };\n        core1\
+        \ { cpu = <&{/cpus/cpu@100}>; };\n        core2 { cpu = <&{/cpus/cpu@200}>;\
+        \ };\n        core3 { cpu = <&{/cpus/cpu@300}>; };\n      };\n      cluster1\
+        \ {\n        core0 { cpu = <&{/cpus/cpu@10000}>; };\n        core1 { cpu = <&{/cpus/cpu@10100}>;\
+        \ };\n        core2 { cpu = <&{/cpus/cpu@10200}>; };\n        core3 { cpu =\
+        \ <&{/cpus/cpu@10300}>; };\n      };\n    };\n  };\n  bus@8000000 {\n    motherboard-bus@8000000\
+        \ {\n      iofpga-bus@300000000 {\n        virtio@200000 {\n          status\
+        \ = \\\"okay\\\";\n        };\n      };\n    };\n  };\n};\""
+      - ( dtc -q -O dts -I dtb $${DTB_FINAL} ; echo -e "$${OVERLAY}" ) | dtc -q -O dtb
+        -o $${DTB_FINAL}
+      - fi
       postbuild: []
       clean:
       - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} clean
       artifacts:
-        DTB: ${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dtb
+        DTB: ${param:builddir}/dt_bootargs.dtb
     edk2:
       repo:
         edk2:
           remote: https://github.com/tianocore/edk2.git
-          revision: edk2-stable202208
+          revision: edk2-stable202211
         edk2-platforms:
           remote: https://github.com/tianocore/edk2-platforms.git
-          revision: ad00518399fc624688d434321693439062c39bde
+          revision: 20e07099d8f11889d101dd710ca85001be20e179
         acpica:
           remote: https://github.com/acpica/acpica.git
-          revision: R03_31_22
+          revision: R10_20_22
       sourcedir: null
       builddir: null
       toolchain: aarch64-none-elf-
@@ -770,7 +919,7 @@ command:
       repo:
         .:
           remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
-          revision: v2.7.0
+          revision: v2.8.0
       sourcedir: null
       builddir: null
       toolchain: aarch64-none-elf-
@@ -815,6 +964,9 @@ command:
       FIP:
         type: path
         value: ${artifact:FIP}
+      DTB:
+        type: path
+        value: ${artifact:DTB}
       CMDLINE:
         type: string
         value: console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
@@ -827,9 +979,6 @@ command:
       EDK2FLASH:
         type: path
         value: ${artifact:EDK2FLASH}
-      DTB:
-        type: path
-        value: ${artifact:DTB}
     params:
       -C bp.dram_size: 4
       -C cluster0.NUM_CORES: 4
@@ -868,9 +1017,7 @@ command:
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR1: 2684354562
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR2: 0
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
-      -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0: 3
-      -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 1083
-      -C pci.pci_smmuv3.mmu.root_register_page_offset: 131072
+      -C bp.virtio_rng.enabled: 1
       -C bp.secureflashloader.fname: ${rtvar:BL1}
       -C bp.flashloader0.fname: ${rtvar:FIP}
       -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
@@ -933,15 +1080,11 @@ command:
       -C cluster1.has_arm_v9-3: 1
       -C cluster0.has_brbe_v1p1: 1
       -C cluster1.has_brbe_v1p1: 1
-      -C SVE.ScalableVectorExtension.has_sme2: 1
     prerun:
     - SEMIHOSTDIR=`mktemp -d`
     - function finish { rm -rf $$SEMIHOSTDIR; }
     - trap finish EXIT
     - cp ${rtvar:KERNEL} $${SEMIHOSTDIR}/Image
-    - cat <<EOF > $${SEMIHOSTDIR}/startup.nsh
-    - Image ${rtvar:CMDLINE}
-    - EOF
     - cp ${rtvar:DTB} $${SEMIHOSTDIR}/fdt.dtb
     - cat <<EOF > $${SEMIHOSTDIR}/startup.nsh
     - Image dtb=fdt.dtb ${rtvar:CMDLINE}
@@ -949,9 +1092,11 @@ command:
     run: []
     terminals:
       bp.terminal_0:
-        friendly: tfa+edk2+linux
+        friendly: ''
         port_regex: 'terminal_0: Listening for serial connection on port (\d+)'
         type: stdinout
+        no_color: true
+        no_escapes: 'EFI stub: Booting Linux Kernel...'
       bp.terminal_1:
         friendly: edk2
         port_regex: 'terminal_1: Listening for serial connection on port (\d+)'
