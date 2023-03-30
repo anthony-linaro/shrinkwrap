@@ -350,7 +350,7 @@ def filename(name, rel=os.getcwd()):
 		return fpath
 
 
-def load(file_name, overlay=None, friendly=None):
+def load(file_name, overlays=[], friendly=None):
 	"""
 	Load a config from disk and return it as a dictionary. The config is
 	fully normalized, validated and merged.
@@ -375,7 +375,7 @@ def load(file_name, overlay=None, friendly=None):
 
 	config = _config_load(file_name)
 
-	if overlay:
+	for overlay in overlays:
 		config = _config_merge(config, overlay)
 
 	# Now that the config is fully merged, we don't need the layers
@@ -622,7 +622,7 @@ def resolver(config, rtvars={}, clivars={}):
 	return _config_sort(config)
 
 
-def load_resolveb_all(names, overlayname=None, clivars={}):
+def load_resolveb_all(names, overlaynames=[], clivars={}):
 	"""
 	Takes a list of config names and returns a corresponding list of
 	resolved configs. If the input list is None or empty, all standard
@@ -639,16 +639,17 @@ def load_resolveb_all(names, overlayname=None, clivars={}):
 						os.path.join(root, f), p)
 								for f in files]
 
-	overlay = None
-	if overlayname:
+	overlays = []
+	for overlayname in overlaynames:
 		overlay = filename(overlayname)
 		overlay = load(overlay)
 		overlay = {'build': overlay['build'], 'run': overlay['run']}
+		overlays.append(overlay)
 
 	for name in names:
 		try:
 			file = filename(name)
-			merged = load(file, overlay, name)
+			merged = load(file, overlays, name)
 			resolved = resolveb(merged, clivars)
 			configs.append(resolved)
 		except Exception:

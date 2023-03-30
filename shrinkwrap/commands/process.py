@@ -41,10 +41,12 @@ def add_parser(parser, formatter):
 		     within the build-time resolved config).""")
 
 	cmdp.add_argument('-o', '--overlay',
-		metavar='cfgfile', required=False,
+		metavar='cfgfile', required=False, default=[],
+		action='append',
 		help="""Optional config file overlay to override run-time and
 		     build-time settings. Only entries within the "build" and
-		     "run" sections are used.""")
+		     "run" sections are used. Can be specified multiple times;
+		     left-most overlay is the first overlay applied.""")
 
 	cmdp.add_argument('-r', '--rtvar',
 		metavar='key=value', required=False, default=[],
@@ -64,14 +66,15 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	overlay = None
-	if args.overlay:
-		overlay = config.filename(args.overlay)
+	overlays = []
+	for overlayname in args.overlay:
+		overlay = config.filename(overlayname)
 		overlay = config.load(overlay)
 		overlay = {'build': overlay['build'], 'run': overlay['run']}
+		overlays.append(overlay)
 
 	filename = config.filename(args.config)
-	merged = config.load(filename, overlay)
+	merged = config.load(filename, overlays)
 
 	if args.action == 'merge':
 		print(config.dumps(merged))
