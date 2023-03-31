@@ -38,7 +38,7 @@ build:
 
     build:
       - make -j${param:jobs} -C acpica
-      - source edk2/edksetup.sh
+      - source edk2/edksetup.sh --reconfig
       - make -j${param:jobs} -C edk2/BaseTools
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
