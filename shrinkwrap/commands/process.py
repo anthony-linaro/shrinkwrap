@@ -3,7 +3,7 @@
 
 import os
 import shrinkwrap.utils.config as config
-import shrinkwrap.utils.rtvars as rtvars
+import shrinkwrap.utils.vars as vars
 
 
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -84,7 +84,7 @@ def dispatch(args):
 		if args.action == 'resolveb':
 			print(config.dumps(resolveb))
 		else:
-			rtvars_dict = rtvars.parse(args.rtvar)
+			rtvars_dict = vars.parse(args.rtvar, type='rt')
 			resolver = config.resolver(resolveb, rtvars_dict)
 
 			if args.action == 'resolver':

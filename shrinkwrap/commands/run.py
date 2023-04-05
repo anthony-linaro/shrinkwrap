@@ -7,7 +7,7 @@ import tempfile
 import shrinkwrap.utils.config as config
 import shrinkwrap.utils.logger as logger
 import shrinkwrap.utils.process as process
-import shrinkwrap.utils.rtvars as rtvars
+import shrinkwrap.utils.vars as vars
 import shrinkwrap.utils.runtime as runtime
 import shrinkwrap.utils.workspace as workspace
 
@@ -79,7 +79,7 @@ def dispatch(args):
 
 	filename = os.path.join(workspace.package, args.config)
 	resolveb = config.load(filename, overlays)
-	rtvars_dict = rtvars.parse(args.rtvar)
+	rtvars_dict = vars.parse(args.rtvar, type='rt')
 	resolver = config.resolver(resolveb, rtvars_dict)
 	cmds = _pretty_print_sh(resolver['run'])
 
