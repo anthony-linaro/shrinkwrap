@@ -14,12 +14,10 @@ description: >-
 concrete: true
 
 layers:
-  - tfa-base.yaml
+  - ns-edk2.yaml
   - rmm-base.yaml
-  - dt-base.yaml
   - linux-base.yaml
   - kvmtool-base.yaml
-  - FVP_Base_RevC-2xAEMvA-base.yaml
   - arch/v9.2.yaml
 
 build:
@@ -28,8 +26,6 @@ build:
       ENABLE_RME: 1
       RMM: ${artifact:RMM}
       CTX_INCLUDE_EL2_REGS: 1
-      ARM_LINUX_KERNEL_AS_BL33: 1
-      PRELOADED_BL33_BASE: 0x84000000
       FVP_HW_CONFIG: ${artifact:DTB}
 
       # SME is not supported concurrently with CCA yet.
@@ -40,16 +36,11 @@ build:
       # MTE is not supported by RMM yet.
       CTX_INCLUDE_MTE_REGS: 0
 
-  dt:
-    params:
-      # Current RMM version (0.2.0) can only handle first bank of DRAM. This
-      # should be fixed in the nect release. But for now, limit the amount of
-      # DRAM Linux sees so that it only delegates DRAM in the first bank.
-      mem: 1G
-      console: ttyAMA0
-      earlycon: pl011,0x1c090000
-      root: /dev/vda
-      ip: dhcp
+  edk2:
+    repo:
+      edk2-platforms:
+        # Contains change to carve out 64MB for RMM.
+        revision: 310d31231d69c378ff85d253477d830913b77739
 
   linux:
     repo:
@@ -89,27 +80,16 @@ build:
 
 run:
   rtvars:
-    BL1:
-      type: path
-      value: ${artifact:BL1}
-
-    FIP:
-      type: path
-      value: ${artifact:FIP}
-
     KERNEL:
-      type: path
       value: ${artifact:KERNEL}
 
-    ROOTFS:
-      type: path
-      value: ''
+    CMDLINE:
+      # Current RMM version (0.2.0) can only handle first bank of DRAM. This
+      # should be fixed in the next release. But for now, limit the amount of
+      # DRAM Linux sees so that it only delegates DRAM in the first bank.
+      value: mem=1G console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
 
   params:
-    -C bp.secureflashloader.fname: ${rtvar:BL1}
-    -C bp.flashloader0.fname: ${rtvar:FIP}
-    -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
-    --data cluster0.cpu0: ${rtvar:KERNEL}@0x84000000
     -C cluster0.rme_support_level: 2
     -C cluster1.rme_support_level: 2
 
@@ -126,13 +106,5 @@ run:
     -C pci.pci_smmuv3.mmu.root_register_page_offset: 0x20000
 
   terminals:
-    bp.terminal_0:
-      friendly: ''
-      type: stdinout
-      no_color: true
-
-    bp.terminal_1:
-      friendly: tfa-rt
-
     bp.terminal_3:
       friendly: rmm
