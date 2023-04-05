@@ -78,6 +78,37 @@ build:
     artifacts:
       KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz
 
+  edk2-cca-guest:
+    repo:
+      edk2:
+        remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
+        revision: 2595_arm_cca_0abet0_rfc_v1
+
+    toolchain: aarch64-none-elf-
+
+    stderrfilt: true
+
+    prebuild:
+      - export WORKSPACE=${param:sourcedir}
+      - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
+      - export PACKAGES_PATH=$$WORKSPACE/edk2
+      - export IASL_PREFIX=${artifact:ACPICA}/
+      - export PYTHON_COMMAND=/usr/bin/python3
+
+    params:
+      -a: AARCH64
+      -t: GCC5
+      -p: edk2/ArmVirtPkg/ArmVirtKvmTool.dsc
+      -b: RELEASE
+
+    build:
+      - source edk2/edksetup.sh --reconfig
+      - make -j${param:jobs} -C edk2/BaseTools
+      - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
+
+    artifacts:
+      EDK2_CCA_GUEST: ${param:builddir}/RELEASE_GCC5/FV/KVMTOOL_EFI.fd
+
 run:
   rtvars:
     KERNEL:
