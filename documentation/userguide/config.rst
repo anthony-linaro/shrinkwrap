@@ -182,7 +182,7 @@ prebuild    list        List of shell commands to be executed during component b
 build       list        List of shell commands to be executed during component build.
 postbuild   list        List of shell commands to be executed during component build after the ``build`` list.
 clean       list        List of shell commands to be executed during component clean.
-artifacts   dictionary  Set of artifacts that the component exports. Key is artifact name and value is path to built artifact. Other components can reference them with the ``${artifact:<name>}`` macros. Used to determine build dependencies.
+artifacts   dictionary  Set of artifacts (files and/or directories) that the component exports. Key is artifact name and value is path to built artifact. Other components can reference them with the ``${artifact:<name>}`` macros. Used to determine build dependencies.
 =========== =========== ===========
 
 -----------

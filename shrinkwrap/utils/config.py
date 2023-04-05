@@ -835,7 +835,7 @@ def build_graph(configs, echo):
 			for artifact in config['artifacts'].values():
 				src = artifact['src']
 				dst = os.path.join(workspace.package, artifact['dst'])
-				a.append(f'cp {src} {dst}')
+				a.append(f'cp -r {src} {dst}')
 		a.seal()
 		graph[a] = [gl2] + [s for s in build_scripts.values()]
 
