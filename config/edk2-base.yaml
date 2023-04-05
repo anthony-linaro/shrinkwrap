@@ -36,6 +36,8 @@ build:
 
     toolchain: aarch64-none-elf-
 
+    stderrfilt: true
+
     prebuild:
       - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE

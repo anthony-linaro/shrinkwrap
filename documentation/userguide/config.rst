@@ -177,6 +177,7 @@ repo        dictionary  Specifies information about the git repo(s) that must be
 sourcedir   string      If specified, points to the path on disk where the source repo can be found. Useful for developer use cases where a local repo already exists.
 builddir    string      If specified, the location where the component will be built. If not specified, shrinkwrap allocates its own location based on SHRINKWRAP_BUILD.
 toolchain   string      Defines the toolchain to be used for compilation. Value is set as CROSS_COMPILE environment variable before invoking any prebuild/build/postbuild/clean commands. When using the standard image with a container runtime, the options are: ``aarch64-none-elf-``, ``arm-none-eabi-``, ``aarch64-linux-gnu-``, or ``arm-linux-gnueabihf-``.
+stderrfilt  bool        Optional, defaults to false. When true, and --verbose is not specified, filters stderr of the component's build task so that only lines containing 'error' and 'warning' are output. Everything else is suppressed. Useful for EDK2 which is extremely chatty.
 params      dictionary  Optional set of key:value pairs. When building most components, they require a set of parameters to be passed. By setting them out as a dictionary, it is easy to override and add to them in higher layers. See ``${param:join_*}`` macros.
 prebuild    list        List of shell commands to be executed during component build before the ``build`` list.
 build       list        List of shell commands to be executed during component build.

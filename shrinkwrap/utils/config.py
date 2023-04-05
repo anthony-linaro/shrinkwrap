@@ -37,6 +37,9 @@ def _component_normalize(component, name):
 	if 'toolchain' not in component:
 		component['toolchain'] = None
 
+	if 'stderrfilt' not in component:
+		component['stderrfilt'] = None
+
 	if 'prebuild' not in component:
 		component['prebuild'] = []
 
@@ -143,7 +146,7 @@ def _component_sort(component):
 	Sort the component so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'params',
+	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'stderrfilt', 'params',
 			'prebuild', 'build', 'postbuild', 'clean', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
@@ -665,11 +668,13 @@ class Script:
 		     config=None,
 		     component=None,
 		     preamble=None,
-		     final=False):
+		     final=False,
+		     stderrfilt=None):
 		self.summary = summary
 		self.config = config
 		self.component = component
 		self.final = final
+		self.stderrfilt = stderrfilt
 		self._cmds = ''
 		self._sealed = False
 		self._preamble = preamble
@@ -809,7 +814,7 @@ def build_graph(configs, echo):
 				g.seal()
 				graph[g] = [gl2]
 
-				b = Script('Building', config["name"], name, preamble=pre)
+				b = Script('Building', config["name"], name, preamble=pre, stderrfilt=component['stderrfilt'])
 				if len(component['prebuild']) + \
 				   len(component['build']) + \
 				   len(component['postbuild']) > 0:
