@@ -48,11 +48,13 @@ def add_parser(parser, formatter):
 		     config store are built.""")
 
 	cmdp.add_argument('-o', '--overlay',
-		metavar='cfgfile', required=False,
+		metavar='cfgfile', required=False, default=[],
+		action='append',
 		help="""Optional config file overlay to override run-time and
 		     build-time settings. Only entries within the "build" and
 		     "run" sections are used. Applied to all configs being
-		     built.""")
+		     built. Can be specified multiple times; left-most overlay
+		     is the first overlay applied.""")
 
 	cmdp.add_argument('-t', '--tasks',
 		required=False, default=dflt_jobs(), metavar='count', type=int,
