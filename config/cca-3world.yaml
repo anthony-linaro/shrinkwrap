@@ -56,17 +56,6 @@ build:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
       revision: cca-full/rfc-v1
 
-    prebuild:
-      # Disable CPU_IDLE as a workaround to speed up the FVP. Since we are using
-      # the TF-A DT, which provides CPU idle state parameters, it otherwise
-      # causes Linux to constantly enter cpu idle, slowing the FVP down. We
-      # can't easily use the upstream DT right now, due to some RAM having been
-      # carved out for the RMM and this is not reflected in that DT. CPU_IDLE is
-      # selected by ACPI, so we have to disable that too to maintain a legal
-      # config. That's OK for now since we are using the DT.
-      - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_ACPI
-      - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_CPU_IDLE
-
   kvmtool:
     repo:
       dtc:
