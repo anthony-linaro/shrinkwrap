@@ -625,11 +625,11 @@ def resolver(config, rtvars={}, clivars={}):
 	return _config_sort(config)
 
 
-def load_resolveb_all(names, overlaynames=[], clivars={}):
+def load_all(names, overlaynames=[]):
 	"""
 	Takes a list of config names and returns a corresponding list of
-	resolved configs. If the input list is None or empty, all standard
-	configs are loaded and resolved.
+	loaded configs. If the input list is None or empty, all standard
+	configs are loaded.
 	"""
 	explicit = names is not None and len(names) != 0
 	configs = []
@@ -653,13 +653,29 @@ def load_resolveb_all(names, overlaynames=[], clivars={}):
 		try:
 			file = filename(name)
 			merged = load(file, overlays, name)
-			resolved = resolveb(merged, clivars)
-			configs.append(resolved)
+			configs.append(merged)
 		except Exception:
 			if explicit:
 				raise
 
 	return configs
+
+
+def load_resolveb_all(names, overlaynames=[], clivars={}):
+	"""
+	Takes a list of config names and returns a corresponding list of
+	resolved configs. If the input list is None or empty, all standard
+	configs are loaded and resolved.
+	"""
+	configs_m = load_all(names, overlaynames)
+
+	configs_r = []
+
+	for merged in configs_m:
+		resolved = resolveb(merged, clivars)
+		configs_r.append(resolved)
+
+	return configs_r
 
 
 class Script:

@@ -51,7 +51,7 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	configs = config.load_resolveb_all(args.configs)
+	configs = config.load_all(args.configs)
 
 	width = 80
 	indent = 21
