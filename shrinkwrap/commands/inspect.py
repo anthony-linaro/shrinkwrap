@@ -82,7 +82,8 @@ def dispatch(args):
 				     indent=indent,
 				     paraspace=1))
 		buf.write('\n')
-		rtvars = {k: v['value'] for k,v in c['run']['rtvars'].items()}
+		rtvars = {k: _var_value(v['value'])
+	    				for k,v in c['run']['rtvars'].items()}
 		buf.write(_dict_wrap('run-time variables',
 				     rtvars,
 				     width=width,
@@ -95,6 +96,12 @@ def dispatch(args):
 	all = separator.join(descs)
 	print(all)
 
+def _var_value(value):
+	if value is None:
+		return '<null>'
+	if value == '':
+		return '<empty>'
+	return str(value)
 
 def _text_wrap(tag, text, width=80, indent=0, paraspace=1, end='\n'):
 	text = str(text)
