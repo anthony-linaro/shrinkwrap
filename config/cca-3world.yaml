@@ -109,6 +109,48 @@ build:
     artifacts:
       EDK2_CCA_GUEST: ${param:builddir}/RELEASE_GCC5/FV/KVMTOOL_EFI.fd
 
+  guest-disk:
+    build:
+      - BOOTIMG="${param:builddir}/boot.img"
+      - ROOTIMG="${btvar:GUEST_ROOTFS}"
+      - DISKIMG="${param:builddir}/guest-disk.img"
+      - STARTUP="${param:builddir}/startup.nsh"
+
+      # Automatically boot the kernel when starting the EFI shell.
+      - echo "bootaa64.efi acpi=force earlycon root=/dev/vda2 ip=on" > $${STARTUP}
+
+      # 64MB fat16 boot partition containing kernel as efi bootloader.
+      - dd if=/dev/zero of=$${BOOTIMG} bs=1M count=64 status=none
+      - mkfs.vfat -F16 -n boot $${BOOTIMG} &> /dev/null
+      - mcopy -spm -i $${BOOTIMG} ${artifact:KERNEL} ::bootaa64.efi
+      - mcopy -spm -i $${BOOTIMG} $${STARTUP} ::startup.nsh
+
+      # If no rootfs was provided, create an empty one to use.
+      - if [ -z "$${ROOTIMG}" ]; then
+      -   ROOTIMG="${param:builddir}/root.img"
+      -   dd if=/dev/zero of=$${ROOTIMG} bs=1M count=64 status=none
+      -   mkfs.ext4 $${ROOTIMG} &> /dev/null
+      - fi
+
+      # Disk image with 1MB start and end blocks for GPT, sandwiching the boot
+      # partition and the rootfs.
+      - dd if=/dev/zero bs=512 count=2048 status=none > $${DISKIMG}
+      - dd if=$${BOOTIMG} status=none >> $${DISKIMG}
+      - dd if=$${ROOTIMG} status=none >> $${DISKIMG}
+      - dd if=/dev/zero bs=512 count=2048 status=none >> $${DISKIMG}
+
+      # Add the partition table.
+      - parted $${DISKIMG} mktable gpt mkpart boot fat16 1MiB 65MiB mkpart root ext4 65MiB 100% &> /dev/null
+
+    artifacts:
+      GUEST_DISK: ${param:builddir}/guest-disk.img
+
+buildex:
+  btvars:
+    GUEST_ROOTFS:
+      type: path
+      value: ''
+
 run:
   rtvars:
     KERNEL:
