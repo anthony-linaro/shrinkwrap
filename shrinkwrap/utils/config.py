@@ -72,6 +72,14 @@ def _build_normalize(build):
 		_component_normalize(component, name)
 
 
+def _buildex_normalize(buildex):
+	"""
+	Fills in any missing lists or dictionaries with empty ones.
+	"""
+	if 'btvars' not in buildex:
+		buildex['btvars'] = {}
+
+
 def _run_normalize(run):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
@@ -120,7 +128,11 @@ def _config_normalize(config):
 	if 'build' not in config:
 		config['build'] = {}
 
+	if 'buildex' not in config:
+		config['buildex'] = {}
+
 	_build_normalize(config['build'])
+	_buildex_normalize(config['buildex'])
 
 	if 'artifacts' not in config:
 		config['artifacts'] = {}
@@ -181,7 +193,7 @@ def _config_sort(config):
 	config['run'] = _run_sort(config['run'])
 
 	lut = ['name', 'fullname', 'description', 'concrete', 'layers',
-			'graph', 'build', 'artifacts', 'run']
+			'graph', 'build', 'buildex', 'artifacts', 'run']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))
 
@@ -327,6 +339,11 @@ def _string_substitute(string, lut, final=True):
 	return final
 
 
+def _string_has_macros(string):
+	tokens = _string_tokenize(string)
+	return any([True for t in tokens if t['type'] == 'macro'])
+
+
 def _mk_params(params, separator):
 	pairs = [f'{k}' if v is None else f'{k}{separator}{v}'
 						for k, v in params.items()]
@@ -403,12 +420,15 @@ def dump(config, fileobj):
 			      version=(1, 2))
 
 
-def resolveb(config, clivars={}):
+def resolveb(config, btvars={}, clivars={}):
 	"""
 	Resolves the build-time macros (params, artifacts, etc) and fixes up the
 	config. Based on the artifact dependencies, the component build graph is
 	determined and placed into the config along with the global artifact
 	map. Expects a config that was previously loaded with load().
+	btvars=None implies that it is OK not to resolve btvars whose default
+	value is None. type(btvars) == dict implies btvars values must all be
+	resolved.
 	"""
 	def _resolve_build_graph(config):
 		def _exporters_update(exporters, name, component):
@@ -523,6 +543,10 @@ def resolveb(config, clivars={}):
 			for k, v in desc['artifacts'].items():
 				desc['artifacts'][k] = _string_substitute(v, lut, final)
 
+		for k, v in config['buildex']['btvars'].items():
+			if v['value'] is not None:
+				v['value'] = _string_substitute(str(v['value']), lut, final)
+
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply
 	# their own source and build tree locations.
@@ -544,11 +568,29 @@ def resolveb(config, clivars={}):
 		},
 	}
 
+	# Override the btvars with any values supplied by the user and check
+	# that all btvars are defined.
+	final_btvars = config['buildex']['btvars']
+
+	for k, v in final_btvars.items():
+		if v['value'] is None:
+			raise Exception(f'{k} build-time variable not ' \
+					'set by user and no default available.')
+
+		if v['type'] == 'path' and \
+			v['value'] and \
+			not _string_has_macros(v['value']):
+			v['value'] = os.path.expanduser(v['value'])
+			v['value'] = os.path.abspath(v['value'])
+
+	macro_lut['btvar'] = {k: v['value'] for k, v in final_btvars.items()}
+
 	# Do a first partial substitution, to resolve all macros except
 	# ${artifact:*}. These macros must remain in place in order to resolve
-	# the build graph. But its possible that ${artifact:*} resolve to other
-	# ${artifact:*} so we need to do the first pass prior to resolving the
-	# build graph.
+	# the build graph. But its possible that btvars resolve to ${artifact:*}
+	# so we need to do the first pass prior to resolving the build graph.
+	# btvars are external to the component so they can't be used directly to
+	# build the graph.
 	_substitute_macros(config, macro_lut, False)
 
 	# Now resolve the build graph, which finds ${artifact:*} users.
@@ -686,7 +728,7 @@ def load_all(names, overlaynames=[]):
 	return configs
 
 
-def load_resolveb_all(names, overlaynames=[], clivars={}):
+def load_resolveb_all(names, overlaynames=[], clivars={}, btvarss=None):
 	"""
 	Takes a list of config names and returns a corresponding list of
 	resolved configs. If the input list is None or empty, all standard
@@ -694,10 +736,15 @@ def load_resolveb_all(names, overlaynames=[], clivars={}):
 	"""
 	configs_m = load_all(names, overlaynames)
 
+	if btvarss is None:
+		btvarss = [None] * len(configs_m)
+
+	assert(len(configs_m) == len(btvarss))
+
 	configs_r = []
 
-	for merged in configs_m:
-		resolved = resolveb(merged, clivars)
+	for merged, btvars in zip(configs_m, btvarss):
+		resolved = resolveb(merged, btvars, clivars)
 		configs_r.append(resolved)
 
 	return configs_r

@@ -82,9 +82,17 @@ def dispatch(args):
 				     indent=indent,
 				     paraspace=1))
 		buf.write('\n')
+		btvars = {k: _var_value(v['value'])
+	    				for k,v in c['buildex']['btvars'].items()}
+		buf.write(_dict_wrap('build-time vars',
+				     btvars,
+				     width=width,
+				     kindent=indent,
+				     vindent=vindent))
+		buf.write('\n')
 		rtvars = {k: _var_value(v['value'])
 	    				for k,v in c['run']['rtvars'].items()}
-		buf.write(_dict_wrap('run-time variables',
+		buf.write(_dict_wrap('run-time vars',
 				     rtvars,
 				     width=width,
 				     kindent=indent,

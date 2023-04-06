@@ -122,19 +122,20 @@ output to get a better feel for how they work. See
 Defined Macros
 --------------
 
-======================= ========================================================================= ====
-macro                   scope                                                                     description
-======================= ========================================================================= ====
-``${param:sourcedir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which the component's source code is located.
-``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which the component should be built, if the component's build system supports separation of source and build trees.
-``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory containing the config store. This MUST only be used for resolving files that already exist in the store.
-``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
-``${param:join_equal}`` build.<component>.{prebuild, build, postbuild, clean}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
-``${param:join_space}`` build.<component>.{prebuild, build, postbuild, clean}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
-``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph. Artifacts must not be circular.
-``${artifact:<name>}``  run.rtvars                                                                Package path of an artifact.
-``${rtvar:<name>}``     run.params                                                                Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
-======================= ========================================================================= ====
+======================= ====================================================================================== ====
+macro                   scope                                                                                  description
+======================= ====================================================================================== ====
+``${param:sourcedir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}               Directory in which the component's source code is located.
+``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, clean, artifacts}               Directory in which the component should be built, if the component's build system supports separation of source and build trees.
+``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}               Directory containing the config store. This MUST only be used for resolving files that already exist in the store.
+``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild, clean, artifacts}               Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
+``${btvar:<name>}``	build.<component>.{params, prebuild, build, postbuild, clean, artifacts}               Build-time variables. The variable names, along with default values are declared in buildex.btvars, and the user may override the value on the command line.
+``${param:join_equal}`` build.<component>.{prebuild, build, postbuild, clean}                                  String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
+``${param:join_space}`` build.<component>.{prebuild, build, postbuild, clean}                                  String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
+``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}, build.btvars Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph.
+``${artifact:<name>}``  run.rtvars                                                                             Package path of an artifact.
+``${rtvar:<name>}``     run.params                                                                             Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
+======================= ====================================================================================== ====
 
 ******
 Schema
@@ -165,6 +166,22 @@ build section
 The build section, contains a dictionary of components that must be built. The
 keys are the component names and the values are themselves dictionaries, each
 containing the component meta data.
+
+---------------
+buildex section
+---------------
+
+When the schema was originally created, we made a mistake. The components should
+have been under ``build: components:``, allowing room for new build data to be
+added under ``build:`` without being confused for components. In order to
+retrofit a solution without breaking compatibility, the buildex section is
+created.
+
+=========== =========== ===========
+key         type        description
+=========== =========== ===========
+btvars      dictionary  Build-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string') and 'value' (which takes the default value). Build-Time variables can be overridden by the user at the command line.
+=========== =========== ===========
 
 ~~~~~~~~~~~~~~~~~
 component section
