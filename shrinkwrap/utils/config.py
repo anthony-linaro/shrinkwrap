@@ -221,7 +221,7 @@ def _config_merge(base, new):
 	return config
 
 
-def _string_tokenize(string):
+def _string_tokenize(string, escape=True):
 	"""
 	Returns ordered list of tokens, where each token has a 'type' and
 	'value'. If 'type' is 'literal', 'value' is the literal string. If
@@ -255,9 +255,10 @@ def _string_tokenize(string):
 			raise Exception(f"Macro at col {lit_end}" \
 					f" in '{string}' is invalid.")
 		if m['escape'] is not None:
+			assert(m['escape'] == '$')
 			tokens.append({
 				'type': 'literal',
-				'value': m['escape'],
+				'value': '$' if escape else '$$',
 			})
 		if m['type'] is not None:
 			tokens.append({
@@ -278,18 +279,19 @@ def _string_tokenize(string):
 	return tokens
 
 
-def _string_substitute(string, lut, partial=False):
+def _string_substitute(string, lut, final=True):
 	"""
 	Takes a string containg macros and returns a string with the macros
-	substituted for the values found in the lut. If partial is True, any
+	substituted for the values found in the lut. If final is False, any
 	macro that does not have a value in the lut will be left as a macro in
-	the returned string. If partial is False, any macro that does not have a
-	value in the lut will cause an interrupt.
+	the returned string. If final is True, any macro that does not have a
+	value in the lut will cause an exception. Final also controls unescaping
+	on $. If False, $$ is left as is, otherwise they are replaced with $.
 	"""
 	calls = []
 	frags = []
 	frag = ''
-	tokens = _string_tokenize(string)
+	tokens = _string_tokenize(string, final)
 
 	for t in tokens:
 		if t['type'] == 'literal':
@@ -304,12 +306,9 @@ def _string_substitute(string, lut, partial=False):
 					frag = ''
 				else:
 					frag += lu
-			except KeyError:
-				if partial:
-					frag += f"${{{m['type']}:{m['name']}}}"
-				else:
-					raise
-
+			except Exception:
+				macro = f"${{{m['type']}:{m['name']}}}"
+				frag += macro
 		else:
 			assert(False)
 
@@ -424,21 +423,9 @@ def resolveb(config, clivars={}):
 
 		def _importers_update(importers, name, component):
 			artifacts = set()
-			macros = []
 
-			for s in component['params'].values():
-				tokens = _string_tokenize(str(s))
-				macros += [t['value'] for t in tokens if t['type'] == 'macro']
-
-			for m in macros:
-				if m['type'] != 'artifact':
-					raise Exception(f"'{name}' uses macro of type '{m['type']}'. Components must only use 'artifact' macros.")
-				if m['name'] is None:
-					raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
-				artifacts.add(m['name'])
-
-			for scope in ['prebuild', 'build', 'postbuild', 'clean']:
-				for s in component[scope]:
+			def _find_artifacts(strings):
+				for s in strings:
 					for t in _string_tokenize(str(s)):
 						if t['type'] != 'macro':
 							continue
@@ -448,6 +435,13 @@ def resolveb(config, clivars={}):
 						if m['name'] is None:
 							raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
 						artifacts.add(m['name'])
+
+			_find_artifacts(component['params'].values())
+			_find_artifacts(component['prebuild'])
+			_find_artifacts(component['build'])
+			_find_artifacts(component['postbuild'])
+			_find_artifacts(component['clean'])
+			_find_artifacts(component['artifacts'].values())
 
 			importers[name] = sorted(list(artifacts))
 
@@ -461,64 +455,73 @@ def resolveb(config, clivars={}):
 		for depender, deps in artifacts_imp.items():
 			graph[depender] = []
 			for dep in deps:
+				if dep not in artifacts_exp:
+					raise Exception(f"Imported artifact '{dep}' not exported by any component.")
 				dependee = artifacts_exp[dep]
-				graph[depender].append(dependee)
+				if depender != dependee:
+					graph[depender].append(dependee)
 
 		return graph
 
 	def _resolve_artifact_map(config):
+		def _combine(config):
+			artifact_map = {}
+			for desc in config['build'].values():
+				artifact_map.update(desc['artifacts'].items())
+			return {'artifact': artifact_map}
 
-		artifact_map = {}
+		def _combine_full(config):
+			artifact_map = {}
+			for desc in config['build'].values():
+				locs = {key: {
+					'src': val,
+					'dst': os.path.join(config['name'], os.path.basename(val)),
+				} for key, val in desc['artifacts'].items()}
+				artifact_map.update(locs)
+			return artifact_map
 
+		# ${artifact:*} macros could refer to other ${artifact:*}
+		# macros, so iteratively substitute the maximum number of times,
+		# which would be once per entry in the pathalogical case.
+
+		artifact_lut = _combine(config)
+		artifact_nr = len(artifact_lut['artifact'])
+
+		while artifact_nr > 0:
+			artifact_nr -= 1
+
+			for desc in config['build'].values():
+				for k, v in desc['artifacts'].items():
+					desc['artifacts'][k] = _string_substitute(v, artifact_lut, False)
+
+			if artifact_nr > 0:
+				artifact_lut = _combine(config)
+
+		return _combine_full(config)
+
+	def _substitute_macros(config, lut, final):
 		for desc in config['build'].values():
-			lut = {
-				'param': {
-					'sourcedir': desc['sourcedir'],
-					'builddir': desc['builddir'],
-					'configdir': lambda x: workspace.config(x, False),
-				},
-			}
+			lut['param']['sourcedir'] = desc['sourcedir']
+			lut['param']['builddir'] = desc['builddir']
 
-			for key, val in desc['artifacts'].items():
-				desc['artifacts'][key] = _string_substitute(val, lut)
-
-			locs = {key: {
-				'src': val,
-				'dst': os.path.join(config['name'], os.path.basename(val)),
-			} for key, val in desc['artifacts'].items()}
-
-			artifact_map.update(locs)
-
-		return artifact_map
-
-	def _substitute_macros(config, artifacts, clivars):
-		for desc in config['build'].values():
-			lut = {
-				'artifact': artifacts,
-				'param': {
-					**clivars,
-					'sourcedir': desc['sourcedir'],
-					'builddir': desc['builddir'],
-					'configdir': lambda x: workspace.config(x, False),
-				},
-			}
-
-			for k in desc['params']:
-				v = desc['params'][k]
+			for k, v in desc['params'].items():
 				if v:
-					desc['params'][k] = _string_substitute(str(v), lut)
+					desc['params'][k] = _string_substitute(str(v), lut, final)
 
 			lut['param']['join_equal'] = _mk_params(desc['params'], '=')
 			lut['param']['join_space'] = _mk_params(desc['params'], ' ')
 
 			for i, s in enumerate(desc['prebuild']):
-				desc['prebuild'][i] = _string_substitute(s, lut)
+				desc['prebuild'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['build']):
-				desc['build'][i] = _string_substitute(s, lut)
+				desc['build'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['postbuild']):
-				desc['postbuild'][i] = _string_substitute(s, lut)
+				desc['postbuild'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['clean']):
-				desc['clean'][i] = _string_substitute(s, lut)
+				desc['clean'][i] = _string_substitute(s, lut, final)
+
+			for k, v in desc['artifacts'].items():
+				desc['artifacts'][k] = _string_substitute(v, lut, final)
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply
@@ -534,11 +537,33 @@ def resolveb(config, clivars={}):
 							'build',
 							comp_dir)
 
+	macro_lut = {
+		'param': {
+			**uclivars.get(**clivars),
+			'configdir': lambda x: workspace.config(x, False),
+		},
+	}
+
+	# Do a first partial substitution, to resolve all macros except
+	# ${artifact:*}. These macros must remain in place in order to resolve
+	# the build graph. But its possible that ${artifact:*} resolve to other
+	# ${artifact:*} so we need to do the first pass prior to resolving the
+	# build graph.
+	_substitute_macros(config, macro_lut, False)
+
+	# Now resolve the build graph, which finds ${artifact:*} users.
 	graph = _resolve_build_graph(config)
+
+	# At this point we should only have ${artifacts:*} macros remaining to
+	# resolve. But there may be some cases where ${artifacts:*} resolve to
+	# other ${artifacts:*}. So we need to iteratively resolve the
+	# artifact_map.
 	artifact_map = _resolve_artifact_map(config)
 	artifact_src_map = {k: v['src'] for k, v in artifact_map.items()}
-	clivars = uclivars.get(**clivars)
-	_substitute_macros(config, artifact_src_map, clivars)
+	macro_lut['artifact'] = artifact_src_map
+
+	# Final check to ensure everything is resolved and to fix escaped $.
+	_substitute_macros(config, macro_lut, True)
 
 	config['graph'] = graph
 	config['artifacts'] = artifact_map

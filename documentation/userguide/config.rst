@@ -128,10 +128,10 @@ macro                   scope                                                   
 ``${param:sourcedir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which the component's source code is located.
 ``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which the component should be built, if the component's build system supports separation of source and build trees.
 ``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory containing the config store. This MUST only be used for resolving files that already exist in the store.
-``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild, clean}             Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
+``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
 ``${param:join_equal}`` build.<component>.{prebuild, build, postbuild, clean}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
 ``${param:join_space}`` build.<component>.{prebuild, build, postbuild, clean}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
-``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, clean}             Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph.
+``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph. Artifacts must not be circular.
 ``${artifact:<name>}``  run.rtvars                                                                Package path of an artifact.
 ``${rtvar:<name>}``     run.params                                                                Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
 ======================= ========================================================================= ====
