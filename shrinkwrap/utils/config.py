@@ -573,9 +573,13 @@ def resolveb(config, btvars={}, clivars={}):
 	final_btvars = config['buildex']['btvars']
 
 	for k, v in final_btvars.items():
-		if v['value'] is None:
-			raise Exception(f'{k} build-time variable not ' \
-					'set by user and no default available.')
+		if btvars is not None:
+			if k in btvars:
+				v['value'] = btvars[k]
+			if v['value'] is None:
+				raise Exception(f'{k} build-time variable ' \
+		    				'not set by user and no ' \
+						'default available.')
 
 		if v['type'] == 'path' and \
 			v['value'] and \

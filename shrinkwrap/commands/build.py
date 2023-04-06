@@ -3,6 +3,7 @@
 
 import os
 import shrinkwrap.commands.buildall as buildall
+import shrinkwrap.utils.vars as vars
 
 
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -37,6 +38,14 @@ def add_parser(parser, formatter):
 		     current directory that config is used. Else if the config
 		     exists relative to the config store then it is used.""")
 
+	cmdp.add_argument('-b', '--btvar',
+		metavar='key=value', required=False, default=[],
+		action='append',
+		help="""Override value for a single build-time variable defined
+		     by the config. Specify option multiple times for multiple
+		     variables. Overrides for variables that have a default
+		     specified by the config are optional.""")
+
 	buildall.add_common_args(cmdp)
 
 	return cmd_name
@@ -48,4 +57,5 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	buildall.build([args.config], args)
+	btvars = vars.parse(args.btvar, type='bt')
+	buildall.build([args.config], [btvars], args)

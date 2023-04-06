@@ -104,19 +104,20 @@ def dispatch(args):
 	command line. The arguments comply with those requested in add_parser().
 	"""
 	with open(args.configs) as file:
-		configs = yaml.safe_load(file)
+		cfgs = yaml.safe_load(file)
 
-	configs = [c['config'] for c in configs['configs']]
-	build(configs, args)
+	configs = [c['config'] for c in cfgs['configs']]
+	btvarss = [c['btvars'] for c in cfgs['configs']]
+	build(configs, btvarss, args)
 
 
-def build(configs, args):
+def build(configs, btvarss, args):
 	"""
 	Concurrently builds a list of configs. Intended to be called as a common
 	handler for the build and buildmulti commands.
 	"""
 	clivars = {'jobs': args.jobs}
-	configs = config.load_resolveb_all(configs, args.overlay, clivars)
+	configs = config.load_resolveb_all(configs, args.overlay, clivars, btvarss)
 	graph = config.build_graph(configs, args.verbose)
 
 	if args.dry_run:
@@ -146,6 +147,10 @@ def build(configs, args):
 				for comp in conf['build'].values():
 					add_volume(comp['sourcedir'], 1)
 					add_volume(comp['builddir'])
+
+				for btvar in conf['buildex']['btvars'].values():
+					if btvar['type'] == 'path':
+						rt.add_volume(btvar['value'])
 
 			rt.start()
 
