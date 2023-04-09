@@ -7,6 +7,8 @@ import argparse
 import json
 import os
 import subprocess
+import tempfile
+import yaml
 
 
 RUNTIME = None
@@ -20,9 +22,21 @@ ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
 
 
 CONFIGS = [
-	('ns-preload.yaml', {}),
-	('ns-edk2.yaml', {}),
-	('ns-edk2.yaml', {'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'}),
+	{
+		'config': 'ns-preload.yaml',
+		'btvars': {},
+		'rtvars': {},
+	},
+	{
+		'config': 'ns-edk2.yaml',
+		'btvars': {},
+		'rtvars': {},
+	},
+	{
+		'config': 'ns-edk2.yaml',
+		'btvars': {},
+		'rtvars': {'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'},
+	},
 ]
 
 
@@ -99,25 +113,47 @@ def run(cmd, timeout=None, expect=0):
 		raise WrongExit(ret)
 
 
-def build_configs(configs, overlay=None):
+def build_configs(configs, overlay=None, btvarss=None):
 	result = {
 		'type': 'build',
 		'status': 'fail',
 		'error': None,
 		'configs': configs,
 		'overlay': overlay,
+		'btvarss': btvarss,
 	}
 
 	rt = f'-R {RUNTIME} -I {IMAGE}'
 	overlay = f'-o {overlay}' if overlay else ''
-	args = f'{" ".join(configs)} {overlay}'
+	cleanargs = f'{" ".join(configs)} {overlay}'
 
-	try:
-		run(f'shrinkwrap {rt} clean {args} -d', None)
-		run(f'shrinkwrap {rt} build {args}', None)
-		result['status'] = 'pass'
-	except Exception as e:
-		result['error'] = str(e)
+	if btvarss is None:
+		btvarss = [{}] * len(configs)
+
+	assert(len(configs) == len(btvarss))
+
+	cfgs = []
+	for c, b in zip(configs, btvarss):
+		cfgs.append({'config': c, 'btvars': b})
+
+	with tempfile.TemporaryDirectory() as tmpdir:
+		tmpfilename = os.path.join(tmpdir, 'configs.yaml')
+		with open(tmpfilename, 'w') as tmpfile:
+			yaml.safe_dump({'configs': cfgs},
+					tmpfile,
+					explicit_start=True,
+					sort_keys=False,
+					version=(1, 2))
+		with open(tmpfilename, 'r') as tmpfile:
+			print(tmpfile.read())
+		buildargs = f'{tmpfilename} {overlay}'
+
+		try:
+			run(f'shrinkwrap {rt} clean {cleanargs} -d', None)
+			run(f'shrinkwrap {rt} buildall {buildargs}', None)
+			result['status'] = 'pass'
+		except Exception as e:
+			result['error'] = str(e)
 
 	results.append(result)
 
@@ -168,8 +204,11 @@ def do_main(smoke_test):
 	arches = [ARCHES[-1]] if smoke_test else ARCHES
 
 	for arch in arches:
-		build_configs([c for c, r in CONFIGS], arch)
-		for config, rtvars in CONFIGS:
+		configs = [c['config'] for c in CONFIGS]
+		btvarss = [c['btvars'] for c in CONFIGS]
+		rtvarss = [c['rtvars'] for c in CONFIGS]
+		build_configs(configs, arch, btvarss=btvarss)
+		for config, rtvars in zip(configs, rtvarss):
 			run_config_kern(config, KERNEL, ROOTFS, arch, rtvars=rtvars)
 
 	for arch in arches:
