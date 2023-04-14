@@ -12,8 +12,6 @@ build:
       remote: https://git.trustedfirmware.org/hafnium/hafnium.git
       revision: v2.8
 
-    toolchain: aarch64-none-elf-
-
     params:
       PROJECT: reference
 
@@ -21,8 +19,7 @@ build:
       # Hafnium doesn't provide a mechanism to forward number of jobs to ninja,
       # so it will always parallelize across all cpus. Ideally we would specify
       # max jobs with ${param:jobs}.
-      - PATH=${param:sourcedir}/prebuilts/linux-x64/clang/bin:${param:sourcedir}/prebuilts/linux-x64/dtc:$$PATH
-        make OUT_DIR=${param:builddir} ${param:join_equal}
+      - make OUT_DIR=${param:builddir} ${param:join_equal}
 
     artifacts:
       HAFNIUM: ${param:builddir}/secure_aem_v8a_fvp_clang/hafnium.bin
