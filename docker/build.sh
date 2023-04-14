@@ -44,7 +44,8 @@ if [ "${ARCH}" == "x86_64" ]; then
 	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.20_15_Linux64.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
 	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_GCC-9.3
-elif [ "${ARCH}" == "aarch64" ]; then
+# ARCH is "aarch64" on Ubuntu, or "arm" on Mac OS
+elif [ "${ARCH}" == "aarch64" ] || [ "${ARCH}" == "arm" ]; then
 	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
 	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-11.3.rel1-aarch64-aarch64-none-elf.tar.xz
 	TCH_PATH_AARCH64=arm-gnu-toolchain-11.3.rel1-aarch64-aarch64-none-elf/bin
