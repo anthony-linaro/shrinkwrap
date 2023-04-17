@@ -301,7 +301,7 @@ concrete config. You can view non-concrete fragments by providing extra args).
 
 Now build the ``ns-edk2.yaml`` config. This allows booting a kernel on FVP,
 using edk2 as the bootloader (it uses DT by default, but can be made to use ACPI
-by passing ``acpi=false`` at runtime). (optionally add ``--verbose`` to see all
+by passing ``acpi=force`` at runtime). (optionally add ``--verbose`` to see all
 the output from the component build systems).
 
 .. code-block:: shell
