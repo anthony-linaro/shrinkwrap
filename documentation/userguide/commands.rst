@@ -22,6 +22,7 @@ For help on a specific command:
 
   shrinkwrap inspect --help
   shrinkwrap build --help
+  shrinkwrap buildall --help
   shrinkwrap clean --help
   shrinkwrap run --help
   shrinkwrap process --help

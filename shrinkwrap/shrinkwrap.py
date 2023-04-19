@@ -17,6 +17,7 @@ from shrinkwrap import __version__
 
 
 from shrinkwrap.commands import build
+from shrinkwrap.commands import buildall
 from shrinkwrap.commands import clean
 from shrinkwrap.commands import inspect
 from shrinkwrap.commands import process
@@ -91,6 +92,7 @@ def main():
 	# Register all the commands.
 	cmds = {}
 	cmds[build.add_parser(subparsers, formatter)] = build
+	cmds[buildall.add_parser(subparsers, formatter)] = buildall
 	cmds[clean.add_parser(subparsers, formatter)] = clean
 	cmds[inspect.add_parser(subparsers, formatter)] = inspect
 	cmds[process.add_parser(subparsers, formatter)] = process

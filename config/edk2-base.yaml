@@ -9,6 +9,22 @@ description: >-
   Builds acpica from source as part of the build process.
 
 build:
+  acpica:
+    repo:
+      remote: https://github.com/acpica/acpica.git
+      revision: R10_20_22
+
+    build:
+      - rm -rf ${param:sourcedir}/generate/unix/acpica
+      - make -j${param:jobs}
+      - mv ${param:sourcedir}/generate/unix/bin ${param:sourcedir}/generate/unix/acpica
+
+    clean:
+      - make -j${param:jobs} clean
+
+    artifacts:
+      ACPICA: ${param:sourcedir}/generate/unix/acpica
+
   edk2:
     repo:
       edk2:
@@ -17,17 +33,16 @@ build:
       edk2-platforms:
         remote: https://github.com/tianocore/edk2-platforms.git
         revision: 20e07099d8f11889d101dd710ca85001be20e179
-      acpica:
-        remote: https://github.com/acpica/acpica.git
-        revision: R10_20_22
 
     toolchain: aarch64-none-elf-
+
+    stderrfilt: true
 
     prebuild:
       - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
       - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
-      - export IASL_PREFIX=$$WORKSPACE/acpica/generate/unix/bin/
+      - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
 
     params:
@@ -37,7 +52,6 @@ build:
       -b: RELEASE
 
     build:
-      - make -j${param:jobs} -C acpica
       - source edk2/edksetup.sh --reconfig
       - make -j${param:jobs} -C edk2/BaseTools
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}

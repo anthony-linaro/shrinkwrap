@@ -131,12 +131,19 @@ def execute(graph, tasks, verbose=False, colorize=True):
 			_run_script(pm, data, frag)
 			active += 1
 
+	def _should_log(proc, data, streamid):
+		if streamid == process.STDERR and \
+		   (not proc.data[2].stderrfilt or \
+		   'warning' in data or 'error' in data):
+			return True
+		return False
+
 	def _log(pm, proc, data, streamid):
 		if verbose:
 			log.log(pm, proc, data, streamid)
 		else:
 			proc.data[1].append(data)
-			if streamid == process.STDERR:
+			if _should_log(proc, data, streamid):
 				log.log(pm, proc, data, streamid)
 				lc.skip_overdraw_once()
 

@@ -3,7 +3,7 @@
 
 import os
 import shrinkwrap.utils.config as config
-import shrinkwrap.utils.rtvars as rtvars
+import shrinkwrap.utils.vars as vars
 
 
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -48,6 +48,15 @@ def add_parser(parser, formatter):
 		     "run" sections are used. Can be specified multiple times;
 		     left-most overlay is the first overlay applied.""")
 
+	cmdp.add_argument('-b', '--btvar',
+		metavar='key=value', required=False, default=[],
+		action='append',
+		help="""Override value for a single build-time variable defined
+		     by the config. Specify option multiple times for multiple
+		     variables. Overrides for variables that have a default
+		     specified by the config are optional. Only used if action
+		     is "resolveb" or "resolver".""")
+
 	cmdp.add_argument('-r', '--rtvar',
 		metavar='key=value', required=False, default=[],
 		action='append',
@@ -79,12 +88,13 @@ def dispatch(args):
 	if args.action == 'merge':
 		print(config.dumps(merged))
 	else:
-		resolveb = config.resolveb(merged)
+		btvars = vars.parse(args.btvar, type='bt')
+		resolveb = config.resolveb(merged, btvars)
 
 		if args.action == 'resolveb':
 			print(config.dumps(resolveb))
 		else:
-			rtvars_dict = rtvars.parse(args.rtvar)
+			rtvars_dict = vars.parse(args.rtvar, type='rt')
 			resolver = config.resolver(resolveb, rtvars_dict)
 
 			if args.action == 'resolver':

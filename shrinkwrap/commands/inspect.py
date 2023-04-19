@@ -51,7 +51,7 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	configs = config.load_resolveb_all(args.configs)
+	configs = config.load_all(args.configs)
 
 	width = 80
 	indent = 21
@@ -82,8 +82,17 @@ def dispatch(args):
 				     indent=indent,
 				     paraspace=1))
 		buf.write('\n')
-		rtvars = {k: v['value'] for k,v in c['run']['rtvars'].items()}
-		buf.write(_dict_wrap('run-time variables',
+		btvars = {k: _var_value(v['value'])
+	    				for k,v in c['buildex']['btvars'].items()}
+		buf.write(_dict_wrap('build-time vars',
+				     btvars,
+				     width=width,
+				     kindent=indent,
+				     vindent=vindent))
+		buf.write('\n')
+		rtvars = {k: _var_value(v['value'])
+	    				for k,v in c['run']['rtvars'].items()}
+		buf.write(_dict_wrap('run-time vars',
 				     rtvars,
 				     width=width,
 				     kindent=indent,
@@ -95,6 +104,12 @@ def dispatch(args):
 	all = separator.join(descs)
 	print(all)
 
+def _var_value(value):
+	if value is None:
+		return '<null>'
+	if value == '':
+		return '<empty>'
+	return str(value)
 
 def _text_wrap(tag, text, width=80, indent=0, paraspace=1, end='\n'):
 	text = str(text)

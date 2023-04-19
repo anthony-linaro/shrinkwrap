@@ -37,6 +37,9 @@ def _component_normalize(component, name):
 	if 'toolchain' not in component:
 		component['toolchain'] = None
 
+	if 'stderrfilt' not in component:
+		component['stderrfilt'] = None
+
 	if 'prebuild' not in component:
 		component['prebuild'] = []
 
@@ -67,6 +70,14 @@ def _build_normalize(build):
 
 	for name, component in build.items():
 		_component_normalize(component, name)
+
+
+def _buildex_normalize(buildex):
+	"""
+	Fills in any missing lists or dictionaries with empty ones.
+	"""
+	if 'btvars' not in buildex:
+		buildex['btvars'] = {}
 
 
 def _run_normalize(run):
@@ -117,7 +128,11 @@ def _config_normalize(config):
 	if 'build' not in config:
 		config['build'] = {}
 
+	if 'buildex' not in config:
+		config['buildex'] = {}
+
 	_build_normalize(config['build'])
+	_buildex_normalize(config['buildex'])
 
 	if 'artifacts' not in config:
 		config['artifacts'] = {}
@@ -143,7 +158,7 @@ def _component_sort(component):
 	Sort the component so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'params',
+	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'stderrfilt', 'params',
 			'prebuild', 'build', 'postbuild', 'clean', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
@@ -178,7 +193,7 @@ def _config_sort(config):
 	config['run'] = _run_sort(config['run'])
 
 	lut = ['name', 'fullname', 'description', 'concrete', 'layers',
-			'graph', 'build', 'artifacts', 'run']
+			'graph', 'build', 'buildex', 'artifacts', 'run']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))
 
@@ -218,7 +233,7 @@ def _config_merge(base, new):
 	return config
 
 
-def _string_tokenize(string):
+def _string_tokenize(string, escape=True):
 	"""
 	Returns ordered list of tokens, where each token has a 'type' and
 	'value'. If 'type' is 'literal', 'value' is the literal string. If
@@ -252,9 +267,10 @@ def _string_tokenize(string):
 			raise Exception(f"Macro at col {lit_end}" \
 					f" in '{string}' is invalid.")
 		if m['escape'] is not None:
+			assert(m['escape'] == '$')
 			tokens.append({
 				'type': 'literal',
-				'value': m['escape'],
+				'value': '$' if escape else '$$',
 			})
 		if m['type'] is not None:
 			tokens.append({
@@ -275,18 +291,19 @@ def _string_tokenize(string):
 	return tokens
 
 
-def _string_substitute(string, lut, partial=False):
+def _string_substitute(string, lut, final=True):
 	"""
 	Takes a string containg macros and returns a string with the macros
-	substituted for the values found in the lut. If partial is True, any
+	substituted for the values found in the lut. If final is False, any
 	macro that does not have a value in the lut will be left as a macro in
-	the returned string. If partial is False, any macro that does not have a
-	value in the lut will cause an interrupt.
+	the returned string. If final is True, any macro that does not have a
+	value in the lut will cause an exception. Final also controls unescaping
+	on $. If False, $$ is left as is, otherwise they are replaced with $.
 	"""
 	calls = []
 	frags = []
 	frag = ''
-	tokens = _string_tokenize(string)
+	tokens = _string_tokenize(string, final)
 
 	for t in tokens:
 		if t['type'] == 'literal':
@@ -301,12 +318,9 @@ def _string_substitute(string, lut, partial=False):
 					frag = ''
 				else:
 					frag += lu
-			except KeyError:
-				if partial:
-					frag += f"${{{m['type']}:{m['name']}}}"
-				else:
-					raise
-
+			except Exception:
+				macro = f"${{{m['type']}:{m['name']}}}"
+				frag += macro
 		else:
 			assert(False)
 
@@ -323,6 +337,11 @@ def _string_substitute(string, lut, partial=False):
 		final += frag
 
 	return final
+
+
+def _string_has_macros(string):
+	tokens = _string_tokenize(string)
+	return any([True for t in tokens if t['type'] == 'macro'])
 
 
 def _mk_params(params, separator):
@@ -401,12 +420,15 @@ def dump(config, fileobj):
 			      version=(1, 2))
 
 
-def resolveb(config, clivars={}):
+def resolveb(config, btvars={}, clivars={}):
 	"""
 	Resolves the build-time macros (params, artifacts, etc) and fixes up the
 	config. Based on the artifact dependencies, the component build graph is
 	determined and placed into the config along with the global artifact
 	map. Expects a config that was previously loaded with load().
+	btvars=None implies that it is OK not to resolve btvars whose default
+	value is None. type(btvars) == dict implies btvars values must all be
+	resolved.
 	"""
 	def _resolve_build_graph(config):
 		def _exporters_update(exporters, name, component):
@@ -421,21 +443,9 @@ def resolveb(config, clivars={}):
 
 		def _importers_update(importers, name, component):
 			artifacts = set()
-			macros = []
 
-			for s in component['params'].values():
-				tokens = _string_tokenize(str(s))
-				macros += [t['value'] for t in tokens if t['type'] == 'macro']
-
-			for m in macros:
-				if m['type'] != 'artifact':
-					raise Exception(f"'{name}' uses macro of type '{m['type']}'. Components must only use 'artifact' macros.")
-				if m['name'] is None:
-					raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
-				artifacts.add(m['name'])
-
-			for scope in ['prebuild', 'build', 'postbuild', 'clean']:
-				for s in component[scope]:
+			def _find_artifacts(strings):
+				for s in strings:
 					for t in _string_tokenize(str(s)):
 						if t['type'] != 'macro':
 							continue
@@ -445,6 +455,13 @@ def resolveb(config, clivars={}):
 						if m['name'] is None:
 							raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
 						artifacts.add(m['name'])
+
+			_find_artifacts(component['params'].values())
+			_find_artifacts(component['prebuild'])
+			_find_artifacts(component['build'])
+			_find_artifacts(component['postbuild'])
+			_find_artifacts(component['clean'])
+			_find_artifacts(component['artifacts'].values())
 
 			importers[name] = sorted(list(artifacts))
 
@@ -458,64 +475,77 @@ def resolveb(config, clivars={}):
 		for depender, deps in artifacts_imp.items():
 			graph[depender] = []
 			for dep in deps:
+				if dep not in artifacts_exp:
+					raise Exception(f"Imported artifact '{dep}' not exported by any component.")
 				dependee = artifacts_exp[dep]
-				graph[depender].append(dependee)
+				if depender != dependee:
+					graph[depender].append(dependee)
 
 		return graph
 
 	def _resolve_artifact_map(config):
+		def _combine(config):
+			artifact_map = {}
+			for desc in config['build'].values():
+				artifact_map.update(desc['artifacts'].items())
+			return {'artifact': artifact_map}
 
-		artifact_map = {}
+		def _combine_full(config):
+			artifact_map = {}
+			for desc in config['build'].values():
+				locs = {key: {
+					'src': val,
+					'dst': os.path.join(config['name'], os.path.basename(val)),
+				} for key, val in desc['artifacts'].items()}
+				artifact_map.update(locs)
+			return artifact_map
 
+		# ${artifact:*} macros could refer to other ${artifact:*}
+		# macros, so iteratively substitute the maximum number of times,
+		# which would be once per entry in the pathalogical case.
+
+		artifact_lut = _combine(config)
+		artifact_nr = len(artifact_lut['artifact'])
+
+		while artifact_nr > 0:
+			artifact_nr -= 1
+
+			for desc in config['build'].values():
+				for k, v in desc['artifacts'].items():
+					desc['artifacts'][k] = _string_substitute(v, artifact_lut, False)
+
+			if artifact_nr > 0:
+				artifact_lut = _combine(config)
+
+		return _combine_full(config)
+
+	def _substitute_macros(config, lut, final):
 		for desc in config['build'].values():
-			lut = {
-				'param': {
-					'sourcedir': desc['sourcedir'],
-					'builddir': desc['builddir'],
-					'configdir': lambda x: workspace.config(x, False),
-				},
-			}
+			lut['param']['sourcedir'] = desc['sourcedir']
+			lut['param']['builddir'] = desc['builddir']
 
-			for key, val in desc['artifacts'].items():
-				desc['artifacts'][key] = _string_substitute(val, lut)
-
-			locs = {key: {
-				'src': val,
-				'dst': os.path.join(config['name'], os.path.basename(val)),
-			} for key, val in desc['artifacts'].items()}
-
-			artifact_map.update(locs)
-
-		return artifact_map
-
-	def _substitute_macros(config, artifacts, clivars):
-		for desc in config['build'].values():
-			lut = {
-				'artifact': artifacts,
-				'param': {
-					**clivars,
-					'sourcedir': desc['sourcedir'],
-					'builddir': desc['builddir'],
-					'configdir': lambda x: workspace.config(x, False),
-				},
-			}
-
-			for k in desc['params']:
-				v = desc['params'][k]
+			for k, v in desc['params'].items():
 				if v:
-					desc['params'][k] = _string_substitute(str(v), lut)
+					desc['params'][k] = _string_substitute(str(v), lut, final)
 
 			lut['param']['join_equal'] = _mk_params(desc['params'], '=')
 			lut['param']['join_space'] = _mk_params(desc['params'], ' ')
 
 			for i, s in enumerate(desc['prebuild']):
-				desc['prebuild'][i] = _string_substitute(s, lut)
+				desc['prebuild'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['build']):
-				desc['build'][i] = _string_substitute(s, lut)
+				desc['build'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['postbuild']):
-				desc['postbuild'][i] = _string_substitute(s, lut)
+				desc['postbuild'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['clean']):
-				desc['clean'][i] = _string_substitute(s, lut)
+				desc['clean'][i] = _string_substitute(s, lut, final)
+
+			for k, v in desc['artifacts'].items():
+				desc['artifacts'][k] = _string_substitute(v, lut, final)
+
+		for k, v in config['buildex']['btvars'].items():
+			if v['value'] is not None:
+				v['value'] = _string_substitute(str(v['value']), lut, final)
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply
@@ -531,11 +561,55 @@ def resolveb(config, clivars={}):
 							'build',
 							comp_dir)
 
+	macro_lut = {
+		'param': {
+			**uclivars.get(**clivars),
+			'configdir': lambda x: workspace.config(x, False),
+		},
+	}
+
+	# Override the btvars with any values supplied by the user and check
+	# that all btvars are defined.
+	final_btvars = config['buildex']['btvars']
+
+	for k, v in final_btvars.items():
+		if btvars is not None:
+			if k in btvars:
+				v['value'] = btvars[k]
+			if v['value'] is None:
+				raise Exception(f'{k} build-time variable ' \
+		    				'not set by user and no ' \
+						'default available.')
+
+		if v['type'] == 'path' and \
+			v['value'] and \
+			not _string_has_macros(v['value']):
+			v['value'] = os.path.expanduser(v['value'])
+			v['value'] = os.path.abspath(v['value'])
+
+	macro_lut['btvar'] = {k: v['value'] for k, v in final_btvars.items()}
+
+	# Do a first partial substitution, to resolve all macros except
+	# ${artifact:*}. These macros must remain in place in order to resolve
+	# the build graph. But its possible that btvars resolve to ${artifact:*}
+	# so we need to do the first pass prior to resolving the build graph.
+	# btvars are external to the component so they can't be used directly to
+	# build the graph.
+	_substitute_macros(config, macro_lut, False)
+
+	# Now resolve the build graph, which finds ${artifact:*} users.
 	graph = _resolve_build_graph(config)
+
+	# At this point we should only have ${artifacts:*} macros remaining to
+	# resolve. But there may be some cases where ${artifacts:*} resolve to
+	# other ${artifacts:*}. So we need to iteratively resolve the
+	# artifact_map.
 	artifact_map = _resolve_artifact_map(config)
 	artifact_src_map = {k: v['src'] for k, v in artifact_map.items()}
-	clivars = uclivars.get(**clivars)
-	_substitute_macros(config, artifact_src_map, clivars)
+	macro_lut['artifact'] = artifact_src_map
+
+	# Final check to ensure everything is resolved and to fix escaped $.
+	_substitute_macros(config, macro_lut, True)
 
 	config['graph'] = graph
 	config['artifacts'] = artifact_map
@@ -622,11 +696,11 @@ def resolver(config, rtvars={}, clivars={}):
 	return _config_sort(config)
 
 
-def load_resolveb_all(names, overlaynames=[], clivars={}):
+def load_all(names, overlaynames=[]):
 	"""
 	Takes a list of config names and returns a corresponding list of
-	resolved configs. If the input list is None or empty, all standard
-	configs are loaded and resolved.
+	loaded configs. If the input list is None or empty, all standard
+	configs are loaded.
 	"""
 	explicit = names is not None and len(names) != 0
 	configs = []
@@ -650,13 +724,34 @@ def load_resolveb_all(names, overlaynames=[], clivars={}):
 		try:
 			file = filename(name)
 			merged = load(file, overlays, name)
-			resolved = resolveb(merged, clivars)
-			configs.append(resolved)
+			configs.append(merged)
 		except Exception:
 			if explicit:
 				raise
 
 	return configs
+
+
+def load_resolveb_all(names, overlaynames=[], clivars={}, btvarss=None):
+	"""
+	Takes a list of config names and returns a corresponding list of
+	resolved configs. If the input list is None or empty, all standard
+	configs are loaded and resolved.
+	"""
+	configs_m = load_all(names, overlaynames)
+
+	if btvarss is None:
+		btvarss = [None] * len(configs_m)
+
+	assert(len(configs_m) == len(btvarss))
+
+	configs_r = []
+
+	for merged, btvars in zip(configs_m, btvarss):
+		resolved = resolveb(merged, btvars, clivars)
+		configs_r.append(resolved)
+
+	return configs_r
 
 
 class Script:
@@ -665,11 +760,13 @@ class Script:
 		     config=None,
 		     component=None,
 		     preamble=None,
-		     final=False):
+		     final=False,
+		     stderrfilt=None):
 		self.summary = summary
 		self.config = config
 		self.component = component
 		self.final = final
+		self.stderrfilt = stderrfilt
 		self._cmds = ''
 		self._sealed = False
 		self._preamble = preamble
@@ -809,7 +906,7 @@ def build_graph(configs, echo):
 				g.seal()
 				graph[g] = [gl2]
 
-				b = Script('Building', config["name"], name, preamble=pre)
+				b = Script('Building', config["name"], name, preamble=pre, stderrfilt=component['stderrfilt'])
 				if len(component['prebuild']) + \
 				   len(component['build']) + \
 				   len(component['postbuild']) > 0:
@@ -835,7 +932,7 @@ def build_graph(configs, echo):
 			for artifact in config['artifacts'].values():
 				src = artifact['src']
 				dst = os.path.join(workspace.package, artifact['dst'])
-				a.append(f'cp {src} {dst}')
+				a.append(f'cp -r {src} {dst}')
 		a.seal()
 		graph[a] = [gl2] + [s for s in build_scripts.values()]
 
