@@ -176,8 +176,11 @@ def do_main(smoke_test):
 		build_configs(['bootwrapper.yaml'], arch)
 		run_config_bootwrap('bootwrapper.yaml', BOOTWRAPPER, ROOTFS, arch)
 
-	build_configs(['cca-3world.yaml'])
+	build_configs(['cca-3world.yaml', 'cca-4world.yaml'])
 	run_config_kern('cca-3world.yaml', KERNEL, ROOTFS)
+	# TODO: Disabled due to Hafnium requiring MTE but RMM does not support
+	# it. Reenable when Hafnium fixed to remove dependency.
+	# run_config_kern('cca-4world.yaml', KERNEL, ROOTFS)
 
 	print_results()
 
