@@ -113,7 +113,7 @@ def build_configs(configs, overlay=None):
 	args = f'{" ".join(configs)} {overlay}'
 
 	try:
-		run(f'shrinkwrap {rt} clean {args}', None)
+		run(f'shrinkwrap {rt} clean {args} -d', None)
 		run(f'shrinkwrap {rt} build {args}', None)
 		result['status'] = 'pass'
 	except Exception as e:
