@@ -200,7 +200,7 @@ def main():
 	parser.add_argument('-I', '--image',
 		metavar='name',
 		required=False,
-		default='docker.io/shrinkwraptool/base-slim:latest',
+		default='docker.io/shrinkwraptool/base-full:latest',
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 
