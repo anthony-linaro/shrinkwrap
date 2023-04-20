@@ -4,13 +4,8 @@
 %YAML 1.2
 ---
 description: >-
-  Brings together a software stack to demonstrate Arm CCA running on FVP in a
-  four-world configuration. Includes TF-A in root world, Hafnium and some demo
-  secure partitions in secure world, RMM in realm world, and Linux in Normal
-  world.
-
-  In order to launch realm VMs, the user must bring their own rootfs that
-  contains a realm-aware kvmtool and an RSI-aware guest kernel image.
+  Builds on cca-3world.yaml, but adds support for running Hafnium along with
+  some secure partitions in Secure World.
 
 concrete: true
 
