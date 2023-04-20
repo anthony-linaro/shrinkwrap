@@ -15,5 +15,5 @@ User Guide
    quickstart
    runtimes
    commands
-   config
+   configmodel
    recipes

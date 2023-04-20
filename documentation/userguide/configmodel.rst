@@ -3,9 +3,9 @@
  #
  # SPDX-License-Identifier: MIT
 
-#######
-Configs
-#######
+############
+Config Model
+############
 
 A config is a yaml file that defines everything about a given configuration.
 This includes:
