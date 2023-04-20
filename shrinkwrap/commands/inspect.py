@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Arm Limited.
 # SPDX-License-Identifier: MIT
 
+import json
 import io
 import os
 import textwrap
@@ -42,6 +43,10 @@ def add_parser(parser, formatter):
 		     lists all standard configs rather than just the concrete
 		     ones.""")
 
+	cmdp.add_argument('-j', '--json',
+		required=False, default=False, action='store_true',
+		help="""If specified, output is in json.""")
+
 	return cmd_name
 
 
@@ -53,19 +58,39 @@ def dispatch(args):
 	"""
 	configs = config.load_all(args.configs)
 
+	cfgs = []
+	for c in sorted(configs, key=lambda c: c['fullname']):
+		if len(args.configs) == 0 and not args.all and not c['concrete']:
+			continue
+
+		cfgs.append({
+			'name': c['fullname'],
+			'description': c['description'],
+			'concrete': c['concrete'],
+			'btvars': {
+				k: _var_value(v['value'])
+				for k,v in c['buildex']['btvars'].items()
+			},
+			'rtvars': {
+				k: _var_value(v['value'])
+				for k,v in c['run']['rtvars'].items()
+			},
+		})
+
+	if args.json:
+		print(json.dumps(cfgs, indent=4))
+		return
+
 	width = 80
 	indent = 21
 	vindent = 24
 
 	descs = []
-	for c in sorted(configs, key=lambda c: c['fullname']):
-		if len(args.configs) == 0 and not args.all and not c['concrete']:
-			continue
-
+	for c in cfgs:
 		buf = io.StringIO()
 
 		buf.write(_text_wrap('name',
-				     c['fullname'],
+				     c['name'],
 				     width=width,
 				     indent=indent,
 				     paraspace=1))
@@ -82,18 +107,14 @@ def dispatch(args):
 				     indent=indent,
 				     paraspace=1))
 		buf.write('\n')
-		btvars = {k: _var_value(v['value'])
-	    				for k,v in c['buildex']['btvars'].items()}
 		buf.write(_dict_wrap('build-time vars',
-				     btvars,
+				     c['btvars'],
 				     width=width,
 				     kindent=indent,
 				     vindent=vindent))
 		buf.write('\n')
-		rtvars = {k: _var_value(v['value'])
-	    				for k,v in c['run']['rtvars'].items()}
 		buf.write(_dict_wrap('run-time vars',
-				     rtvars,
+				     c['rtvars'],
 				     width=width,
 				     kindent=indent,
 				     vindent=vindent))
