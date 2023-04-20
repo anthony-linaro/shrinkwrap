@@ -16,4 +16,5 @@ User Guide
    runtimes
    commands
    configmodel
+   configstore/index
    recipes
