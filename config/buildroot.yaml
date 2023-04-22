@@ -1,0 +1,35 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Generates a very simple rootfs as an ext2/4 image. Higher layers can modify
+  the buildroot config by adding commands to prebuild.
+
+concrete: true
+
+build:
+  buildroot:
+    repo:
+      remote: https://github.com/buildroot/buildroot.git
+      revision: 2022.05.3
+
+    toolchain: aarch64-linux-gnu-
+
+    stderrfilt: true
+
+    prebuild:
+      # Start from default config, but allow higher level layers to modify it.
+      - cp ${param:configdir}/buildroot.config ${param:builddir}/.config
+      - make BR2_JLEVEL=${param:jobs} O=${param:builddir} olddefconfig
+
+    build:
+      # Finalize the config.
+      - make BR2_JLEVEL=${param:jobs} O=${param:builddir} olddefconfig
+
+      # Build.
+      - make BR2_JLEVEL=${param:jobs} O=${param:builddir}
+
+    artifacts:
+      BUILDROOT: ${param:builddir}/images/rootfs.ext2

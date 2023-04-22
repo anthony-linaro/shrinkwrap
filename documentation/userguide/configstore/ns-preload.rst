@@ -1,0 +1,44 @@
+..
+ # Copyright (c) 2023, Arm Limited.
+ #
+ # SPDX-License-Identifier: MIT
+
+###############
+ns-preload.yaml
+###############
+
+Description
+###########
+
+Best choice for: I just want to run Linux on FVP.
+
+A simple, non-secure-only configuration where all components are preloaded into memory (TF-A's BL31, DTB and kernel). The system resets directly to BL31. Allows easy specification of a custom command line at build-time (via build.dt.params dictionary) and specification of the device tree, kernel image and rootfs at run-time (see rtvars).
+
+By default (if not overriding the rtvars), the upstream kernel device tree is used along with a sensible command line that will set up the console for logging and attempt to mount the rootfs image from the FVP's virtio block device. However the default rootfs image is empty, so the kernel will panic when attempting to mount; the user must supply a rootfs if it is required that the kernel completes its boot. No default kernel image is supplied and the config will refuse to run unless it is explicitly specified.  Note: If specifying a custom dtb at runtime, this will also override any command line specified at build time, since the command line is added to the chosen node of the default dtb.
+
+Concrete
+########
+
+True
+
+Build-Time Variables
+####################
+
+===== =======
+btvar default
+===== =======
+===== =======
+
+Run-Time Variables
+##################
+
+============== ================
+rtvar          default         
+============== ================
+LOCAL_NET_PORT 8022            
+BL31           ${artifact:BL31}
+DTB            ${artifact:DTB} 
+KERNEL         <null>          
+ROOTFS         <empty>         
+============== ================
+

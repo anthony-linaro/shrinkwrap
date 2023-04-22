@@ -15,5 +15,6 @@ User Guide
    quickstart
    runtimes
    commands
-   config
+   configmodel
+   configstore/index
    recipes
