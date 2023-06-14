@@ -10,7 +10,7 @@ build:
   hafnium:
     repo:
       remote: https://git.trustedfirmware.org/hafnium/hafnium.git
-      revision: v2.8
+      revision: v2.9
 
     params:
       PROJECT: reference
@@ -22,4 +22,4 @@ build:
       - make OUT_DIR=${param:builddir} ${param:join_equal}
 
     artifacts:
-      HAFNIUM: ${param:builddir}/secure_aem_v8a_fvp_clang/hafnium.bin
+      HAFNIUM: ${param:builddir}/secure_aem_v8a_fvp_vhe_clang/hafnium.bin

@@ -208,12 +208,6 @@ run:
     KERNEL:
       value: ${artifact:KERNEL}
 
-    CMDLINE:
-      # Current RMM version (0.2.0) can only handle first bank of DRAM. This
-      # should be fixed in the next release. But for now, limit the amount of
-      # DRAM Linux sees so that it only delegates DRAM in the first bank.
-      value: mem=1G console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
-
   params:
     -C cluster0.rme_support_level: 2
     -C cluster1.rme_support_level: 2
