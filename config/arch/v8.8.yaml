@@ -22,3 +22,4 @@ run:
     -C cluster1.has_hpmn0: 1
     -C cluster0.pmb_idr_external_abort: 1                             # Describes how the PE manages External aborts on writes made by the Statistical Profiling Extension to the Profiling Buffer. (From Armv8.8 and Armv9.3, the value 0 is not permitted) 1: External abort is ignored.
     -C cluster1.pmb_idr_external_abort: 1
+    -C gic_distributor.has_nmi: 1
