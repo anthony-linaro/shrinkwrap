@@ -50,10 +50,12 @@ ARCHES = [
 	'arch/v8.6.yaml',
 	'arch/v8.7.yaml',
 	'arch/v8.8.yaml',
+	'arch/v8.9.yaml',
 	'arch/v9.0.yaml',
 	'arch/v9.1.yaml',
 	'arch/v9.2.yaml',
 	'arch/v9.3.yaml',
+	'arch/v9.4.yaml',
 ]
 
 
