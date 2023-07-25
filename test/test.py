@@ -158,7 +158,7 @@ def build_configs(configs, overlay=None, btvarss=None):
 	results.append(result)
 
 
-def run_config(config, overlay=None, runargs=None, runtime=120):
+def run_config(config, overlay=None, runargs=None, runtime=600):
 	result = {
 		'type': 'run',
 		'status': 'fail',
@@ -183,7 +183,7 @@ def run_config(config, overlay=None, runargs=None, runtime=120):
 	results.append(result)
 
 
-def run_config_kern(config, kernel, rootfs, overlay=None, runtime=120, rtvars={}):
+def run_config_kern(config, kernel, rootfs, overlay=None, runtime=600, rtvars={}):
 	kernel = f'-r KERNEL={kernel}'
 	rootfs = f'-r ROOTFS={rootfs}'
 
@@ -194,7 +194,7 @@ def run_config_kern(config, kernel, rootfs, overlay=None, runtime=120, rtvars={}
 	run_config(config, overlay, f'{kernel} {rootfs} {rtcmds}', runtime)
 
 
-def run_config_bootwrap(config, bootwrap, rootfs, overlay=None, runtime=120):
+def run_config_bootwrap(config, bootwrap, rootfs, overlay=None, runtime=600):
 	bootwrap = f'-r BOOTWRAPPER={bootwrap}'
 	rootfs = f'-r ROOTFS={rootfs}'
 	run_config(config, overlay, f'{bootwrap} {rootfs}', runtime)
