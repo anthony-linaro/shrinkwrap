@@ -41,7 +41,7 @@ if [ "${ARCH}" == "x86_64" ]; then
 	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi.tar.xz
 	TCH_PATH_AARCH32=arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi/bin
 	FVP_PKG_URL=https://developer.arm.com/-/media/Files/downloads/ecosystem-models
-	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.20_15_Linux64.tgz
+	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.23_9_Linux64.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
 	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_GCC-9.3
 # ARCH is "aarch64" on Ubuntu, or "arm" on Mac OS
@@ -56,7 +56,7 @@ elif [ "${ARCH}" == "aarch64" ] || [ "${ARCH}" == "arm" ]; then
 	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-eabi.tar.xz
 	TCH_PATH_AARCH32=arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-eabi/bin
 	FVP_PKG_URL=https://developer.arm.com/-/media/Files/downloads/ecosystem-models
-	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.20_15_Linux64_armv8l.tgz
+	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.23_9_Linux64_armv8l.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_armv8l_GCC-9.3
 	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_armv8l_GCC-9.3
 else
