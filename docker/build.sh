@@ -34,9 +34,9 @@ if [ "${ARCH}" == "x86_64" ]; then
 	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
 	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-elf.tar.xz
 	TCH_PATH_AARCH64=arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-elf/bin
-	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0
-	TCH_LLVM_PKG_NAME=clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
-	TCH_LLVM_PATH=clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04/bin
+	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6
+	TCH_LLVM_PKG_NAME=clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+	TCH_LLVM_PATH=clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04/bin
 	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
 	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi.tar.xz
 	TCH_PATH_AARCH32=arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi/bin
@@ -49,9 +49,9 @@ elif [ "${ARCH}" == "aarch64" ] || [ "${ARCH}" == "arm" ]; then
 	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
 	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-11.3.rel1-aarch64-aarch64-none-elf.tar.xz
 	TCH_PATH_AARCH64=arm-gnu-toolchain-11.3.rel1-aarch64-aarch64-none-elf/bin
-	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0
-	TCH_LLVM_PKG_NAME=clang+llvm-12.0.0-aarch64-linux-gnu.tar.xz
-	TCH_LLVM_PATH=clang+llvm-12.0.0-aarch64-linux-gnu/bin
+	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6
+	TCH_LLVM_PKG_NAME=clang+llvm-15.0.6-aarch64-linux-gnu.tar.xz
+	TCH_LLVM_PATH=clang+llvm-15.0.6-aarch64-linux-gnu/bin
 	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
 	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-eabi.tar.xz
 	TCH_PATH_AARCH32=arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-eabi/bin
