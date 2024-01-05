@@ -212,6 +212,10 @@ run:
     -C cluster0.rme_support_level: 2
     -C cluster1.rme_support_level: 2
 
+    # Suppress "WARNING: MPAM_NS is deprecated when RME is in use. Should use MPAM_SP"
+    -C cluster0.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
+    -C cluster1.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
+
     # SME is not supported concurrently with CCA yet.
     -C SVE.ScalableVectorExtension.has_sme: 0
 
