@@ -12,7 +12,9 @@ description: >-
 build:
   tfa:
     params:
+      ARM_ARCH_MAJOR: 8
       ARM_ARCH_MINOR: 0
+      BRANCH_PROTECTION: 0
 
 run:
   params:

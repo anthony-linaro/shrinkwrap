@@ -10,10 +10,11 @@ build:
   hafnium:
     repo:
       remote: https://git.trustedfirmware.org/hafnium/hafnium.git
-      revision: v2.9
+      revision: v2.10
 
     params:
       PROJECT: reference
+      PLATFORM: secure_aem_v8a_fvp_vhe
 
     build:
       # Hafnium doesn't provide a mechanism to forward number of jobs to ninja,
@@ -23,3 +24,22 @@ build:
 
     artifacts:
       HAFNIUM: ${param:builddir}/secure_aem_v8a_fvp_vhe_clang/hafnium.bin
+
+  tfa:
+    params:
+      # Although TFA is now able to detect most features dynamically, there are
+      # still a few, which are required by Hafnium, which it can't. Given these
+      # are hard requirements for Hafnium, define them here.
+      GIC_EXT_INTID: 1
+      CTX_INCLUDE_MTE_REGS: 1
+      ENABLE_SVE_FOR_SWD: 1
+
+run:
+  params:
+    # Hafnium requires extended gic support, so define these here to show they
+    # are tightly coupled.
+    -C gic_distributor.ARE-fixed-to-one: 1
+    -C gic_distributor.extended-ppi-count: 64
+    -C gic_distributor.extended-spi-count: 1024
+    -C cluster0.gicv3.extended-interrupt-range-support: 1
+    -C cluster1.gicv3.extended-interrupt-range-support: 1

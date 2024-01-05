@@ -15,6 +15,7 @@ layers:
 build:
   tfa:
     params:
+      ARM_ARCH_MAJOR: 8
       ARM_ARCH_MINOR: 4
 
 run:

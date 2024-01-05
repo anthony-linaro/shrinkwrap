@@ -77,16 +77,7 @@ build:
     params:
       ENABLE_RME: 1
       RMM: ${artifact:RMM}
-      CTX_INCLUDE_EL2_REGS: 1
       FVP_HW_CONFIG: ${artifact:DTB}
-
-      # SME is not supported concurrently with CCA yet.
-      ENABLE_SME_FOR_NS: 0
-      ENABLE_SME_FOR_SWD: 0
-      ENABLE_FEAT_HCX: 0
-
-      # MTE is not supported by RMM yet.
-      CTX_INCLUDE_MTE_REGS: 0
 
   edk2:
     repo:
@@ -216,9 +207,6 @@ run:
     -C cluster0.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
     -C cluster1.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
 
-    # SME is not supported concurrently with CCA yet.
-    -C SVE.ScalableVectorExtension.has_sme: 0
-
     # MTE is not supported by RMM yet.
     -C cluster0.memory_tagging_support_level: 0
     -C cluster1.memory_tagging_support_level: 0
@@ -227,6 +215,13 @@ run:
     -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0: 3
     -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 0x43B
     -C pci.pci_smmuv3.mmu.root_register_page_offset: 0x20000
+
+    # Enable FEAT_CSV2_2, which is optional. But TFA 2.10 force-enables it when
+    # ENABLE_RME=1 so if it's not there we see an exception.
+    -C cluster0.restriction_on_speculative_execution: 2
+    -C cluster1.restriction_on_speculative_execution: 2
+    -C cluster0.restriction_on_speculative_execution_aarch32: 2
+    -C cluster1.restriction_on_speculative_execution_aarch32: 2
 
   terminals:
     bp.terminal_3:

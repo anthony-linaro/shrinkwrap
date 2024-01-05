@@ -19,3 +19,5 @@ run:
     -C cluster1.has_arm_v9-4: 1
     -C cluster0.has_gcs: 1
     -C cluster1.has_gcs: 1
+    -C cluster0.memory_tagging_support_level: 4                       # FEAT_MTE4 is mandatory from Armv8.9 when FEAT_MTE2 is implemented. Due to the layers, 8.8 ends up on top of 8.9 so we have to override again.
+    -C cluster1.memory_tagging_support_level: 4

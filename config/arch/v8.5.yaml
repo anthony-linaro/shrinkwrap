@@ -15,9 +15,9 @@ layers:
 build:
   tfa:
     params:
+      ARM_ARCH_MAJOR: 8
       ARM_ARCH_MINOR: 5
       BRANCH_PROTECTION: 1
-      CTX_INCLUDE_MTE_REGS: 1
 
 run:
   params:
