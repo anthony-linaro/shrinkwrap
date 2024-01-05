@@ -12,7 +12,7 @@ build:
   acpica:
     repo:
       remote: https://github.com/acpica/acpica.git
-      revision: R10_20_22
+      revision: R06_28_23
 
     build:
       - rm -rf ${param:sourcedir}/generate/unix/acpica
@@ -29,10 +29,10 @@ build:
     repo:
       edk2:
         remote: https://github.com/tianocore/edk2.git
-        revision: edk2-stable202211
+        revision: edk2-stable202311
       edk2-platforms:
         remote: https://github.com/tianocore/edk2-platforms.git
-        revision: 20e07099d8f11889d101dd710ca85001be20e179
+        revision: 4b07df2e6f3813c6e955197dacb2cdfbe3471caa
 
     toolchain: aarch64-none-elf-
 
