@@ -81,14 +81,17 @@ build:
 
   edk2:
     repo:
+      edk2:
+        remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
+        revision: 2802_arm_cca_rmm-v1.0-eac5
       edk2-platforms:
-        # Contains change to carve out 64MB for RMM.
-        revision: 310d31231d69c378ff85d253477d830913b77739
+        remote: https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git
+        revision: 2802_arm_cca_rmm-v1.0-eac5
 
   linux:
     repo:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
-      revision: cca-full/rfc-v1
+      revision: cca-full/rmm-v1.0-eac5
 
   kvmtool:
     repo:
@@ -96,12 +99,12 @@ build:
         revision: v1.6.1
       kvmtool:
         remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
-        revision: cca/rfc-v1
+        revision: cca/rmm-v1.0-eac5
 
   kvm-unit-tests:
     repo:
       remote: https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca
-      revision: cca/rfc-v1
+      revision: cca/rmm-v1.0-eac5
 
     toolchain: aarch64-linux-gnu-
 
@@ -125,7 +128,7 @@ build:
     repo:
       edk2:
         remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
-        revision: 2595_arm_cca_0abet0_rfc_v1
+        revision: 2802_arm_cca_rmm-v1.0-eac5
 
     toolchain: aarch64-none-elf-
 
