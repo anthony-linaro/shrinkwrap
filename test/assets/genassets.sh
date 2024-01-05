@@ -49,7 +49,7 @@ cd -
 # Build Linux defconfig.
 git clone https://github.com/torvalds/linux.git
 cd linux
-git checkout v6.0
+git checkout v6.6
 make defconfig
 make -j`nproc` Image arm/fvp-base-revc.dtb
 cp arch/arm64/boot/Image ${ASSETS_DIR}/.

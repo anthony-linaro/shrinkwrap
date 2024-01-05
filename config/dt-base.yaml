@@ -15,7 +15,7 @@ build:
   dt:
     repo:
       remote: git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git
-      revision: v6.1-dts
+      revision: v6.6-dts
 
     toolchain: aarch64-none-elf-
 
