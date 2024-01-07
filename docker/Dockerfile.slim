@@ -13,6 +13,15 @@ RUN apt-get update \
 	&& (timeout --signal=KILL 10s auto-apt-proxy \
 		|| apt-get purge --quiet --assume-yes auto-apt-proxy)
 
+# Explicitly install Python and create a venv for pip packages, since Debian
+# does not allow us to install pip packages system-wide.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		python3 \
+		python3-pip \
+		python3-venv
+RUN python3 -m venv /pyvenv
+ENV PATH="/pyvenv/bin:${PATH}"
+
 # We now install packages required by all the FW components that Shrinkwrap
 # supports building. Often there are overlapping components, but we (re)specify
 # them for each component in order to keep track of who needs what.
@@ -96,7 +105,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		libusb-1.0-0-dev \
 		make \
 		mtools \
-		netcat \
+		netcat-openbsd \
 		ninja-build \
 		python3-cryptography \
 		python3-pip \
