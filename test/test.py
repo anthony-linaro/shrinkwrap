@@ -6,6 +6,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 import tempfile
 import yaml
@@ -21,46 +22,75 @@ BOOTWRAPPER = os.path.join(ASSETS, 'linux-system.axf')
 ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
 
 
+ARCH_LATEST = 'v9.5'
 CONFIGS = [
 	{
 		'config': 'ns-preload.yaml',
 		'btvars': {},
-		'rtvars': {},
+		'rtvars': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 	{
 		'config': 'ns-edk2.yaml',
 		'btvars': {},
-		'rtvars': {},
+		'rtvars': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 	{
 		'config': 'ns-edk2.yaml',
 		'btvars': {},
-		'rtvars': {'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'},
+		'rtvars': {
+			'KERNEL': KERNEL,
+			'ROOTFS': ROOTFS,
+			'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+		},
+		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
-]
-
-
-ARCHES = [
-	'arch/v8.0.yaml',
-	'arch/v8.1.yaml',
-	'arch/v8.2.yaml',
-	'arch/v8.3.yaml',
-	'arch/v8.4.yaml',
-	'arch/v8.5.yaml',
-	'arch/v8.6.yaml',
-	'arch/v8.7.yaml',
-	'arch/v8.8.yaml',
-	'arch/v8.9.yaml',
-	'arch/v9.0.yaml',
-	'arch/v9.1.yaml',
-	'arch/v9.2.yaml',
-	'arch/v9.3.yaml',
-	'arch/v9.4.yaml',
-	'arch/v9.5.yaml',
+	{
+		'config': 'bootwrapper.yaml',
+		'btvars': {},
+		'rtvars': {'BOOTWRAPPER': BOOTWRAPPER, 'ROOTFS': ROOTFS},
+		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
+	},
 ]
 
 
 results = []
+arch_regex = re.compile(r"^v(\d+\.\d)$")
+
+
+def arch_range(start, end):
+	"""
+	Given a start and end version string (in format "vX.Y"), yields all
+	version strings between start and end, inclusive of both start and end.
+	"""
+	match_s = arch_regex.match(start)
+	match_e = arch_regex.match(end)
+
+	start = int(float(match_s.group(1)) * 10)
+	end = int(float(match_e.group(1)) * 10)
+
+	for version in range(start, end + 1):
+		major = version // 10
+		minor = version - major * 10
+		yield f'v{major}.{minor}'
+
+
+def arch_in_range(arch, start, end):
+	"""
+	Given an arch version and a start and end version string (all in format
+	"vX.Y"), returns true if arch is within the range, inclusive of both
+	start and end.
+	"""
+	match_a = arch_regex.match(arch)
+	match_s = arch_regex.match(start)
+	match_e = arch_regex.match(end)
+
+	arch = float(match_a.group(1))
+	start = float(match_s.group(1))
+	end = float(match_e.group(1))
+
+	return start <= arch and arch <= end
 
 
 def print_result(r):
@@ -186,47 +216,36 @@ def run_config(config, overlay=None, runargs=None, runtime=600):
 	results.append(result)
 
 
-def run_config_kern(config, kernel, rootfs, overlay=None, runtime=600, rtvars={}):
-	kernel = f'-r KERNEL={kernel}'
-	rootfs = f'-r ROOTFS={rootfs}'
-
-	rtcmds = ''
-	for k, v in rtvars.items():
-		rtcmds += f'-r {k}={v}'
-
-	run_config(config, overlay, f'{kernel} {rootfs} {rtcmds}', runtime)
-
-
-def run_config_bootwrap(config, bootwrap, rootfs, overlay=None, runtime=600):
-	bootwrap = f'-r BOOTWRAPPER={bootwrap}'
-	rootfs = f'-r ROOTFS={rootfs}'
-	run_config(config, overlay, f'{bootwrap} {rootfs}', runtime)
+def make_rtcmds(rtvars):
+	return ' '.join([f'-r {k}={v}' for k, v in rtvars.items()])
 
 
 def do_main(smoke_test):
-	arches = [ARCHES[-1]] if smoke_test else ARCHES
+	if smoke_test:
+		arches = set([c['arch']['end'] for c in CONFIGS])
+	else:
+		arches = list(arch_range('v8.0', ARCH_LATEST))
 
 	for arch in arches:
-		configs = [c['config'] for c in CONFIGS]
-		btvarss = [c['btvars'] for c in CONFIGS]
-		rtvarss = [c['rtvars'] for c in CONFIGS]
-		build_configs(configs, arch, btvarss=btvarss)
+		configs = [c['config'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if smoke_test else c['arch']['start'], c['arch']['end'])]
+		btvarss = [c['btvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if smoke_test else c['arch']['start'], c['arch']['end'])]
+		rtvarss = [c['rtvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if smoke_test else c['arch']['start'], c['arch']['end'])]
+		if len(configs) == 0:
+			continue
+		build_configs(configs, f'arch/{arch}.yaml', btvarss=btvarss)
 		for config, rtvars in zip(configs, rtvarss):
-			run_config_kern(config, KERNEL, ROOTFS, arch, rtvars=rtvars)
+			run_config(config, f'arch/{arch}.yaml', make_rtcmds(rtvars))
 
-	for arch in arches:
-		build_configs(['bootwrapper.yaml'], arch)
-		run_config_bootwrap('bootwrapper.yaml', BOOTWRAPPER, ROOTFS, arch)
-
+	# Special-case configs that don't support arch overrides.
 	build_configs(['cca-3world.yaml', 'cca-4world.yaml'],
 	       			btvarss=[
 					{'GUEST_ROOTFS': ROOTFS},
 					{'GUEST_ROOTFS': ROOTFS}
 				])
-	run_config_kern('cca-3world.yaml', KERNEL, ROOTFS)
+	run_config('cca-3world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
 	# TODO: Disabled due to Hafnium requiring MTE but RMM does not support
 	# it. Reenable when Hafnium fixed to remove dependency.
-	# run_config_kern('cca-4world.yaml', KERNEL, ROOTFS)
+	# run_config('cca-4world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
 
 	print_results()
 
