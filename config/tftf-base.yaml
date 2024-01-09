@@ -20,8 +20,9 @@ build:
       PLAT: fvp
 
     build:
-      # TODO: tfa-tests has makefile dependency bug that prevents parallel make (-j > 1).
-      - make BUILD_BASE=${param:builddir} ${param:join_equal} all pack_realm
+      # tfa-tests has makefile dependency bug that makes parallel make for more
+      # than ~8 jobs unreliable, so limit it to 8.
+      - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all pack_realm"
 
     clean:
       - make BUILD_BASE=${param:builddir} realclean
