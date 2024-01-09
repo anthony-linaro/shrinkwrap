@@ -31,6 +31,15 @@ description: >-
   booting UEFI to its UI, override the EDK2FLASH rtvar with an empty string and
   override terminals.'bp.terminal_0'.type to 'telnet'.
 
+  When booting with device tree, a directory can optionally be shared from the
+  host system into the Linux environment running in the FVP. To do so, set the
+  SHARE rtvar to the desired directory, then mount the share inside the FVP with
+  the following (or automate it in fstab):
+
+  .. code-block:: shell
+    # mkdir /share
+    # mount -t 9p -o trans=virtio,version=9p2000.L FM /share
+
 concrete: true
 
 layers:
@@ -74,6 +83,10 @@ run:
       type: path
       value: ''
 
+    SHARE:
+      type: path
+      value: ''
+
     EDK2FLASH:
       type: path
       value: ${artifact:EDK2FLASH}
@@ -84,6 +97,7 @@ run:
     -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
     -C cluster0.cpu0.semihosting-cwd: $${SEMIHOSTDIR}
     -C bp.flashloader1.fname: ${rtvar:EDK2FLASH}
+    -C bp.virtiop9device.root_path: ${rtvar:SHARE}
 
   prerun:
     # We use the FVP's and UEFI's semihosting capability to get the images into

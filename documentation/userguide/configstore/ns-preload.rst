@@ -16,6 +16,13 @@ A simple, non-secure-only configuration where all components are preloaded into 
 
 By default (if not overriding the rtvars), the upstream kernel device tree is used along with a sensible command line that will set up the console for logging and attempt to mount the rootfs image from the FVP's virtio block device. However the default rootfs image is empty, so the kernel will panic when attempting to mount; the user must supply a rootfs if it is required that the kernel completes its boot. No default kernel image is supplied and the config will refuse to run unless it is explicitly specified.  Note: If specifying a custom dtb at runtime, this will also override any command line specified at build time, since the command line is added to the chosen node of the default dtb.
 
+A directory can optionally be shared from the host system into the Linux environment running in the FVP. To do so, set the SHARE rtvar to the desired directory, then mount the share inside the FVP with the following (or automate it in fstab):
+
+.. code-block:: shell
+
+  # mkdir /share
+  # mount -t 9p -o trans=virtio,version=9p2000.L FM /share
+
 Concrete
 ########
 
@@ -33,12 +40,13 @@ Run-Time Variables
 ##################
 
 ============== ================
-rtvar          default         
+rtvar          default
 ============== ================
-LOCAL_NET_PORT 8022            
+LOCAL_NET_PORT 8022
 BL31           ${artifact:BL31}
-DTB            ${artifact:DTB} 
-KERNEL         <null>          
-ROOTFS         <empty>         
+DTB            ${artifact:DTB}
+KERNEL         <null>
+ROOTFS         <empty>
+SHARE          <empty>
 ============== ================
 

@@ -19,7 +19,9 @@ If the user provides an ext2/4 filesystem image via the GUEST_ROOTFS btvar, a gu
   $ shrinkwrap build cca-3world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
 
 
-Once built, the user must place some of the generated assets in their host's rootfs. Or alternatively, for simplicity, they can reuse the guest filesystem generated with buildroot as the host's rootfs, after resizing it so that there is room for the guest's rootfs:
+Once built, the user must get some of the generated artifacts into the FVP environment. This can either be done by copying them to the host's rootfs or by sharing them into the FVP using 9p.
+
+If copying to the rootfs, something like this should work. For simplicity, this example reuses the guest filesystem generated with buildroot as the host's rootfs, after resizing it so that there is room for the guest's rootfs:
 
 .. code-block:: shell
 
@@ -50,10 +52,20 @@ Or alternatively, using ACPI:
   $ shrinkwrap run cca-3world.yaml -r ROOTFS=rootfs.ext2 --rtvar CMDLINE="mem=1G earlycon root=/dev/vda ip=dhcp acpi=force"
 
 
-Once the host has booted, log in as "root" (no password), and launch a realm using kvmtool:
+Or if taking the shared directory approach, simply boot the host with the SHARE rtvar. This only works for DT-based environments:
 
 .. code-block:: shell
 
+  $ cd ~/.shrinkwrap/package/cca-3world
+  $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 SHARE=.
+
+
+Finally, once the host has booted, log in as "root" (no password), and launch a realm using kvmtool. Note the mount command is only required if sharing a directory:
+
+.. code-block:: shell
+
+  # mkdir /cca
+  # mount -t 9p -o trans=virtio,version=9p2000.L FM /cca
   # cd /cca
   # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256
 
@@ -89,6 +101,7 @@ DTB            ${artifact:DTB}
 CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
 KERNEL         ${artifact:KERNEL}
 ROOTFS         <empty>
+SHARE          <empty>
 EDK2FLASH      ${artifact:EDK2FLASH}
 ============== ===============================================================
 
