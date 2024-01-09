@@ -97,7 +97,7 @@ cfgs_raw = subprocess.run('shrinkwrap inspect --json',
 
 cfgs = json.loads(cfgs_raw)
 
-docsdir = os.path.dirname(os.path.dirname(__file__))
+docsdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 docsdir = os.path.join(docsdir, 'userguide', 'configstore')
 
 with open(os.path.join(docsdir, 'index.rst'), 'w') as indexf:

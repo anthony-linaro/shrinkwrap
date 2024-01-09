@@ -13,12 +13,6 @@ layers:
   - arch/v8.7.yaml
   - arch/v9.1.yaml
 
-build:
-  tfa:
-    params:
-      ENABLE_SME_FOR_NS: 1
-      ENABLE_SME_FOR_SWD: 1
-
 run:
   params:
     -C cluster0.has_arm_v9-2: 1

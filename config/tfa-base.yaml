@@ -11,7 +11,7 @@ build:
   tfa:
     repo:
       remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
-      revision: v2.9.0
+      revision: v2.10
 
     toolchain: aarch64-none-elf-
 
@@ -23,8 +23,9 @@ build:
       FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
 
     build:
-      # TODO: tfa has makefile dependency bug that prevents parallel make (-j > 1).
-      - make BUILD_BASE=${param:builddir} ${param:join_equal} all fip
+      # tfa has makefile dependency bug that makes parallel make for more than
+      # ~8 jobs unreliable, so limit it to 8.
+      - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all fip"
 
     clean:
       - make BUILD_BASE=${param:builddir} realclean

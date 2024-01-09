@@ -1,0 +1,15 @@
+# Copyright (c) 2024, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Overlay for RMM to build debug configuration.
+
+build:
+  rmm:
+    params:
+      -DCMAKE_BUILD_TYPE: Debug
+
+    artifacts:
+      RMM: ${param:builddir}/Debug/rmm.img

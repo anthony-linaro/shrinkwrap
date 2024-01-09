@@ -31,32 +31,32 @@ REGISTRY=shrinkwraptool
 
 # Configure the arch-specific variables which are passed to the Dockerfile.
 if [ "${ARCH}" == "x86_64" ]; then
-	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
-	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-elf.tar.xz
-	TCH_PATH_AARCH64=arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-elf/bin
+	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
+	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
+	TCH_PATH_AARCH64=arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin
 	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6
 	TCH_LLVM_PKG_NAME=clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 	TCH_LLVM_PATH=clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04/bin
-	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
-	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi.tar.xz
-	TCH_PATH_AARCH32=arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi/bin
+	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
+	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
+	TCH_PATH_AARCH32=arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin
 	FVP_PKG_URL=https://developer.arm.com/-/media/Files/downloads/ecosystem-models
-	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.23_9_Linux64.tgz
+	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.24_11_Linux64.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
 	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_GCC-9.3
 # ARCH is "aarch64" on Ubuntu, or "arm" on Mac OS
 elif [ "${ARCH}" == "aarch64" ] || [ "${ARCH}" == "arm" ]; then
-	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
-	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-11.3.rel1-aarch64-aarch64-none-elf.tar.xz
-	TCH_PATH_AARCH64=arm-gnu-toolchain-11.3.rel1-aarch64-aarch64-none-elf/bin
+	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
+	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-13.2.rel1-aarch64-aarch64-none-elf.tar.xz
+	TCH_PATH_AARCH64=arm-gnu-toolchain-13.2.Rel1-aarch64-aarch64-none-elf/bin
 	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6
 	TCH_LLVM_PKG_NAME=clang+llvm-15.0.6-aarch64-linux-gnu.tar.xz
 	TCH_LLVM_PATH=clang+llvm-15.0.6-aarch64-linux-gnu/bin
-	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel
-	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-eabi.tar.xz
-	TCH_PATH_AARCH32=arm-gnu-toolchain-11.3.rel1-aarch64-arm-none-eabi/bin
+	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
+	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-13.2.rel1-aarch64-arm-none-eabi.tar.xz
+	TCH_PATH_AARCH32=arm-gnu-toolchain-13.2.Rel1-aarch64-arm-none-eabi/bin
 	FVP_PKG_URL=https://developer.arm.com/-/media/Files/downloads/ecosystem-models
-	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.23_9_Linux64_armv8l.tgz
+	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.24_11_Linux64_armv8l.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_armv8l_GCC-9.3
 	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_armv8l_GCC-9.3
 else
@@ -72,7 +72,7 @@ wget -q -O ${TCH_LLVM_PKG_NAME} ${TCH_LLVM_PKG_URL}/${TCH_LLVM_PKG_NAME}
 wget -q -O ${TCH_PKG_NAME_AARCH32} ${TCH_PKG_URL_AARCH32}/${TCH_PKG_NAME_AARCH32}
 wget -q -O ${FVP_PKG_NAME} ${FVP_PKG_URL}/${FVP_PKG_NAME}
 docker build \
-	--build-arg=BASE=docker.io/library/debian:bullseye-slim \
+	--build-arg=BASE=docker.io/library/debian:bookworm-slim \
 	--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 	--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
 	--file=Dockerfile.slim \

@@ -15,7 +15,8 @@ layers:
 build:
   tfa:
     params:
-      ENABLE_FEAT_HCX: 1
+      ARM_ARCH_MAJOR: 8
+      ARM_ARCH_MINOR: 7
 
 run:
   params:

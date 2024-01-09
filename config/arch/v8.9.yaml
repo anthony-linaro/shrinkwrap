@@ -12,6 +12,12 @@ description: >-
 layers:
   - arch/v8.8.yaml
 
+build:
+  tfa:
+    params:
+      ARM_ARCH_MAJOR: 8
+      ARM_ARCH_MINOR: 9
+
 run:
   params:
     -C cluster0.has_arm_v8-9: 1
@@ -24,3 +30,5 @@ run:
     -C cluster1.has_permission_overlay_s1: 1
     -C cluster0.has_permission_overlay_s2: 1
     -C cluster1.has_permission_overlay_s2: 1
+    -C cluster0.memory_tagging_support_level: 4                       # FEAT_MTE4 is mandatory from Armv8.9 when FEAT_MTE2 is implemented.
+    -C cluster1.memory_tagging_support_level: 4

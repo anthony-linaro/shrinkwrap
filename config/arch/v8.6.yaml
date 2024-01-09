@@ -12,6 +12,12 @@ description: >-
 layers:
   - arch/v8.5.yaml
 
+build:
+  tfa:
+    params:
+      ARM_ARCH_MAJOR: 8
+      ARM_ARCH_MINOR: 6
+
 run:
   params:
     -C cluster0.has_arm_v8-6: 1

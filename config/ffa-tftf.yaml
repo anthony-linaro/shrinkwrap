@@ -22,6 +22,5 @@ build:
       BL33: ${artifact:EDK2}
       SPD: spmd
       SPMD_SPM_AT_SEL2: 1
-      CTX_INCLUDE_EL2_REGS: 1
       SP_LAYOUT_FILE: ${artifact:SP_LAYOUT}
       BL32: ${artifact:HAFNIUM}
