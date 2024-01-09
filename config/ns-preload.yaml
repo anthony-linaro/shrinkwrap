@@ -23,6 +23,15 @@ description: >-
   specified at build time, since the command line is added to the chosen node of
   the default dtb.
 
+  A directory can optionally be shared from the host system into the Linux
+  environment running in the FVP. To do so, set the SHARE rtvar to the desired
+  directory, then mount the share inside the FVP with the following (or automate
+  it in fstab):
+
+  .. code-block:: shell
+    # mkdir /share
+    # mount -t 9p -o trans=virtio,version=9p2000.L FM /share
+
 concrete: true
 
 layers:
@@ -63,6 +72,10 @@ run:
       type: path
       value: ''
 
+    SHARE:
+      type: path
+      value: ''
+
   params:
     -C cluster0.cpu0.RVBAR: 0x04001000
     -C cluster0.cpu1.RVBAR: 0x04001000
@@ -76,6 +89,7 @@ run:
     ' --data cluster0.cpu0': ${rtvar:DTB}@0x82000000
     '  --data cluster0.cpu0': ${rtvar:KERNEL}@0x84000000
     -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+    -C bp.virtiop9device.root_path: ${rtvar:SHARE}
 
   terminals:
     bp.terminal_0:
