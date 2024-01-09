@@ -18,11 +18,12 @@ build:
 
     params:
       PLAT: fvp
+      ENABLE_REALM_PAYLOAD_TESTS: 1
 
     build:
       # tfa-tests has makefile dependency bug that makes parallel make for more
       # than ~8 jobs unreliable, so limit it to 8.
-      - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all pack_realm"
+      - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all"
 
     clean:
       - make BUILD_BASE=${param:builddir} realclean
