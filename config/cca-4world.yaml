@@ -23,6 +23,10 @@ build:
       SP_LAYOUT_FILE: ${artifact:SP_LAYOUT}
       BL32: ${artifact:HAFNIUM}
 
+  linux:
+    prebuild:
+      - ./scripts/config --file ${param:builddir}/.config --enable CONFIG_ARM_FFA_TRANSPORT
+
 run:
   terminals:
     bp.terminal_2:
