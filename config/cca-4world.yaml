@@ -27,3 +27,9 @@ run:
   terminals:
     bp.terminal_2:
       friendly: hafnium
+
+  # SPMD doesn't permit use of SME options:
+  # https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git/tree/plat/arm/board/fvp/platform.mk?h=v2.10#n60
+  # This is mainly because Hafnium/S-EL2 doesn't support (yet) saving/restoring the NS SME state across SMC calls.
+  params:
+    -C SVE.ScalableVectorExtension.has_sme: 0

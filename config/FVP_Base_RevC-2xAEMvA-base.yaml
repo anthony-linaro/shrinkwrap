@@ -28,7 +28,6 @@ run:
     # Misc FVP controls.
     --stat: null
     -C bp.vis.disable_visualisation: 1
-    -C bp.dram_metadata.is_enabled: 1                                 # If false, disables the MetaData controller functionality, and makes the component invisible to passing transactions.
     -C bp.refcounter.non_arch_start_at_default: 1                     # Firmware is expected to enable the timer at boot time. However, turning this parameter on is a model-specific way of enabling the counter module out of reset.
     -C bp.refcounter.use_real_time: 0                                 # Update the Generic Timer counter at a real-time base frequency instead of simulator time
     -C bp.secure_memory: 1                                            # enable security checking by TZC-400

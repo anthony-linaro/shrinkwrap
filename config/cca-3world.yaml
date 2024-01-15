@@ -223,10 +223,6 @@ run:
     -C cluster0.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
     -C cluster1.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
 
-    # MTE is not supported by RMM yet.
-    -C cluster0.memory_tagging_support_level: 0
-    -C cluster1.memory_tagging_support_level: 0
-
     # CCA-specific SMMU settings.
     -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0: 3
     -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 0x43B
