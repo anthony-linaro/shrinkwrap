@@ -259,9 +259,7 @@ def do_main(smoke_test):
 					{'GUEST_ROOTFS': ROOTFS}
 				])
 	run_config('cca-3world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
-	# TODO: Disabled due to Hafnium requiring MTE but RMM does not support
-	# it. Reenable when Hafnium fixed to remove dependency.
-	# run_config('cca-4world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
+	run_config('cca-4world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
 
 	print_results()
 

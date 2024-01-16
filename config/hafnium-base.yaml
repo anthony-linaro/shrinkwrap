@@ -43,3 +43,6 @@ run:
     -C gic_distributor.extended-spi-count: 1024
     -C cluster0.gicv3.extended-interrupt-range-support: 1
     -C cluster1.gicv3.extended-interrupt-range-support: 1
+    -C cluster0.memory_tagging_support_level: 2
+    -C cluster1.memory_tagging_support_level: 2
+    -C bp.dram_metadata.is_enabled: 1

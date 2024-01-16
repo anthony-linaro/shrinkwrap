@@ -57,7 +57,7 @@ Or if taking the shared directory approach, simply boot the host with the SHARE 
 .. code-block:: shell
 
   $ cd ~/.shrinkwrap/package/cca-3world
-  $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 SHARE=.
+  $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 --rtvar SHARE=.
 
 
 Finally, once the host has booted, log in as "root" (no password), and launch a realm using kvmtool. Note the mount command is only required if sharing a directory:

@@ -27,5 +27,3 @@ run:
     -C cluster1.has_branch_target_exception: 1
     -C cluster0.has_rndr: 1                                           # Implement random number instructions to read from RNDR and RNDRSS random number registers from ARMv8.5 (FEAT_RNG). 1:feature is implemented if ARMv8.5 is enabled.
     -C cluster1.has_rndr: 1
-    -C cluster0.memory_tagging_support_level: 3                       # Specify the memory tagging extension support level: 0, not implemented. 1, instructions and registers only are implemented (FEAT_MTE). 2, implemented (FEAT_MTE2). 3, implemented with asymmetric handling of exceptions
-    -C cluster1.memory_tagging_support_level: 3
