@@ -653,6 +653,8 @@ def resolver(config, rtvars={}, clivars={}):
 		},
 		'artifact': {k: v['dst']
 				for k, v in config['artifacts'].items()},
+		'btvar': {k: v['value']
+				for k, v in config['buildex']['btvars'].items()},
 	}
 	for k in run['rtvars']:
 		v = run['rtvars'][k]
