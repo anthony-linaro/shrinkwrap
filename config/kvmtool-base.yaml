@@ -14,10 +14,10 @@ build:
   kvmtool:
     repo:
       dtc:
-        remote: git://git.kernel.org/pub/scm/utils/dtc/dtc.git
+        remote: https://git.kernel.org/pub/scm/utils/dtc/dtc.git
         revision: master
       kvmtool:
-        remote: git://git.kernel.org/pub/scm/linux/kernel/git/will/kvmtool.git
+        remote: https://git.kernel.org/pub/scm/linux/kernel/git/will/kvmtool.git
         revision: master
 
     toolchain: aarch64-linux-gnu-
