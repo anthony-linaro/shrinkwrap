@@ -100,10 +100,20 @@ def _run_script(pm, data, script):
 	with open(tmpfilename, 'w') as tmpfile:
 		tmpfile.write(script.commands())
 
+	if script.config and script.component:
+		logname = os.path.join(workspace.build,
+				'log',
+				script.config,
+				f'{script.component}.log')
+		os.makedirs(os.path.dirname(logname), exist_ok=True)
+		logfile = open(logname, 'w', buffering=1)
+	else:
+		logfile = None
+
 	# Start the process asynchronously.
 	pm.add(process.Process(f'bash {tmpfilename}',
 			       False,
-			       (*data, script, tmpdir),
+			       (*data, script, tmpdir, logfile),
 			       True))
 
 
@@ -139,6 +149,9 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		return False
 
 	def _log(pm, proc, data, streamid):
+		logfile = proc.data[4]
+		if logfile:
+			logfile.write(data)
 		if verbose:
 			log.log(pm, proc, data, streamid)
 		else:
@@ -155,6 +168,10 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		data = proc.data[1]
 		frag = proc.data[2]
 		tmpdir = proc.data[3]
+		logfile = proc.data[4]
+
+		if logfile:
+			logfile.close()
 
 		shutil.rmtree(tmpdir)
 
