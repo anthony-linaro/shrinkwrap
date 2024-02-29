@@ -44,9 +44,10 @@ def add_parser(parser, formatter):
 		metavar='cfgfile', required=False, default=[],
 		action='append',
 		help="""Optional config file overlay to override run-time and
-		     build-time settings. Only entries within the "build" and
-		     "run" sections are used. Can be specified multiple times;
-		     left-most overlay is the first overlay applied.""")
+		     build-time settings. Only entries within the "build",
+		     "buildex" and "run" sections are used. Can be specified
+		     multiple times; left-most overlay is the first overlay
+		     applied.""")
 
 	cmdp.add_argument('-b', '--btvar',
 		metavar='key=value', required=False, default=[],
@@ -79,7 +80,11 @@ def dispatch(args):
 	for overlayname in args.overlay:
 		overlay = config.filename(overlayname)
 		overlay = config.load(overlay)
-		overlay = {'build': overlay['build'], 'run': overlay['run']}
+		overlay = {
+			'build': overlay['build'],
+			'buildex': overlay['buildex'],
+			'run': overlay['run'],
+		}
 		overlays.append(overlay)
 
 	filename = config.filename(args.config)

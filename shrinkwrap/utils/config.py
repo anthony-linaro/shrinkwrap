@@ -719,7 +719,11 @@ def load_all(names, overlaynames=[]):
 	for overlayname in overlaynames:
 		overlay = filename(overlayname)
 		overlay = load(overlay)
-		overlay = {'build': overlay['build'], 'run': overlay['run']}
+		overlay = {
+			'build': overlay['build'],
+			'buildex': overlay['buildex'],
+			'run': overlay['run'],
+		}
 		overlays.append(overlay)
 
 	for name in names:
