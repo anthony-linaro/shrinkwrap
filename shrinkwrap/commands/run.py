@@ -138,6 +138,13 @@ def dispatch(args):
 		else:
 			return False
 
+	def _logfile(terminal):
+		if terminal['type'] in ['stdinout', 'stdout']:
+			logfile = terminal.get('logfile')
+			return logfile if logfile else None
+		else:
+			return None
+
 	def _find_term_ports(pm, proc, data, streamid):
 		"""
 		Initial handler function called by ProcessManager. When the fvp
@@ -179,13 +186,13 @@ def dispatch(args):
 					cmd = f'nc localhost {port}'
 					pm.add(process.Process(cmd,
 						False,
-						(log.alloc_data(name, colorize, escape), k),
+						(log.alloc_data(name, colorize, escape, _logfile(t)), k),
 						False))
 				if type in ['stdinout']:
 					cmd = f'telnet localhost {port}'
 					pm.add(process.Process(cmd,
 						True,
-						(log.alloc_data(name, colorize, escape), k),
+						(log.alloc_data(name, colorize, escape, _logfile(t)), k),
 						False))
 					t['strip'] = True
 					strip = True
@@ -225,6 +232,12 @@ def dispatch(args):
 		for rtvar in resolver['run']['rtvars'].values():
 			if rtvar['type'] == 'path':
 				rt.add_volume(rtvar['value'])
+		for t in terminals.values():
+			logfile = _logfile(t)
+			if logfile:
+				logdir = os.path.abspath(os.path.dirname(logfile))
+				os.makedirs(logdir, exist_ok=True)
+				rt.add_volume(logdir)
 		rt.add_volume(workspace.package)
 		rt.start()
 
