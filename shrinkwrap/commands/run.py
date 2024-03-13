@@ -199,8 +199,11 @@ def dispatch(args):
 					print(f'To start {name} terminal, run:')
 					print(f'    telnet {ip} {port}')
 			if wait:
+				# Temporarily restore sys.stdin for input().
+				pm._stdin_deactivate()
 				print()
 				input("Press Enter to continue...")
+				pm._stdin_activate()
 
 			if strip:
 				pm.set_handler(_strip_telnet_header)
