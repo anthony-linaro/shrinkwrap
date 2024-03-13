@@ -243,9 +243,35 @@ comand line:
 
   shrinkwrap run ns-edk2.yaml --rtvar=KERNEL=path/to/Image --rtvar=CMDLINE="console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force"
 
-******************************************
-Example Linux Feature Development Use Case
-******************************************
+*************************************
+Pass Overlay Directly on Command Line
+*************************************
 
-.. todo::
-  Add commentary on the config created to develop FEAT_LPA2.
+All of the previous examples that utilize overlays, put the overlay in a yaml
+file and pass the file name on the command line. Here is an example that runs
+the FVP as normal but saves all output from UART0 to uart0.log:
+
+Create a file called ``my-overlay.yaml``:
+
+.. code-block:: yaml
+
+  run:
+    params:
+      -C bp.pl011_uart0.out_file: uart0.log
+
+Now run the FVP, passing in the overlay:
+
+.. code-block:: shell
+
+  shrinkwrap run ns-edk2.yaml --rtvar=KERNEL=path/to/Image --overlay=my-overlay.yaml
+
+However, it is also possible to pass an overlay, encoded as json, directly on
+the command line, without the need for a file. This is useful when the overlay
+is small. JSON allows the entire content to be encoded on a single line without
+having to care about whitespace, so is suited to this purpose.
+
+This is equivalent:
+
+.. code-block:: shell
+
+  shrinkwrap run ns-edk2.yaml --rtvar=KERNEL=path/to/Image --overlay='{"run":{"params":{"-C bp.pl011_uart0.out_file":"uart0.log"}}}'
