@@ -100,20 +100,10 @@ def _run_script(pm, data, script):
 	with open(tmpfilename, 'w') as tmpfile:
 		tmpfile.write(script.commands())
 
-	if script.config and script.component:
-		logname = os.path.join(workspace.build,
-				'log',
-				script.config,
-				f'{script.component}.log')
-		os.makedirs(os.path.dirname(logname), exist_ok=True)
-		logfile = open(logname, 'w', buffering=1)
-	else:
-		logfile = None
-
 	# Start the process asynchronously.
 	pm.add(process.Process(f'bash {tmpfilename}',
 			       False,
-			       (*data, script, tmpdir, logfile),
+			       (*data, script, tmpdir),
 			       True))
 
 
@@ -132,33 +122,37 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		nonlocal log
 		while len(queue) > 0 and active < tasks:
 			frag = queue.pop()
+			logname = None
+			if frag.config and frag.component:
+				logname = os.path.join(workspace.build,
+						'log',
+						frag.config,
+						f'{frag.component}.log')
+				os.makedirs(os.path.dirname(logname), exist_ok=True)
 			_update_labels(labels,
 				       mask,
 				       frag.config,
 				       frag.component,
 				       frag.summary + '...')
-			data = (log.alloc_data(str(frag), colorize), [])
+			data = (log.alloc_data(str(frag), colorize, False, logname), [])
 			_run_script(pm, data, frag)
 			active += 1
 
 	def _should_log(proc, data, streamid):
-		if streamid == process.STDERR and \
+		if verbose or \
+		   (streamid == process.STDERR and \
 		   (not proc.data[2].stderrfilt or \
-		   'warning' in data or 'error' in data):
+		   'warning' in data or 'error' in data)):
 			return True
 		return False
 
 	def _log(pm, proc, data, streamid):
-		logfile = proc.data[4]
-		if logfile:
-			logfile.write(data)
-		if verbose:
-			log.log(pm, proc, data, streamid)
-		else:
+		logstd = _should_log(proc, data, streamid)
+		if not verbose:
 			proc.data[1].append(data)
-			if _should_log(proc, data, streamid):
-				log.log(pm, proc, data, streamid)
-				lc.skip_overdraw_once()
+		log.log(pm, proc, data, streamid, logstd)
+		if logstd:
+			lc.skip_overdraw_once()
 
 	def _complete(pm, proc, retcode):
 		nonlocal queue
@@ -169,10 +163,6 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		err = proc.data[1]
 		frag = proc.data[2]
 		tmpdir = proc.data[3]
-		logfile = proc.data[4]
-
-		if logfile:
-			logfile.close()
 
 		log.free_data(data)
 		shutil.rmtree(tmpdir)

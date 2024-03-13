@@ -15,7 +15,7 @@ def _import_termcolor():
 
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _colors = ['blue', 'cyan', 'green', 'yellow', 'magenta']
-Data = namedtuple("Data", "id tag color noesc escbuf")
+Data = namedtuple("Data", "id tag color noesc escbuf logfile")
 
 
 class MatchBuf:
@@ -49,7 +49,7 @@ class Logger:
 		self._prev_id = None
 		self._prev_char = '\n'
 
-	def alloc_data(self, tag, colorize, no_escapes=False):
+	def alloc_data(self, tag, colorize, no_escapes=False, logname=None):
 		"""
 		Returns the object that should be stashed in proc.data[0] when
 		log() is called. Includes the tag for the process and an
@@ -73,12 +73,18 @@ class Logger:
 			noesc = no_escapes
 			escbuf = None
 
-		return Data(id, tag, color, [noesc], escbuf)
+		if logname:
+			logfile = open(logname, 'w', buffering=1)
+		else:
+			logfile = None
+
+		return Data(id, tag, color, [noesc], escbuf, logfile)
 
 	def free_data(self, data):
-		pass
+		if data.logfile:
+			data.logfile.close()
 
-	def log(self, pm, proc, data, streamid):
+	def log(self, pm, proc, data, streamid, logstd=True):
 		"""
 		Logs text data from one of the processes (FVP or one of its uart
 		terminals) to the terminal. Text is colored and a tag is added
@@ -89,6 +95,15 @@ class Logger:
 		color = proc.data[0].color
 		noesc = proc.data[0].noesc
 		escbuf = proc.data[0].escbuf
+		logfile = proc.data[0].logfile
+
+		# Write out to file if requested.
+		if logfile:
+			logfile.write(data)
+
+		# Write to stdout if requested.
+		if not logstd:
+			return
 
 		# Remove any ansi escape sequences if requested.
 		if noesc[0]:
