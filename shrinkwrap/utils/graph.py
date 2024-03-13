@@ -165,7 +165,8 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		nonlocal active
 		nonlocal ts
 
-		data = proc.data[1]
+		data = proc.data[0]
+		err = proc.data[1]
 		frag = proc.data[2]
 		tmpdir = proc.data[3]
 		logfile = proc.data[4]
@@ -173,6 +174,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		if logfile:
 			logfile.close()
 
+		log.free_data(data)
 		shutil.rmtree(tmpdir)
 
 		if retcode is None:
@@ -183,7 +185,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		if retcode:
 			if not verbose:
 				print('\n== error start ' + ('=' * 65))
-				print(''.join(data))
+				print(''.join(err))
 				print('== error end ' + ('=' * 67) + '\n')
 			raise Exception(f"Failed to execute '{frag}'")
 

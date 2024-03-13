@@ -211,6 +211,8 @@ def dispatch(args):
 				pm.set_handler(log.log)
 
 	def _complete(pm, proc, retcode):
+		log.free_data(proc.data[0])
+
 		# If the FVP exits with non-zero exit code, we propagate that
 		# error so that shrinkwrap also exits with non-zero exit code.
 		if retcode not in [0, None] and proc.run_to_end:

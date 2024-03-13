@@ -75,6 +75,9 @@ class Logger:
 
 		return Data(id, tag, color, [noesc], escbuf)
 
+	def free_data(self, data):
+		pass
+
 	def log(self, pm, proc, data, streamid):
 		"""
 		Logs text data from one of the processes (FVP or one of its uart
