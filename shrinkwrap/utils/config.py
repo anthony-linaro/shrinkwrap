@@ -841,7 +841,7 @@ def script_preamble(echo):
 	return pre.commands(False)
 
 
-def build_graph(configs, echo):
+def build_graph(configs, echo, nosync):
 	"""
 	Returns a graph of scripts where the edges represent dependencies. The
 	scripts should be executed according to the graph in order to correctly
@@ -891,41 +891,45 @@ def build_graph(configs, echo):
 			for name in ts.get_ready():
 				component = config['build'][name]
 
-				g = Script('Syncing git repo', config["name"], name, preamble=pre)
-				if len(component['repo']) > 0:
-					g.append(f'# Sync git repo for config={config["name"]} component={name}.')
-					g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
+				if (type(nosync) == list and name not in nosync) or \
+				   (type(nosync) != list and not nosync):
+					g = Script('Syncing git repo', config["name"], name, preamble=pre)
+					if len(component['repo']) > 0:
+						g.append(f'# Sync git repo for config={config["name"]} component={name}.')
+						g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
 
-					for gitlocal, repo in component['repo'].items():
-						parent = os.path.basename(component["sourcedir"])
-						gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
-						gitremote = repo['remote']
-						gitrev = repo['revision']
-						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
-						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+						for gitlocal, repo in component['repo'].items():
+							parent = os.path.basename(component["sourcedir"])
+							gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
+							gitremote = repo['remote']
+							gitrev = repo['revision']
+							basedir = os.path.normpath(os.path.join(gitlocal, '..'))
+							sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
 
-						g.append(f'if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then')
-						g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
-						g.append(f'\tmkdir -p {basedir}')
-						g.append(f'\ttouch {sync}')
-						g.append(f'\tgit clone {gitargs}{gitremote} {gitlocal}')
-						g.append(f'\tpushd {gitlocal}')
-						g.append(f'\tgit checkout {gitargs}--force {gitrev}')
-						g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
-						g.append(f'\tpopd')
-						g.append(f'\trm {sync}')
-						g.append(f'else')
-						g.append(f'\tpushd {gitlocal}')
-						g.append(f'\tgit checkout {gitargs}--force {gitrev} > /dev/null 2>&1 || (')
-						g.append(f'\t\tgit fetch {gitargs}--prune --prune-tags {gitremote} &&')
-						g.append(f'\t\tgit checkout {gitargs}--force {gitrev})')
-						g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
-						g.append(f'\tpopd')
-						g.append(f'fi')
+							g.append(f'if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then')
+							g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
+							g.append(f'\tmkdir -p {basedir}')
+							g.append(f'\ttouch {sync}')
+							g.append(f'\tgit clone {gitargs}{gitremote} {gitlocal}')
+							g.append(f'\tpushd {gitlocal}')
+							g.append(f'\tgit checkout {gitargs}--force {gitrev}')
+							g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
+							g.append(f'\tpopd')
+							g.append(f'\trm {sync}')
+							g.append(f'else')
+							g.append(f'\tpushd {gitlocal}')
+							g.append(f'\tgit checkout {gitargs}--force {gitrev} > /dev/null 2>&1 || (')
+							g.append(f'\t\tgit fetch {gitargs}--prune --prune-tags {gitremote} &&')
+							g.append(f'\t\tgit checkout {gitargs}--force {gitrev})')
+							g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
+							g.append(f'\tpopd')
+							g.append(f'fi')
 
-					g.append(f'popd')
-				g.seal()
-				graph[g] = [gl2]
+						g.append(f'popd')
+					g.seal()
+					graph[g] = [gl2]
+				else:
+					g = gl2
 
 				b = Script('Building', config["name"], name, preamble=pre, stderrfilt=component['stderrfilt'])
 				if len(component['prebuild']) + \

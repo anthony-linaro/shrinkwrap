@@ -108,17 +108,17 @@ def dispatch(args):
 
 	configs = [c['config'] for c in cfgs['configs']]
 	btvarss = [c['btvars'] for c in cfgs['configs']]
-	build(configs, btvarss, args)
+	build(configs, btvarss, [], args)
 
 
-def build(configs, btvarss, args):
+def build(configs, btvarss, nosync, args):
 	"""
 	Concurrently builds a list of configs. Intended to be called as a common
 	handler for the build and buildmulti commands.
 	"""
 	clivars = {'jobs': args.jobs}
 	configs = config.load_resolveb_all(configs, args.overlay, clivars, btvarss)
-	graph = config.build_graph(configs, args.verbose)
+	graph = config.build_graph(configs, args.verbose, nosync)
 
 	if args.dry_run:
 		script = ugraph.make_script(graph)
@@ -167,7 +167,7 @@ def build(configs, btvarss, args):
 				config.dump(c, cfg)
 
 			# Dump the script to build the config.
-			graph = config.build_graph([c], args.verbose)
+			graph = config.build_graph([c], args.verbose, nosync)
 			script = ugraph.make_script(graph)
 			build_name = os.path.join(workspace.package,
 						  c['name'],
