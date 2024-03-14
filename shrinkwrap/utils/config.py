@@ -50,9 +50,6 @@ def _component_normalize(component, name):
 	if 'postbuild' not in component:
 		component['postbuild'] = []
 
-	if 'clean' not in component:
-		component['clean'] = []
-
 	if 'params' not in component:
 		component['params'] = {}
 
@@ -160,7 +157,7 @@ def _component_sort(component):
 	improves readability by humans.
 	"""
 	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'stderrfilt', 'params',
-			'prebuild', 'build', 'postbuild', 'clean', 'artifacts']
+			'prebuild', 'build', 'postbuild', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
 
@@ -468,7 +465,6 @@ def resolveb(config, btvars={}, clivars={}):
 			_find_artifacts(component['prebuild'])
 			_find_artifacts(component['build'])
 			_find_artifacts(component['postbuild'])
-			_find_artifacts(component['clean'])
 			_find_artifacts(component['artifacts'].values())
 
 			importers[name] = sorted(list(artifacts))
@@ -545,9 +541,6 @@ def resolveb(config, btvars={}, clivars={}):
 				desc['build'][i] = _string_substitute(s, lut, final)
 			for i, s in enumerate(desc['postbuild']):
 				desc['postbuild'][i] = _string_substitute(s, lut, final)
-			for i, s in enumerate(desc['clean']):
-				desc['clean'][i] = _string_substitute(s, lut, final)
-
 			for k, v in desc['artifacts'].items():
 				desc['artifacts'][k] = _string_substitute(v, lut, final)
 
@@ -964,7 +957,7 @@ def build_graph(configs, echo, nosync):
 	return graph
 
 
-def clean_graph(configs, echo, clean_repo):
+def clean_graph(configs, echo):
 	"""
 	Returns a graph of scripts where the edges represent dependencies. The
 	scripts should be executed according to the graph in order to correctly
@@ -992,42 +985,29 @@ def clean_graph(configs, echo, clean_repo):
 
 				c = Script('Cleaning', config["name"], name, preamble=pre)
 				c.append(f'# Clean for config={config["name"]} component={name}.')
-				if len(component['clean']) > 0:
-					c.append(f'export CROSS_COMPILE={component["toolchain"] if component["toolchain"] else ""}')
-					c.append(f'if [ -d "{component["sourcedir"]}" ]; then')
-					c.append(f'\tpushd {component["sourcedir"]}')
-					for cmd in component['clean']:
-						c.append(f'\t{cmd}')
+				c.append(f'rm -rf {component["builddir"]} > /dev/null 2>&1 || true')
+				if len(component['repo']) > 0:
+					c.append(f'if [ -d "{os.path.dirname(component["sourcedir"])}" ]; then')
+					c.append(f'\tpushd {os.path.dirname(component["sourcedir"])}')
+
+					for gitlocal, repo in component['repo'].items():
+						parent = os.path.basename(component["sourcedir"])
+						gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
+						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
+						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+
+						c.append(f'\tif [ -d "{gitlocal}/.git" ] && [ ! -f "{sync}" ]; then')
+						c.append(f'\t\tpushd {gitlocal}')
+						c.append(f'\t\tgit clean {gitargs}-xdff')
+						c.append(f'\t\tpopd')
+						c.append(f'\telse')
+						c.append(f'\t\trm -rf {gitlocal} {sync} > /dev/null 2>&1 || true')
+						c.append(f'\tfi')
+
 					c.append(f'\tpopd')
 					c.append(f'fi')
-				c.append(f'rm -rf {component["builddir"]} > /dev/null 2>&1 || true')
 				c.seal()
 				graph[c] = [gl1]
-
-				if clean_repo:
-					g = Script('Cleaning git repo', config["name"], name, preamble=pre)
-					if len(component['repo']) > 0:
-						g.append(f'# Clean git repo for config={config["name"]} component={name}.')
-						g.append(f'if [ -d "{os.path.dirname(component["sourcedir"])}" ]; then')
-						g.append(f'\tpushd {os.path.dirname(component["sourcedir"])}')
-
-						for gitlocal, repo in component['repo'].items():
-							parent = os.path.basename(component["sourcedir"])
-							gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
-							basedir = os.path.normpath(os.path.join(gitlocal, '..'))
-							sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
-
-							g.append(f'\tif [ -d "{gitlocal}/.git" ] && [ ! -f "{sync}" ]; then')
-							g.append(f'\t\tpushd {gitlocal}')
-							g.append(f'\t\tgit clean {gitargs}-xdff')
-							g.append(f'\t\tgit reset {gitargs}--hard')
-							g.append(f'\t\tpopd')
-							g.append(f'\tfi')
-
-						g.append(f'\tpopd')
-						g.append(f'fi')
-					g.seal()
-					graph[g] = [c]
 
 				ts.done(name)
 

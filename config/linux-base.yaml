@@ -69,10 +69,6 @@ build:
       -   touch ${param:builddir}/kselftests.tgz
       - fi
 
-    clean:
-      - export ARCH=arm64
-      - make -j${param:jobs} O=${param:builddir} clean
-
     artifacts:
       KERNEL: ${param:builddir}/arch/arm64/boot/Image
       KMODULES: ${param:builddir}/modules.tgz

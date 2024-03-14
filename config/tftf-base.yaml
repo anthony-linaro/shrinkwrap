@@ -25,9 +25,6 @@ build:
       # than ~8 jobs unreliable, so limit it to 8.
       - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all"
 
-    clean:
-      - make BUILD_BASE=${param:builddir} realclean
-
     artifacts:
       SP_LAYOUT: ${param:builddir}/fvp/release/sp_layout.json
 
