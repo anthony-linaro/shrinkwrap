@@ -914,6 +914,13 @@ def build_graph(configs, echo):
 						g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
 						g.append(f'\tpopd')
 						g.append(f'\trm {sync}')
+						g.append(f'else')
+						g.append(f'\tpushd {gitlocal}')
+						g.append(f'\tgit checkout {gitargs}--force {gitrev} > /dev/null 2>&1 || (')
+						g.append(f'\t\tgit fetch {gitargs}--prune --prune-tags {gitremote} &&')
+						g.append(f'\t\tgit checkout {gitargs}--force {gitrev})')
+						g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
+						g.append(f'\tpopd')
 						g.append(f'fi')
 
 					g.append(f'popd')
