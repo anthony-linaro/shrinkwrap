@@ -150,9 +150,11 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		logstd = _should_log(proc, data, streamid)
 		if not verbose:
 			proc.data[1].append(data)
+		if logstd:
+			lc.erase()
 		log.log(pm, proc, data, streamid, logstd)
 		if logstd:
-			lc.skip_overdraw_once()
+			lc.update()
 
 	def _complete(pm, proc, retcode):
 		nonlocal queue
