@@ -23,8 +23,7 @@ class Runtime:
 	host. The 'docker', 'docker-local', 'podman' and 'podman-local' runtimes
 	execute the commands in a container.
 	"""
-	def __init__(self, *, name, image=None, modal=True):
-		self._modal = modal
+	def __init__(self, *, name, image=None):
 		self._rt = None
 		self._mountpoints = set()
 
@@ -52,8 +51,7 @@ class Runtime:
 			self._rt.set_user('shrinkwrap')
 			self._rt.set_group('shrinkwrap')
 
-		if self._modal:
-			_stack.append(self)
+		_stack.append(self)
 
 	def start(self):
 		for mp in self._mountpoints:
@@ -123,9 +121,8 @@ print(ip)
 		if self._rt:
 			self._rt.cleanup()
 			self._rt = None
-			if self._modal:
-				s = _stack.pop()
-				assert(s == self)
+			s = _stack.pop()
+			assert(s == self)
 
 	def __enter__(self):
 		return self
@@ -136,8 +133,7 @@ print(ip)
 
 def get():
 	"""
-	Returns the current modal Runtime instance. At least one Runtime
-	instance must be living that was created with modal=True.
+	Returns the current Runtime instance.
 	"""
 	assert(len(_stack) > 0)
 	return _stack[-1]
