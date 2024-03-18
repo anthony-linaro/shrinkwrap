@@ -23,7 +23,7 @@ class Runtime:
 	host. The 'docker', 'docker-local', 'podman' and 'podman-local' runtimes
 	execute the commands in a container.
 	"""
-	def __init__(self, name, image=None, modal=True):
+	def __init__(self, *, name, image=None, modal=True):
 		self._modal = modal
 		self._rt = None
 		self._mountpoints = set()
