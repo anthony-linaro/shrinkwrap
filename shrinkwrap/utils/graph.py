@@ -65,9 +65,9 @@ def _mk_tag(config, component):
 
 	config = '' if config is None else config
 	component = '' if component is None else component
-	config = _clamp(config, 16)
-	component = _clamp(component, 8)
-	return '[ {:>16} : {:8} ]'.format(config, component)
+	config = _clamp(config, 10)
+	component = _clamp(component, 14)
+	return '[ {:>10} : {:14} ]'.format(config, component)
 
 
 def _update_labels(labels, mask, config, component, summary):
