@@ -130,7 +130,8 @@ def build(configs, btvarss, nosync, args):
 		# Run under a runtime environment, which may just run commands
 		# natively on the host or may execute commands in a container,
 		# depending on what the user specified.
-		with runtime.Runtime(name=args.runtime, image=args.image) as rt:
+		with runtime.Runtime(name=args.runtime, image=args.image,
+		       			ssh_agent_keys=args.ssh_agent_keys) as rt:
 			def add_volume(path, levels_up=0):
 				while levels_up:
 					path = os.path.dirname(path)

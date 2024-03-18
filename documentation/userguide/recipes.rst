@@ -264,3 +264,29 @@ This is equivalent:
 .. code-block:: shell
 
   shrinkwrap run ns-edk2.yaml --rtvar=KERNEL=path/to/Image --overlay='{"run":{"params":{"-C bp.pl011_uart0.out_file":"uart0.log"}}}'
+
+****************
+Provide SSH keys
+****************
+
+The GIT subprocess used by Shrinkwrap to synchronise source code may require
+access to SSH keys. This is supported, via ``ssh-agent``.
+
+If ``ssh-agent`` is already running, it will be automatically detected (via
+the ``SSH_AUTH_SOCK`` environment variable) and used by Shrinkwrap.
+
+Alternatively, the ``--ssh-agent`` option can be used to request Shrinkwrap
+to start an ``ssh-agent`` subprocess and add default keys.
+
+.. code-block:: shell
+
+  shrinkwrap --ssh-agent build ...
+
+In order to add only specified keys, the ``--ssh-agent-key`` can be used.
+
+.. code-block:: shell
+
+  shrinkwrap \
+    --ssh-agent-key ~/.ssh/my-first-key \
+    --ssh-agent-key ~/.ssh/my-second-key \
+    build ...

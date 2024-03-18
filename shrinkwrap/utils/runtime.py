@@ -6,6 +6,10 @@ import subprocess
 import sys
 import tuxmake.runtime
 import types
+import shrinkwrap.utils.ssh_agent as ssh_agent_lib
+
+_SSH_AUTH_SOCK = '/run/host-services/ssh-auth.sock'
+"""Path to ssh-agent socket."""
 
 
 _instance = None
@@ -23,12 +27,15 @@ class Runtime:
 	host. The 'docker', 'docker-local', 'podman' and 'podman-local' runtimes
 	execute the commands in a container.
 	"""
-	def __init__(self, *, name, image=None):
+	def __init__(self, *, name, image=None, ssh_agent_keys=None):
 		self._rt = None
 		self._mountpoints = set()
 
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
+
+		is_mac = sys.platform.startswith('darwin')
+		is_docker = name.startswith('docker')
 
 		# MacOS uses GIDs that overlap with already defined GIDs in the
 		# container so we can't just bind the macos host UID/GID to the
@@ -43,13 +50,23 @@ class Runtime:
 		# have this ugly workaround to override the user-opts with
 		# nothing. By passing nothing, we implicitly run as root and
 		# tuxmake doesn't try to run usermod.
-		if sys.platform.startswith('darwin') and \
-		   self._rt.name.startswith('docker'):
+		if is_mac and is_docker:
 			self._rt.get_user_opts = \
 				types.MethodType(get_null_user_opts, self._rt)
 		else:
 			self._rt.set_user('shrinkwrap')
 			self._rt.set_group('shrinkwrap')
+
+		for key in ssh_agent_keys:
+			ssh_agent_lib.add(key)
+
+		socket = ssh_agent_lib.socket()
+
+		if name != 'null' and socket is not None:
+			if is_mac:
+				socket = _SSH_AUTH_SOCK
+
+			self._rt.add_volume(socket, _SSH_AUTH_SOCK)
 
 	def start(self):
 		for mp in self._mountpoints:

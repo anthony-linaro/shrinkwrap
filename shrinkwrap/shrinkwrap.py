@@ -83,6 +83,21 @@ def main():
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 
+	parser.add_argument('--ssh-agent',
+		default=False,
+		action='store_true',
+		required=False,
+		help="""Start ssh-agent and add default keys.""")
+
+	parser.add_argument('--ssh-agent-key',
+		dest='ssh_agent_keys',
+		default=[],
+		metavar='key',
+		action='append',
+		type=str,
+		required=False,
+		help="""Start ssh-agent and add specified key.""")
+
 	subparsers = parser.add_subparsers(dest='command',
 					   metavar='<command>',
 					   title=f'Supported commands (run '
@@ -101,6 +116,9 @@ def main():
 	# Parse the arguments.
 	args = parser.parse_args()
 	config_verbose_flag(args)
+
+	if args.ssh_agent:
+		args.ssh_agent_keys.append(None)
 
 	# Dispatch to the correct command.
 	if args.command in cmds:
