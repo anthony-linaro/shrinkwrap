@@ -3,6 +3,7 @@
 
 import graphlib
 import io
+import json
 import os
 import re
 import yaml
@@ -355,7 +356,7 @@ def filename(name, rel=os.getcwd()):
 	Given a config name, finds the path to the config on disk. If the config
 	name exists relative to rel, we return that since it is a user config.
 	Else, if the config name exists relative to the config store then we
-	return that. If neither exist, then we return the filepath option, since
+	return that. If neither exist, then we return name unmodified, since
 	that will generate the most useful error.
 	"""
 	fpath = os.path.abspath(os.path.join(rel, name))
@@ -366,18 +367,25 @@ def filename(name, rel=os.getcwd()):
 	elif cpath:
 		return os.path.abspath(os.path.join(cpath, name))
 	else:
-		return fpath
+		return name
 
 
 def load(file_name, overlays=[], friendly=None):
 	"""
 	Load a config from disk and return it as a dictionary. The config is
-	fully normalized, validated and merged.
+	fully normalized, validated and merged. If file_name starts with '{' it
+	is treated as a json config instead of a file name and is parsed
+	directly. This allows passing json config snippets as overlays on the
+	command line.
 	"""
 	def _config_load(file_name):
-		with open(file_name) as file:
-			config = yaml.safe_load(file)
-		config_dir = os.path.dirname(file_name)
+		if file_name[0] == '{':
+			config = json.loads(file_name)
+			config_dir = os.getcwd()
+		else:
+			with open(file_name) as file:
+				config = yaml.safe_load(file)
+			config_dir = os.path.dirname(file_name)
 
 		config = _config_normalize(config)
 		_config_validate(config)
