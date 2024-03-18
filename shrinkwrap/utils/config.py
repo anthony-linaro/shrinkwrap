@@ -526,6 +526,9 @@ def resolveb(config, btvars={}, clivars={}):
 
 	def _substitute_macros(config, lut, final):
 		for desc in config['build'].values():
+			desc['sourcedir'] = _string_substitute(desc['sourcedir'], lut, final)
+			desc['builddir'] = _string_substitute(desc['builddir'], lut, final)
+
 			lut['param']['sourcedir'] = desc['sourcedir']
 			lut['param']['builddir'] = desc['builddir']
 
@@ -535,6 +538,15 @@ def resolveb(config, btvars={}, clivars={}):
 
 			lut['param']['join_equal'] = _mk_params(desc['params'], '=')
 			lut['param']['join_space'] = _mk_params(desc['params'], ' ')
+
+			for r in desc['repo'].values():
+				if r['remote']:
+					r['remote'] = _string_substitute(r['remote'], lut, final)
+				if r['revision']:
+					r['revision'] = _string_substitute(r['revision'], lut, final)
+
+			if desc['toolchain']:
+				desc['toolchain'] = _string_substitute(desc['toolchain'], lut, final)
 
 			for i, s in enumerate(desc['prebuild']):
 				desc['prebuild'][i] = _string_substitute(s, lut, final)
