@@ -29,6 +29,7 @@ ENV PATH="/pyvenv/bin:${PATH}"
 # Install packages that Shrinkwrap relies upon.
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		netcat-openbsd \
+		openssh-client \
 		python3 \
 		python3-pip \
 		telnet \
