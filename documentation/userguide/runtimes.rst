@@ -47,14 +47,6 @@ platform. Images are automatically downloaded by shrinkwrap when the ``docker``
 or ``podman`` runtime is selected. Images are available on Docker Hub and can be
 freely downloaded without the need for an account.
 
-.. warning::
-
-  There is currently no FVP available for aarch64, so the current aarch64 arch
-  images do not include any FVP, and as a consequence, the ``run`` command will
-  not work. For the time being, when wanting to run on aarch64 you must install
-  your own FVP on your system and follow the recipe at
-  :ref:`userguide/recipes:Use a Custom FVP Version`.
-
 =============================================== ====
 image name                                      description
 =============================================== ====
@@ -96,10 +88,14 @@ system:
 
 .. code-block:: shell
 
-  shrinkwrap --runtime=<name> --image=shrinkwraptool/base-slim:local-x86_64 ...
+  shrinkwrap --runtime=<name>-local --image=shrinkwraptool/base-slim:local-x86_64 ...
 
 Or like this if running on an aarch64 system:
 
 .. code-block:: shell
 
-  shrinkwrap --runtime=<name> --image=shrinkwraptool/base-slim:local-aarch64 ...
+  shrinkwrap --runtime=<name>-local --image=shrinkwraptool/base-slim:local-aarch64 ...
+
+where <name> is either docker or podman. Note that because the image is not on
+Docker Hub, the <name>-local runtime is required to prevent Shrinkwrap from
+erroneously trying to download an update.
