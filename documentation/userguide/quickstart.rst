@@ -311,6 +311,14 @@ the output from the component build systems).
 This will sync all the required repos, build the components and package the
 artifacts.
 
+.. warning::
+
+  By default, Shrinkwrap will sync all component repos to the revision specified
+  in the config on every build invocation. If you have made changes in the
+  working directory, your CHANGES WILL BE LOST! You can override this behaviour
+  so that Shrinkwrap just builds whatever is in the working directory by adding
+  ``--no-sync [<component>]`` to the command line.
+
 Alternatively, pass ``--dry-run`` to view the shell script that would have been
 run:
 
@@ -866,8 +874,6 @@ command:
         -o $${DTB_FINAL}
       - fi
       postbuild: []
-      clean:
-      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} clean
       artifacts:
         DTB: ${param:builddir}/dt_bootargs.dtb
     edk2:
@@ -901,7 +907,6 @@ command:
       - make -j${param:jobs} -C edk2/BaseTools
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
       postbuild: []
-      clean: []
       artifacts:
         EDK2: ${param:builddir}/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
     edk2flash:
@@ -913,7 +918,6 @@ command:
       prebuild: []
       build: []
       postbuild: []
-      clean: []
       artifacts:
         EDK2FLASH: ${param:configdir}/edk2-flash.img
     tfa:
@@ -945,8 +949,6 @@ command:
       build:
       - make BUILD_BASE=${param:builddir} ${param:join_equal} all fip
       postbuild: []
-      clean:
-      - make BUILD_BASE=${param:builddir} realclean
       artifacts:
         BL1: ${param:builddir}/fvp/release/bl1.bin
         BL2: ${param:builddir}/fvp/release/bl2.bin

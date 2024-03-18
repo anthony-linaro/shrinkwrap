@@ -29,9 +29,5 @@ build:
       - make -j${param:jobs} -C dtc libfdt
       - make -j${param:jobs} -C kvmtool
 
-    clean:
-      - make -j${param:jobs} -C dtc clean
-      - make -j${param:jobs} -C kvmtool clean
-
     artifacts:
       LKVM: ${param:sourcedir}/kvmtool/lkvm

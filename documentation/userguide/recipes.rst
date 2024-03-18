@@ -19,16 +19,6 @@ an existing config. Here we modify the revision and remote repository of the
 TF-A component from its default (defined in tfa-base.yaml). You could also
 specify the revision as a SHA or branch.
 
-.. warning::
-
-  If you have previously built this config, shrinkwrap will skip syncing the git
-  repos since they will already exist and it doesn't want to trample any user
-  changes. So you will need to force shrinkwrap to re-sync. One approach is to
-  delete the following directories:
-
-  - ``<SHRINKWRAP_BUILD>/source/ns-preload``
-  - ``<SHRINKWRAP_BUILD>/build/ns-preload``
-
 Create a file called ``my-overlay.yaml``:
 
 .. code-block:: yaml
@@ -37,7 +27,7 @@ Create a file called ``my-overlay.yaml``:
     tfa:
       repo:
 	remote: https://github.com/ARM-software/arm-trusted-firmware.git
-        revision: v2.6
+        revision: v2.9
 
 Optionally, you can view the final, merged config as follows:
 
@@ -51,8 +41,7 @@ Now do a build, passing in the overlay:
 
   shrinkwrap build --overlay=my-overlay.yaml ns-preload.yaml
 
-Finally, boot the config. Here, were are providing a custom kernel command line.
-But you could omit the command line and a sensible default would be used.
+Finally, boot the config:
 
 .. code-block:: shell
 

@@ -19,9 +19,6 @@ build:
       - make -j${param:jobs}
       - mv ${param:sourcedir}/generate/unix/bin ${param:sourcedir}/generate/unix/acpica
 
-    clean:
-      - make -j${param:jobs} clean
-
     artifacts:
       ACPICA: ${param:sourcedir}/generate/unix/acpica
 

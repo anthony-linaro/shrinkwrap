@@ -110,8 +110,6 @@ build:
           };"
       -   ( dtc -q -O dts -I dtb $${DTB_FINAL} ; echo -e "$${OVERLAY}" ) | dtc -q -O dtb -o $${DTB_FINAL}
       - fi
-    clean:
-      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} clean
 
     artifacts:
       DTB: ${param:builddir}/dt_bootargs.dtb

@@ -131,9 +131,6 @@ build:
       - make -j${param:jobs}
       - tar -caf ${param:builddir}/kvm-unit-tests.tgz -C ${param:sourcedir} .
 
-    clean:
-      - make -j${param:jobs} clean
-
     artifacts:
       KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz
 

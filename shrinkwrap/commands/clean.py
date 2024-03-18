@@ -72,12 +72,6 @@ def add_parser(parser, formatter):
 		required=False, default=False, action='store_true',
 		help="""If specified, logs will not be colorized.""")
 
-	cmdp.add_argument('-d', '--deep',
-		required=False, default=False, action='store_true',
-		help="""A shallow clean removes the build directory and executes
-		     any clean commands specified by the component. A deep clean
-		     also cleans and resets the component's repository.""")
-
 	cmdp.add_argument('-f', '--filter',
 		metavar='[config.]component', required=False, default=[],
 		action='append',
@@ -106,7 +100,7 @@ def dispatch(args):
 					conf['graph'],
 					args.filter)
 
-	graph = config.clean_graph(configs, args.verbose, args.deep)
+	graph = config.clean_graph(configs, args.verbose)
 
 	if args.dry_run:
 		script = ugraph.make_script(graph)

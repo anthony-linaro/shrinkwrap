@@ -198,7 +198,7 @@ def build_configs(configs, overlay=None, btvarss=None):
 		buildargs = f'{tmpfilename} {overlay}'
 
 		try:
-			run(f'shrinkwrap {rt} clean {cleanargs} -d', None)
+			run(f'shrinkwrap {rt} clean {cleanargs}', None)
 			run(f'shrinkwrap {rt} buildall {buildargs}', None)
 			result['status'] = 'pass'
 		except Exception as e:
