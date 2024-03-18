@@ -496,10 +496,11 @@ def resolveb(config, btvars={}, clivars={}):
 
 		def _combine_full(config):
 			artifact_map = {}
-			for desc in config['build'].values():
+			for name, desc in config['build'].items():
 				locs = {key: {
 					'src': val,
 					'dst': os.path.join(config['name'], os.path.basename(val)),
+					'component': name,
 				} for key, val in desc['artifacts'].items()}
 				artifact_map.update(locs)
 			return artifact_map
@@ -944,15 +945,16 @@ def build_graph(configs, echo, nosync):
 				build_scripts[name] = b
 				ts.done(name)
 
-		a = Script('Copying artifacts', config["name"], preamble=pre, final=True)
-		if len(config['artifacts']) > 0:
-			a.append(f'# Copy artifacts for config={config["name"]}.')
-			for artifact in config['artifacts'].values():
-				src = artifact['src']
-				dst = os.path.join(workspace.package, artifact['dst'])
-				a.append(f'cp -r {src} {dst}')
-		a.seal()
-		graph[a] = [gl2] + [s for s in build_scripts.values()]
+				a = Script('Copying artifacts', config["name"], name, preamble=pre, final=True)
+				artifacts = {k: v for k, v in config['artifacts'].items() if v['component'] == name}
+				if len(artifacts) > 0:
+					a.append(f'# Copy artifacts for config={config["name"]} component={name}.')
+					for artifact in artifacts.values():
+						src = artifact['src']
+						dst = os.path.join(workspace.package, artifact['dst'])
+						a.append(f'cp -r {src} {dst}')
+				a.seal()
+				graph[a] = [b]
 
 	return graph
 
@@ -983,7 +985,7 @@ def clean_graph(configs, echo):
 			for name in ts.get_ready():
 				component = config['build'][name]
 
-				c = Script('Cleaning', config["name"], name, preamble=pre)
+				c = Script('Cleaning', config["name"], name, preamble=pre, final=True)
 				c.append(f'# Clean for config={config["name"]} component={name}.')
 				c.append(f'rm -rf {component["builddir"]} > /dev/null 2>&1 || true')
 				if len(component['repo']) > 0:
