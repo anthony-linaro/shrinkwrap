@@ -185,5 +185,8 @@ RUN cd /tools \
 ENV TCH_PATH_AARCH64="/tools/${TCH_PATH_AARCH64}"
 ENV PATH="${TCH_PATH_AARCH64}:${PATH}"
 
+# Set ssh options used by git.
+ENV GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+
 # Create a user.
 RUN useradd --create-home shrinkwrap
