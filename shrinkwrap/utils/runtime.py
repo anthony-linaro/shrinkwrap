@@ -8,7 +8,7 @@ import tuxmake.runtime
 import types
 
 
-_stack = []
+_instance = None
 
 
 def get_null_user_opts(self):
@@ -50,8 +50,6 @@ class Runtime:
 		else:
 			self._rt.set_user('shrinkwrap')
 			self._rt.set_group('shrinkwrap')
-
-		_stack.append(self)
 
 	def start(self):
 		for mp in self._mountpoints:
@@ -116,27 +114,26 @@ print(ip)
 		if res.returncode == 0:
 			return res.stdout.strip()
 		return '127.0.0.1'
-
-	def cleanup(self):
-		if self._rt:
-			self._rt.cleanup()
-			self._rt = None
-			s = _stack.pop()
-			assert(s == self)
-
+	
 	def __enter__(self):
+		global _instance
+		assert _instance is None
+		_instance = self
 		return self
-
+	
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		self.cleanup()
+		global _instance
+		assert _instance == self
+		_instance = None
 
 
 def get():
 	"""
 	Returns the current Runtime instance.
 	"""
-	assert(len(_stack) > 0)
-	return _stack[-1]
+	global _instance
+	assert _instance is not None
+	return _instance
 
 
 def mkcmd(cmd, interactive=False):
