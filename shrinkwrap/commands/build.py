@@ -48,12 +48,15 @@ def add_parser(parser, formatter):
 
 	cmdp.add_argument('-s', '--no-sync',
 		metavar='component', required=False, default=[],
-		action='append', const=True, nargs='?',
+		action='append',
 		help="""Optionally specify any components whose git repos should
 		     not be synced. For all other components, Shrinkwrap ensures
 		     that all repos are clean and checked out at the correct
-		     revision. Option can be specified multiple times. If
-		     specified without an argument, behaves as if --no-sync was
+		     revision. Option can be specified multiple times.""")
+
+	cmdp.add_argument('--no-sync-all',
+		required=False, default=False, action='store_true',
+		help="""Do not sync repos for any component, as if --no-sync was
 		     specified for every component in the config.""")
 
 	buildall.add_common_args(cmdp)
@@ -68,6 +71,6 @@ def dispatch(args):
 	command line. The arguments comply with those requested in add_parser().
 	"""
 	btvars = vars.parse(args.btvar, type='bt')
-	if any([c == True for c in args.no_sync]):
+	if args.no_sync_all:
 		args.no_sync = True
 	buildall.build([args.config], [btvars], args.no_sync, args)
