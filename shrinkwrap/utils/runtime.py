@@ -5,9 +5,14 @@ import os
 import subprocess
 import sys
 import tuxmake.runtime
+import types
 
 
 _stack = []
+
+
+def get_null_user_opts(self):
+	return []
 
 
 class Runtime:
@@ -25,13 +30,25 @@ class Runtime:
 
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
-		if not sys.platform.startswith('darwin'):
-			# Macos uses GIDs that overlap with already defined GIDs
-			# in the container so this fails. However, it appears
-			# that on macos, if we run as root in the container, any
-			# generated files on the host filesystem are still owned
-			# my the real macos user, so it seems we don't need this
-			# UID/GID fixup in the first place on macos.
+
+		# MacOS uses GIDs that overlap with already defined GIDs in the
+		# container so we can't just bind the macos host UID/GID to the
+		# shrinkwrap user in the container. This concept doesn't really
+		# work anyway, because on MacOS the container is running on a
+		# completely separate (linux) kernel in a VM. Fortunately docker
+		# maps the VM to the current MacOS user when touching mapped
+		# volumes so it all works out. So on MacOS run as root.
+		# Unfortunately, tuxmake tries to be too clever (it assumes a
+		# linux host) and tries to map the in-container user to the host
+		# UID/GID. This fails when the in-container user is root. So we
+		# have this ugly workaround to override the user-opts with
+		# nothing. By passing nothing, we implicitly run as root and
+		# tuxmake doesn't try to run usermod.
+		if sys.platform.startswith('darwin') and \
+		   self._rt.name.startswith('docker'):
+			self._rt.get_user_opts = \
+				types.MethodType(get_null_user_opts, self._rt)
+		else:
 			self._rt.set_user('shrinkwrap')
 			self._rt.set_group('shrinkwrap')
 
