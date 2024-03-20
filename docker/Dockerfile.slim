@@ -29,6 +29,7 @@ ENV PATH="/pyvenv/bin:${PATH}"
 # Install packages that Shrinkwrap relies upon.
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		netcat-openbsd \
+		openssh-client \
 		python3 \
 		python3-pip \
 		telnet \
@@ -183,6 +184,12 @@ RUN cd /tools \
 	&& cd -
 ENV TCH_PATH_AARCH64="/tools/${TCH_PATH_AARCH64}"
 ENV PATH="${TCH_PATH_AARCH64}:${PATH}"
+
+# Set ssh options used by git.
+ENV GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+
+# Set ssh-agent socket path.
+ENV SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
 
 # Create a user.
 RUN useradd --create-home shrinkwrap

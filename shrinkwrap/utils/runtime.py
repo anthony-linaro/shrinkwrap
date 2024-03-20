@@ -5,9 +5,18 @@ import os
 import subprocess
 import sys
 import tuxmake.runtime
+import types
+import shrinkwrap.utils.ssh_agent as ssh_agent_lib
+
+_SSH_AUTH_SOCK = '/run/host-services/ssh-auth.sock'
+"""Path to ssh-agent socket."""
 
 
-_stack = []
+_instance = None
+
+
+def get_null_user_opts(self):
+	return []
 
 
 class Runtime:
@@ -18,25 +27,46 @@ class Runtime:
 	host. The 'docker', 'docker-local', 'podman' and 'podman-local' runtimes
 	execute the commands in a container.
 	"""
-	def __init__(self, name, image=None, modal=True):
-		self._modal = modal
+	def __init__(self, *, name, image=None, ssh_agent_keys=None):
 		self._rt = None
 		self._mountpoints = set()
 
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
-		if not sys.platform.startswith('darwin'):
-			# Macos uses GIDs that overlap with already defined GIDs
-			# in the container so this fails. However, it appears
-			# that on macos, if we run as root in the container, any
-			# generated files on the host filesystem are still owned
-			# my the real macos user, so it seems we don't need this
-			# UID/GID fixup in the first place on macos.
+
+		is_mac = sys.platform.startswith('darwin')
+		is_docker = name.startswith('docker')
+
+		# MacOS uses GIDs that overlap with already defined GIDs in the
+		# container so we can't just bind the macos host UID/GID to the
+		# shrinkwrap user in the container. This concept doesn't really
+		# work anyway, because on MacOS the container is running on a
+		# completely separate (linux) kernel in a VM. Fortunately docker
+		# maps the VM to the current MacOS user when touching mapped
+		# volumes so it all works out. So on MacOS run as root.
+		# Unfortunately, tuxmake tries to be too clever (it assumes a
+		# linux host) and tries to map the in-container user to the host
+		# UID/GID. This fails when the in-container user is root. So we
+		# have this ugly workaround to override the user-opts with
+		# nothing. By passing nothing, we implicitly run as root and
+		# tuxmake doesn't try to run usermod.
+		if is_mac and is_docker:
+			self._rt.get_user_opts = \
+				types.MethodType(get_null_user_opts, self._rt)
+		else:
 			self._rt.set_user('shrinkwrap')
 			self._rt.set_group('shrinkwrap')
 
-		if self._modal:
-			_stack.append(self)
+		for key in ssh_agent_keys:
+			ssh_agent_lib.add(key)
+
+		socket = ssh_agent_lib.socket()
+
+		if name != 'null' and socket is not None:
+			if is_mac:
+				socket = _SSH_AUTH_SOCK
+
+			self._rt.add_volume(socket, _SSH_AUTH_SOCK)
 
 	def start(self):
 		for mp in self._mountpoints:
@@ -101,29 +131,26 @@ print(ip)
 		if res.returncode == 0:
 			return res.stdout.strip()
 		return '127.0.0.1'
-
-	def cleanup(self):
-		if self._rt:
-			self._rt.cleanup()
-			self._rt = None
-			if self._modal:
-				s = _stack.pop()
-				assert(s == self)
-
+	
 	def __enter__(self):
+		global _instance
+		assert _instance is None
+		_instance = self
 		return self
-
+	
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		self.cleanup()
+		global _instance
+		assert _instance == self
+		_instance = None
 
 
 def get():
 	"""
-	Returns the current modal Runtime instance. At least one Runtime
-	instance must be living that was created with modal=True.
+	Returns the current Runtime instance.
 	"""
-	assert(len(_stack) > 0)
-	return _stack[-1]
+	global _instance
+	assert _instance is not None
+	return _instance
 
 
 def mkcmd(cmd, interactive=False):
