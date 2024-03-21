@@ -317,7 +317,7 @@ artifacts.
   in the config on every build invocation. If you have made changes in the
   working directory, your CHANGES WILL BE LOST! You can override this behaviour
   so that Shrinkwrap just builds whatever is in the working directory by adding
-  ``--no-sync [<component>]`` to the command line.
+  ``--no-sync <component>`` or ``--no-sync-all`` to the command line.
 
 Alternatively, pass ``--dry-run`` to view the shell script that would have been
 run:
