@@ -237,14 +237,14 @@ def _string_tokenize(string, escape=True):
 	'value'. If 'type' is 'literal', 'value' is the literal string. If
 	'type' is 'macro', 'value' is a dict defining 'type' and 'name'.
 	"""
-	regex = '\$(?:' \
-			'(?P<escape>\$)|' \
-			'(?:\{' \
-				'(?P<type>[_a-zA-Z][_a-zA-Z0-9]*):' \
-				'(?P<name>[_a-zA-Z][_a-zA-Z0-9]*)?' \
-			'\})|' \
-			'(?P<invalid>)' \
-		')'
+	regex = r'\$(?:' \
+			r'(?P<escape>\$)|' \
+			r'(?:\{' \
+				r'(?P<type>[_a-zA-Z][_a-zA-Z0-9]*):' \
+				r'(?P<name>[_a-zA-Z][_a-zA-Z0-9]*)?' \
+			r'\})|' \
+			r'(?P<invalid>)' \
+		r')'
 	pattern = re.compile(regex)
 	tokens = []
 	lit_start = 0

@@ -115,20 +115,25 @@ def execute(graph, tasks, verbose=False, colorize=True):
 	active = 0
 	log = logger.Logger(27)
 	ts = graphlib.TopologicalSorter(graph)
+	lognum = {}
 
 	def _pump(pm):
 		nonlocal queue
 		nonlocal active
 		nonlocal log
+		nonlocal lognum
 		while len(queue) > 0 and active < tasks:
 			frag = queue.pop()
 			logname = None
 			if frag.config and frag.component:
+				if frag.component not in lognum:
+					lognum[frag.component] = 0
 				logname = os.path.join(workspace.build,
 						'log',
 						frag.config,
-						f'{frag.component}.log')
+						f'{frag.component}{lognum[frag.component]}.log')
 				os.makedirs(os.path.dirname(logname), exist_ok=True)
+				lognum[frag.component] += 1
 			_update_labels(labels,
 				       mask,
 				       frag.config,
