@@ -15,6 +15,8 @@ layers:
 build:
   tfa:
     params:
+      ARM_ARCH_MAJOR: 9
+      ARM_ARCH_MINOR: 0
       CTX_INCLUDE_AARCH32_REGS: 0
 
 run:

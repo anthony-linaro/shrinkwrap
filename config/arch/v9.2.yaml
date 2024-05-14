@@ -13,6 +13,12 @@ layers:
   - arch/v8.7.yaml
   - arch/v9.1.yaml
 
+build:
+  tfa:
+    params:
+      ARM_ARCH_MAJOR: 9
+      ARM_ARCH_MINOR: 2
+
 run:
   params:
     -C cluster0.has_arm_v9-2: 1
