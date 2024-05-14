@@ -10,7 +10,7 @@ build:
   hafnium:
     repo:
       remote: https://git.trustedfirmware.org/hafnium/hafnium.git
-      revision: v2.10
+      revision: v2.11
 
     params:
       PROJECT: reference

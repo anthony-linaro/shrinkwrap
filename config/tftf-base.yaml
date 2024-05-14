@@ -12,7 +12,7 @@ build:
   tftf:
     repo:
       remote: https://git.trustedfirmware.org/TF-A/tf-a-tests.git
-      revision: v2.10
+      revision: v2.11
 
     toolchain: aarch64-none-elf-
 
