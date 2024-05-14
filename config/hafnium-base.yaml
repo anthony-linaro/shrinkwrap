@@ -31,8 +31,9 @@ build:
       # still a few, which are required by Hafnium, which it can't. Given these
       # are hard requirements for Hafnium, define them here.
       GIC_EXT_INTID: 1
-      CTX_INCLUDE_MTE_REGS: 1
+      ENABLE_FEAT_MTE2: 1
       ENABLE_SVE_FOR_SWD: 1
+      ENABLE_SME_FOR_SWD: 1
 
 run:
   params:
