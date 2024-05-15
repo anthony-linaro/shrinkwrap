@@ -131,17 +131,20 @@ print(ip)
 		if res.returncode == 0:
 			return res.stdout.strip()
 		return '127.0.0.1'
-	
+
 	def __enter__(self):
 		global _instance
 		assert _instance is None
 		_instance = self
 		return self
-	
+
 	def __exit__(self, exc_type, exc_val, exc_tb):
 		global _instance
 		assert _instance == self
 		_instance = None
+		if self._rt:
+			self._rt.cleanup()
+			self._rt = None
 
 
 def get():
