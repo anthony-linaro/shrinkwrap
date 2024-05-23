@@ -109,9 +109,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		mtools \
 		netcat-openbsd \
 		ninja-build \
-		python3-cryptography \
 		python3-pip \
-		python3-pyelftools \
 		python3-serial \
 		python-is-python3 \
 		rsync \
@@ -122,6 +120,10 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		xterm \
 		xz-utils \
 		zlib1g-dev
+RUN pip3 install \
+		cryptography \
+		pyelftools
+
 
 # Install packages requried by EDK2.
 # From https://developer.arm.com/documentation/102571/0100/Build-firmware-on-a-Linux-host.
