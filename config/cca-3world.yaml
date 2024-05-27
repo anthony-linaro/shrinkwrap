@@ -215,6 +215,17 @@ run:
   params:
     -C cluster0.rme_support_level: 2
     -C cluster1.rme_support_level: 2
+    -C bp.secure_memory: 0                                            # Disable security checking by TZC-400
+    -C bp.has_rme: 1                                                  # Enable Realm Management Extension(RME) support
+                                                                      # Only Root access to Trusted ROM and SRAM.
+                                                                      # SECURE/ROOT access only for below peripherals:
+                                                                      # -Trusted DRAM
+                                                                      # -REFCLK CNTControl (Generic Timer)
+                                                                      # -Trusted Watchdog SP805, Trustzone address space controller
+                                                                      # -AP_REFCLK CNTBase0 (Generic Timer)
+                                                                      # -Trusted RNG, Non-Volatile Counter and Root-Key Storage
+                                                                      # -Flash0, Flash1
+                                                                      # -uart0, uart1, uart2, uart3
 
     # Suppress "WARNING: MPAM_NS is deprecated when RME is in use. Should use MPAM_SP"
     -C cluster0.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
