@@ -58,13 +58,17 @@ run:
     -C cluster0.gicv4.mask-virtual-interrupt: 1                       # If true, virtual interrupts can be masked from being reported to virtual CPU interface by setting ICH_HCR_EL2.DVIM 1. No control otherwise.
     -C cluster1.gicv4.mask-virtual-interrupt: 1
 
-    # These SMMU registers are configuring the arch model with a personality. Features to implement/expose.
-    # What is this personality?
+    # These SMMU registers are configuring the arch model with a personality. Features to implement/expose. The model defaults plus a few useful features.
+    # SMMUv3.2
     -C pci.pci_smmuv3.mmu.SMMU_AIDR: 2
-    -C pci.pci_smmuv3.mmu.SMMU_IDR0: 0x0046123B
-    -C pci.pci_smmuv3.mmu.SMMU_IDR1: 0x00600002
+    # Enable ASID16, for sharing process address spaces with devices
+    -C pci.pci_smmuv3.mmu.SMMU_IDR0: 0x080FF6BF
+    -C pci.pci_smmuv3.mmu.SMMU_IDR1: 0x0CE73D20
+    # Enable FWB, Small TT, Range invalidation, and BBM level 2.
     -C pci.pci_smmuv3.mmu.SMMU_IDR3: 0x1714
+    # Enable 16kB pages, VAX. Bit[3] is res0.
     -C pci.pci_smmuv3.mmu.SMMU_IDR5: 0xFFFF0475
+    # Enable secure side, SEL2, 2-bit SID
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR1: 0xA0000002
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR2: 0
     -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
