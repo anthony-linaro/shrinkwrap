@@ -1,0 +1,41 @@
+# Copyright (c) 2023, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Brings together a software stack to demonstrate OPTEE in secure EL1
+  with TF-A in secure EL3 but without FF-A and secure EL2(Hafnium).
+  Secure partition dispatcher exists inside OPTEE.
+
+concrete: true
+
+layers:
+  - ns-edk2.yaml
+  - optee-base.yaml
+
+build:
+  tfa:
+    params:
+      BL32: ${artifact:OPTEE_HDR_BIN}
+      BL32_EXTRA1: ${artifact:OPTEE_PAGER_BIN}
+      BL32_EXTRA2: ${artifact:OPTEE_PAGEABLE_BIN}
+      SPD: opteed
+      ARM_TSP_RAM_LOCATION: tdram
+  dt:
+    build:
+      # When using the default fvp-base-revc.dts, an overlay is added which
+      # adds extra properties that OPTEE requires to enable OPTEE driver
+      # in the kernel.
+      - if [ "$${DTS}" = "fvp-base-revc.dts" ]; then
+      - >-
+          OVERLAY="/ {
+            firmware {
+              optee {
+                compatible = \"linaro,optee-tz\";
+                method = \"smc\";
+              };
+            };
+          };"
+      -   ( dtc -q -O dts -I dtb $${DTB_FINAL} ; echo -e "$${OVERLAY}" ) | dtc -q -O dtb -o $${DTB_FINAL}
+      - fi
