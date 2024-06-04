@@ -1,0 +1,33 @@
+# Copyright (c) 2023, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Brings together a software stack to demonstrate Arm FF-A running on FVP.
+  Includes TF-A in secure EL3 running SPMD(Secure Partition Manager
+  Dispatcher), with secure EL2 disabled and SPMC(Secure Partition Manager
+  Core) inside OPTEE at secure EL1 and Linux in Normal world.
+
+concrete: true
+
+layers:
+  - ns-edk2.yaml
+  - optee-base.yaml
+
+build:
+  optee:
+    params:
+      CFG_CORE_SEL1_SPMC: y
+      CFG_CORE_ASYNC_NOTIF: y
+
+  tfa:
+    repo:
+      # Temporary until we move tfa-base.yaml to release version with this
+      revision: a169b8fbc2b184f2a38e7c6ee29371407b15c634
+    params:
+      ARM_SPMC_MANIFEST_DTS: ${param:sourcedir}/plat/arm/board/fvp/fdts/fvp_spmc_el1_optee_manifest.dts
+      BL32: ${artifact:OPTEE_PAGER_BIN}
+      SPMD_SPM_AT_SEL2: 0
+      SPMC_OPTEE: 1
+      SPD: spmd
