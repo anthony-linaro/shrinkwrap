@@ -11,12 +11,15 @@
 # Exit on error and echo commands.
 set -ex
 
-ASSETS_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-BUILD_DIR=${ASSETS_DIR}/build
+SOURCE_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ASSETS_DIR=${SOURCE_DIR}/assets
+BUILD_DIR=${SOURCE_DIR}/build
 export ARCH=arm64
 export CROSS_COMPILE=aarch64-linux-gnu-
 
-# Delete any previous build directory and start from scratch.
+# Delete any previous assets and build directories and start from scratch.
+rm -rf ${ASSETS_DIR} &> /dev/null
+mkdir -p ${ASSETS_DIR}
 rm -rf ${BUILD_DIR} &> /dev/null
 mkdir -p ${BUILD_DIR}
 pushd ${BUILD_DIR}
@@ -39,7 +42,7 @@ chmod +x buildroot_overlay/etc/init.d/S10poweroff
 git clone https://github.com/buildroot/buildroot.git
 cd buildroot
 git checkout 2022.05.3
-cp ${ASSETS_DIR}/buildroot.config .config
+cp ${SOURCE_DIR}/buildroot.config .config
 ./utils/config --set-val BR2_ROOTFS_OVERLAY "\"${BUILD_DIR}/buildroot_overlay\""
 make olddefconfig
 make BR2_JLEVEL=`nproc`
@@ -56,7 +59,7 @@ cp arch/arm64/boot/Image ${ASSETS_DIR}/.
 cd -
 
 # Build a bootwrapper axf.
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git
 cd boot-wrapper-aarch64
 autoreconf -i
 ./configure \
