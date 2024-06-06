@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from xml.sax.saxutils import escape, quoteattr
 import yaml
 
 
@@ -124,9 +125,48 @@ def test_name(r):
 	return ':'.join(parts)
 
 
-def print_results():
-	print('TEST REPORT JSON')
-	print(json.dumps(results, indent=4))
+def print_testcase(f, case):
+	if case['status'] == 'pass':
+		element = 'system-out'
+		prop = ''
+	if case['status'] == 'fail':
+		element = 'failure'
+		prop = ' type="failure"'
+	if case['status'] == 'error':
+		element = 'error'
+		prop = ' type="error"'
+	if case['status'] == 'skip':
+		element = 'skipped'
+		prop = ' type="skipped"'
+
+	print(f'        <testcase classname={quoteattr(case["type"])} name={quoteattr(test_name(case))}>', file=f)
+	if case['error'] == None:
+		print(f'            <{element}{prop}/>', file=f)
+	else:
+		print(f'            <{element}{prop}>', file=f)
+		print(escape(case['error']), file=f)
+		print(f'            </{element}>', file=f)
+	print('        </testcase>', file=f)
+
+
+def print_testsuite(f, suitename, cases):
+	print(f'    <testsuite name={quoteattr(suitename)}>', file=f)
+	for case in cases:
+		print_testcase(f, case)
+	print('    </testsuite>', file=f)
+
+
+def print_junit_results(f, suitename, cases):
+	print('<?xml version="1.0" encoding="utf-8"?>', file=f)
+	print('<testsuites>', file=f)
+	print_testsuite(f, suitename, cases)
+	print('</testsuites>', file=f)
+
+
+def print_results(junit=None):
+	if junit:
+		with open(junit, 'w') as f:
+			print_junit_results(f, 'selftest', results)
 
 	nr_pass = 0
 	print('TEST REPORT SUMMARY')
@@ -136,6 +176,8 @@ def print_results():
 			nr_pass += 1
 
 	print(f'pass: {nr_pass}, fail: {len(results) - nr_pass}')
+
+	return nr_pass == len(results)
 
 
 def run(cmd, timeout=None, expect=0, capture=False):
@@ -249,16 +291,16 @@ def run_configs(configs, overlay=None, rtvarss=None):
 				sys.stdout.write(stdout)
 
 
-def do_main(smoke_test):
-	if smoke_test:
+def do_main(args):
+	if args.smoke_test:
 		arches = set([c['arch']['end'] for c in CONFIGS])
 	else:
 		arches = list(arch_range('v8.0', ARCH_LATEST))
 
 	for arch in arches:
-		configs = [c['config'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if smoke_test else c['arch']['start'], c['arch']['end'])]
-		btvarss = [c['btvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if smoke_test else c['arch']['start'], c['arch']['end'])]
-		rtvarss = [c['rtvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if smoke_test else c['arch']['start'], c['arch']['end'])]
+		configs = [c['config'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
+		btvarss = [c['btvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
+		rtvarss = [c['rtvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
 		if len(configs) == 0:
 			continue
 		build_configs(configs, f'arch/{arch}.yaml', btvarss=btvarss)
@@ -276,7 +318,8 @@ def do_main(smoke_test):
 					{'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
 				])
 
-	print_results()
+	success = print_results(args.junit)
+	exit(not success)
 
 
 def main():
@@ -301,6 +344,10 @@ def main():
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 
+	parser.add_argument('-j', '--junit',
+		metavar='file', required=False, default=None,
+		help="""Optionally output results in junit format to specified file.""")
+
 	parser.add_argument('-f', '--fvpjobs',
 		metavar='count', required=False, default=1, type=int,
 		help="""Maximum number of FVPs to run in parallel.""")
@@ -318,7 +365,7 @@ def main():
 	IMAGE = args.image
 	FVPJOBS = args.fvpjobs
 
-	do_main(args.smoke_test)
+	do_main(args)
 
 
 if __name__ == "__main__":
