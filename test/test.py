@@ -27,45 +27,43 @@ CONFIGS = [
 	{
 		'config': 'ns-preload.yaml',
 		'btvars': {},
-		'rtvars': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
-		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
-	},
-	{
-		'config': 'ns-edk2.yaml',
-		'btvars': {},
-		'rtvars': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+		'rtvars': {
+			'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+		},
 		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 	{
 		'config': 'ns-edk2.yaml',
 		'btvars': {},
 		'rtvars': {
-			'KERNEL': KERNEL,
-			'ROOTFS': ROOTFS,
-			'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			'dt': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+			'acpi': {
+				'KERNEL': KERNEL,
+				'ROOTFS': ROOTFS,
+				'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			},
 		},
 		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 	{
 		'config': 'ffa-tftf.yaml',
 		'btvars': {},
-		'rtvars': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
-		'arch': {'start': 'v8.5', 'end': 'v8.7'}, # BL2 freezes from v8.8. Haven't traced root cause yet.
-	},
-	{
-		'config': 'ffa-tftf.yaml',
-		'btvars': {},
 		'rtvars': {
-			'KERNEL': KERNEL,
-			'ROOTFS': ROOTFS,
-			'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			'dt': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+			'acpi': {
+				'KERNEL': KERNEL,
+				'ROOTFS': ROOTFS,
+				'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			},
 		},
 		'arch': {'start': 'v8.5', 'end': 'v8.7'}, # BL2 freezes from v8.8. Haven't traced root cause yet.
 	},
 	{
 		'config': 'bootwrapper.yaml',
 		'btvars': {},
-		'rtvars': {'BOOTWRAPPER': BOOTWRAPPER, 'ROOTFS': ROOTFS},
+		'rtvars': {
+			'default': {'BOOTWRAPPER': BOOTWRAPPER, 'ROOTFS': ROOTFS},
+		},
 		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 ]
@@ -109,31 +107,18 @@ def arch_in_range(arch, start, end):
 	return start <= arch and arch <= end
 
 
-def print_result(r):
-	def report(status, type, config, overlay):
-		desc = f'{status.upper()}: {type}: {config},{overlay}'
-		count = (1, 0) if status == 'pass' else (0, 1)
-		return count[0], count[1], desc
+def test_name(r):
+	def add_part(parts, result, name):
+		if name in result and result[name]:
+			if not (name == 'tag' and result[name] == 'default'):
+				parts.append(result[name])
 
-	if r['type'] == 'build':
-		configs = r['configs']
-	elif r['type'] == 'run':
-		configs = [r['config']]
-	else:
-		assert(False)
-
-	nr_pass = 0
-	nr_fail = 0
-	for c in configs:
-		p, f, desc = report(r['status'],
-				      r['type'],
-				      c,
-				      r['overlay'])
-		nr_pass += p
-		nr_fail += f
-		print(desc)
-
-	return nr_pass, nr_fail
+	parts = []
+	add_part(parts, r, 'type')
+	add_part(parts, r, 'config')
+	add_part(parts, r, 'overlay')
+	add_part(parts, r, 'tag')
+	return ':'.join(parts)
 
 
 def print_results():
@@ -141,14 +126,13 @@ def print_results():
 	print(json.dumps(results, indent=4))
 
 	nr_pass = 0
-	nr_fail = 0
 	print('TEST REPORT SUMMARY')
 	for r in results:
-		p, f = print_result(r)
-		nr_pass += p
-		nr_fail += f
+		print(f'{r["status"].upper()}: {test_name(r)}')
+		if r['status'] == 'pass':
+			nr_pass += 1
 
-	print(f'pass: {nr_pass}, fail: {nr_fail}')
+	print(f'pass: {nr_pass}, fail: {len(results) - nr_pass}')
 
 
 class WrongExit(Exception):
@@ -163,18 +147,12 @@ def run(cmd, timeout=None, expect=0):
 
 
 def build_configs(configs, overlay=None, btvarss=None):
-	result = {
-		'type': 'build',
-		'status': 'fail',
-		'error': None,
-		'configs': configs,
-		'overlay': overlay,
-		'btvarss': btvarss,
-	}
+
+	status = 'pass'
+	error = None
 
 	rt = f'-R {RUNTIME} -I {IMAGE}'
-	overlay = f'-o {overlay}' if overlay else ''
-	cleanargs = f'{" ".join(configs)} {overlay}'
+	cleanargs = f'{" ".join(configs)} {f"-o {overlay}" if overlay else ""}'
 
 	if btvarss is None:
 		btvarss = [{}] * len(configs)
@@ -195,36 +173,49 @@ def build_configs(configs, overlay=None, btvarss=None):
 					version=(1, 2))
 		with open(tmpfilename, 'r') as tmpfile:
 			print(tmpfile.read())
-		buildargs = f'{tmpfilename} {overlay}'
+		buildargs = f'{tmpfilename} {f"-o {overlay}" if overlay else ""}'
 
 		try:
 			run(f'shrinkwrap {rt} clean {cleanargs}', None)
 			run(f'shrinkwrap {rt} buildall {buildargs}', None)
-			result['status'] = 'pass'
 		except Exception as e:
-			result['error'] = str(e)
+			status = 'fail'
+			error = str(e)
 
-	results.append(result)
+	global results
+	results += [{
+		'type': 'build',
+		'status': status,
+		'error': error,
+		'config': config,
+		'overlay': overlay,
+		'btvars': btvars,
+	} for config, btvars in zip(configs, btvarss)]
 
 
-def run_config(config, overlay=None, runargs=None, runtime=600):
+def run_config(config, overlay, rtvars, tag):
+
+	def make_rtcmds(rtvars):
+		return ' '.join([f'-r {k}={v}' for k, v in rtvars.items()])
+
+	runargs = make_rtcmds(rtvars)
+
 	result = {
 		'type': 'run',
 		'status': 'fail',
 		'error': None,
 		'config': config,
 		'overlay': overlay,
-		'runargs': runargs,
-		'runtime': runtime,
+		'rtvars': rtvars,
+		'tag': tag,
 	}
 
 	rt = f'-R {RUNTIME} -I {IMAGE}'
 	overlay = f'-o {overlay}' if overlay else ''
-	runargs = runargs if runargs else ''
 	args = f'{config} {overlay} {runargs}'
 
 	try:
-		run(f'shrinkwrap {rt} run {args}', runtime)
+		run(f'shrinkwrap {rt} run {args}', timeout=600)
 		result['status'] = 'pass'
 	except Exception as e:
 		result['error'] = str(e)
@@ -232,8 +223,14 @@ def run_config(config, overlay=None, runargs=None, runtime=600):
 	results.append(result)
 
 
-def make_rtcmds(rtvars):
-	return ' '.join([f'-r {k}={v}' for k, v in rtvars.items()])
+def run_configs(configs, overlay=None, rtvarss=None):
+
+	if rtvarss is None:
+		rtvarss = [{'default': {}}] * len(configs)
+
+	for config, _rtvars in zip(configs, rtvarss):
+		for tag, rtvars in _rtvars.items():
+			run_config(config, overlay, rtvars, tag)
 
 
 def do_main(smoke_test):
@@ -249,8 +246,7 @@ def do_main(smoke_test):
 		if len(configs) == 0:
 			continue
 		build_configs(configs, f'arch/{arch}.yaml', btvarss=btvarss)
-		for config, rtvars in zip(configs, rtvarss):
-			run_config(config, f'arch/{arch}.yaml', make_rtcmds(rtvars))
+		run_configs(configs, f'arch/{arch}.yaml', rtvarss=rtvarss)
 
 	# Special-case configs that don't support arch overrides.
 	build_configs(['cca-3world.yaml', 'cca-4world.yaml'],
@@ -258,8 +254,11 @@ def do_main(smoke_test):
 					{'GUEST_ROOTFS': ROOTFS},
 					{'GUEST_ROOTFS': ROOTFS}
 				])
-	run_config('cca-3world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
-	run_config('cca-4world.yaml', None, make_rtcmds({'KERNEL': KERNEL, 'ROOTFS': ROOTFS}))
+	run_configs(['cca-3world.yaml', 'cca-4world.yaml'], None,
+	     			rtvarss=[
+					{'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
+					{'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
+				])
 
 	print_results()
 
