@@ -5,15 +5,18 @@
 
 import argparse
 import json
+import multiprocessing as mp
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import yaml
 
 
 RUNTIME = None
 IMAGE = None
+FVPJOBS = None
 
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
@@ -135,15 +138,16 @@ def print_results():
 	print(f'pass: {nr_pass}, fail: {len(results) - nr_pass}')
 
 
-class WrongExit(Exception):
-	pass
-
-
-def run(cmd, timeout=None, expect=0):
+def run(cmd, timeout=None, expect=0, capture=False):
 	print(f'+ {cmd}')
-	ret = subprocess.run(cmd, timeout=timeout, shell=True)
+	ret = subprocess.run(cmd, timeout=timeout, shell=True,
+		universal_newlines=True,
+		stdout=subprocess.PIPE if capture else None,
+		stderr=subprocess.STDOUT if capture else None)
 	if ret.returncode != expect:
-		raise WrongExit(ret)
+		raise subprocess.CalledProcessError(ret.returncode, ret.args,
+					output=ret.stdout, stderr=ret.stderr)
+	return ret.stdout
 
 
 def build_configs(configs, overlay=None, btvarss=None):
@@ -193,7 +197,7 @@ def build_configs(configs, overlay=None, btvarss=None):
 	} for config, btvars in zip(configs, btvarss)]
 
 
-def run_config(config, overlay, rtvars, tag):
+def run_config(config, overlay, rtvars, tag, capture):
 
 	def make_rtcmds(rtvars):
 		return ' '.join([f'-r {k}={v}' for k, v in rtvars.items()])
@@ -215,12 +219,17 @@ def run_config(config, overlay, rtvars, tag):
 	args = f'{config} {overlay} {runargs}'
 
 	try:
-		run(f'shrinkwrap {rt} run {args}', timeout=600)
+		stdout = run(f'shrinkwrap {rt} run {args}',
+	       			timeout=600, capture=capture)
 		result['status'] = 'pass'
+	except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
+		stdout = e.stdout
+		result['error'] = str(e)
 	except Exception as e:
+		stdout = None
 		result['error'] = str(e)
 
-	results.append(result)
+	return result, stdout
 
 
 def run_configs(configs, overlay=None, rtvarss=None):
@@ -228,9 +237,16 @@ def run_configs(configs, overlay=None, rtvarss=None):
 	if rtvarss is None:
 		rtvarss = [{'default': {}}] * len(configs)
 
+	params = []
 	for config, _rtvars in zip(configs, rtvarss):
 		for tag, rtvars in _rtvars.items():
-			run_config(config, overlay, rtvars, tag)
+			params.append((config, overlay, rtvars, tag, FVPJOBS > 1))
+
+	with mp.Pool(processes=FVPJOBS) as pool:
+		for result, stdout in pool.starmap(run_config, params):
+			results.append(result)
+			if stdout:
+				sys.stdout.write(stdout)
 
 
 def do_main(smoke_test):
@@ -285,6 +301,10 @@ def main():
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 
+	parser.add_argument('-f', '--fvpjobs',
+		metavar='count', required=False, default=1, type=int,
+		help="""Maximum number of FVPs to run in parallel.""")
+
 	parser.add_argument('-s', '--smoke-test',
 		required=False, default=False, action='store_true',
 		help="""If specified, run a smaller selection of tests.""")
@@ -293,8 +313,10 @@ def main():
 
 	global RUNTIME
 	global IMAGE
+	global FVPJOBS
 	RUNTIME = args.runtime
 	IMAGE = args.image
+	FVPJOBS = args.fvpjobs
 
 	do_main(args.smoke_test)
 
