@@ -17,6 +17,7 @@ Where:
   <tag> is something like "latest" or "v1.0.0".
 
 If <tag> is "local", the resulting image is NOT pushed to the remote repository.
+If <tag> is "none", the package cache is synced but no image is built.
 EOF
 }
 
@@ -66,11 +67,33 @@ fi
 
 echo "Building for version ${VERSION} for ${ARCH}..."
 
+wget_or_cache()
+{
+	FILE=$1
+	URL=$2
+
+	if [ ! -f ${FILE} ]; then
+		wget -q -O ${FILE} ${URL}
+	fi
+}
+
+# Do everything relative to this script's directory.
+ROOT=$( dirname $( readlink -f "$0" ) )
+cd ${ROOT}
+
+# Grab the pre-built packages.
+mkdir -p assets
+wget_or_cache assets/${TCH_PKG_NAME_AARCH64} ${TCH_PKG_URL_AARCH64}/${TCH_PKG_NAME_AARCH64}
+wget_or_cache assets/${TCH_LLVM_PKG_NAME} ${TCH_LLVM_PKG_URL}/${TCH_LLVM_PKG_NAME}
+wget_or_cache assets/${TCH_PKG_NAME_AARCH32} ${TCH_PKG_URL_AARCH32}/${TCH_PKG_NAME_AARCH32}
+wget_or_cache assets/${FVP_PKG_NAME} ${FVP_PKG_URL}/${FVP_PKG_NAME}
+
+# Short circuit building the images if requested.
+if [ "${VERSION}" = "none" ]; then
+	exit
+fi
+
 # Build the image.
-wget -q -O ${TCH_PKG_NAME_AARCH64} ${TCH_PKG_URL_AARCH64}/${TCH_PKG_NAME_AARCH64}
-wget -q -O ${TCH_LLVM_PKG_NAME} ${TCH_LLVM_PKG_URL}/${TCH_LLVM_PKG_NAME}
-wget -q -O ${TCH_PKG_NAME_AARCH32} ${TCH_PKG_URL_AARCH32}/${TCH_PKG_NAME_AARCH32}
-wget -q -O ${FVP_PKG_NAME} ${FVP_PKG_URL}/${FVP_PKG_NAME}
 docker build \
 	--build-arg=BASE=docker.io/library/debian:bookworm-slim \
 	--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
@@ -103,10 +126,6 @@ docker build \
 	--file=Dockerfile.fvp \
 	--tag=${REGISTRY}/base-full:${VERSION}-${ARCH} \
 	.
-rm -rf ${TCH_PKG_NAME_AARCH64} > /dev/null 2>&1 || true
-rm -rf ${TCH_LLVM_PKG_NAME} > /dev/null 2>&1 || true
-rm -rf ${TCH_PKG_NAME_AARCH32} > /dev/null 2>&1 || true
-rm -rf ${FVP_PKG_NAME} > /dev/null 2>&1 || true
 
 # If not a local version, publish the image.
 if [ "${VERSION}" != "local" ]; then

@@ -10,7 +10,7 @@ FROM ${BASE}
 ARG FVP_PKG_NAME
 ARG FVP_MODEL_DIR
 ARG FVP_PLUGIN_DIR
-COPY ${FVP_PKG_NAME} /tools/.
+COPY assets/${FVP_PKG_NAME} /tools/.
 RUN cd /tools \
 	&& if [ "${FVP_PKG_NAME}" != "none" ]; then \
 	    tar xf ${FVP_PKG_NAME}; \
