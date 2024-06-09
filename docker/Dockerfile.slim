@@ -36,7 +36,8 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		wget
 RUN pip3 install \
 		termcolor \
-		tuxmake
+		tuxmake \
+		pyyaml
 
 # Install packages requried by TF-A.
 # From https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/prerequisites.html.
