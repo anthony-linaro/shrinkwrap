@@ -1,0 +1,140 @@
+variables:
+  KUBERNETES_CPU_REQUEST: 32
+  KUBERNETES_MEMORY_REQUEST: 16Gi
+  FORCE_PREP_TEST_ASSETS:
+    value: "false"
+    options:
+      - "true"
+      - "false"
+    description: "If true, forces test assets to be prepped even if cached from a previous run."
+  FORCE_PREP_DOCKER_ASSETS:
+    value: "false"
+    options:
+      - "true"
+      - "false"
+    description: "If true, forces docker assets to be prepped even if cached from a previous run."
+
+stages:
+  - prep
+  - build
+  - test
+  - deploy
+
+prep-docker-assets:
+  stage: prep
+  image: shrinkwraptool/base-slim:latest
+  tags:
+    - amd64
+  cache:
+    key: docker-assets
+    policy: pull-push
+    paths:
+      - docker/assets/
+  script:
+    - |
+      if [ -f ./docker/assets/.cache_exists ] && [ "$FORCE_PREP_DOCKER_ASSETS" == "false" ]; then
+        echo "Cache already exists and prep not forced: skipping."
+      else
+        ./docker/build.sh --version none --arch x86_64
+        ./docker/build.sh --version none --arch aarch64
+        echo > ./docker/assets/.cache_exists
+      fi
+
+build-docker-image:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  parallel:
+    matrix:
+      - TAG:
+        - amd64
+        - arm64
+  tags:
+    - ${TAG}
+  cache:
+    key: docker-assets
+    policy: pull
+    paths:
+      - docker/assets/
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY_IMAGE}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - ./docker/build.sh --driver kaniko --registry ${CI_REGISTRY_IMAGE} --version ${CI_PIPELINE_IID}
+
+build-docker-manifest:
+  stage: build
+  image: shrinkwraptool/base-slim:latest
+  tags:
+    - amd64
+  needs:
+    - build-docker-image
+  script:
+    - mkdir bin
+    - export PATH=${PWD}/bin:${PATH}
+    - curl -LsS https://github.com/estesp/manifest-tool/releases/download/v2.0.6/binaries-manifest-tool-2.0.6.tar.gz | tar -xz -C bin
+    - ./docker/publish.sh --driver manifest-tool --user ${CI_REGISTRY_USER} --password ${CI_REGISTRY_PASSWORD} --registry ${CI_REGISTRY_IMAGE} --version ${CI_PIPELINE_IID}
+
+prep-test-assets:
+  stage: prep
+  image: shrinkwraptool/base-slim:latest
+  tags:
+    - amd64
+  cache:
+    key: test-assets
+    policy: pull-push
+    paths:
+      - test/assets/
+  script:
+    - |
+      if [ -f ./test/assets/.cache_exists ] && [ "$FORCE_PREP_TEST_ASSETS" == "false" ]; then
+        echo "Cache already exists and prep not forced: skipping."
+      else
+        ./test/genassets.sh
+        echo > ./test/assets/.cache_exists
+      fi
+
+test-self:
+  stage: test
+  image: registry.gitlab.arm.com/tooling/shrinkwrap/base-full:${CI_PIPELINE_IID}
+  parallel:
+    matrix:
+      - TAG:
+        - amd64
+        - arm64
+  tags:
+    - ${TAG}
+  cache:
+    key: test-assets
+    policy: pull
+    paths:
+      - test/assets/
+  script:
+    - export PATH=$PWD/shrinkwrap:$PATH
+    - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
+    - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
+    - ./test/test.py --runtime null --smoke-test --fvpjobs 4 --junit selftest-${TAG}.xml
+  artifacts:
+    name: selftest-${TAG}
+    paths:
+      - selftest-${TAG}.xml
+    reports:
+      junit: selftest-${TAG}.xml
+
+deploy-docker-image:
+  stage: deploy
+  image: shrinkwraptool/base-slim:latest
+  tags:
+    - amd64
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - mkdir bin
+    - export PATH=${PWD}/bin:${PATH}
+    - curl -LsS https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 > bin/regctl
+    - chmod 755 bin/regctl
+    - regctl registry login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASSWORD} docker.io
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-slim-nofvp:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-slim-nofvp:latest
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-slim:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-slim:latest
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-full-nofvp:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-full-nofvp:latest
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-full:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-full:latest
