@@ -4,6 +4,11 @@
 ARG BASE
 FROM ${BASE}
 
+# Install packages that the FVP relies upon.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		libdbus-1-3 \
+		libpulse0
+
 # Install FVP_Base_RevC-2xAEMvA. This is parameterized so the caller can easily
 # update the version and architecture for different builds, or even omit it by
 # providing the special name "none".
