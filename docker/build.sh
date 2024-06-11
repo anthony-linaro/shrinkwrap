@@ -11,7 +11,7 @@ Builds and optionally publishes shrinkwrap docker images for the architecture
 of the host system. (x86_64 and aarch64 are currently supported).
 
 Usage:
-$(basename $0) [--driver docker|kaniko] [--registry <url>] --version <tag>
+$(basename $0) [--driver docker|kaniko] [--registry <url>] [--arch <arch>] --version <tag>
 
 Where:
   --driver determines how the image will be built:
@@ -20,6 +20,12 @@ Where:
     kaniko: Uses kaniko, which does not require access to the docker daemon.
             Useful on CI systems where running inside a container. Must be
             running inside the kaniko container.
+
+  --arch optionally provides a target arch label that overrides the default
+  `uname -m`. Must be either "aarch64" or "x86_64". Unless `--version none`,
+  must match the arch of the machine used to run the script. For
+  `--version none` can be set to any supported arch to download that arch's
+  package cache.
 
   <url> is the registry to publish to (defaults to docker.io/shrinkwraptool).
   <tag> is something like "latest" or "v1.0.0".
@@ -57,6 +63,11 @@ while [ $# -gt 0 ]; do
 		shift # past argument
 		shift # past value
 		;;
+	--arch)
+		ARCH="$2"
+		shift # past argument
+		shift # past value
+		;;
 	-h|--help)
 		usage
 		exit 0
@@ -85,8 +96,6 @@ if [ "${DRIVER}" != "docker" ] && [ "${DRIVER}" != "kaniko" ]; then
 	usage
 	exit 1
 fi
-
-echo "Building image for ${ARCH} with driver=${DRIVER},registry=${REGISTRY},version=${VERSION}..."
 
 # Configure the arch-specific variables which are passed to the Dockerfile.
 if [ "${ARCH}" = "x86_64" ]; then
@@ -120,8 +129,11 @@ elif [ "${ARCH}" = "aarch64" ] || [ "${ARCH}" = "arm64" ]; then
 	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_armv8l_GCC-9.3
 else
 	echo "Host architecture ${ARCH} not supported"
+	usage
 	exit 1
 fi
+
+echo "Building image for ${ARCH} with driver=${DRIVER},registry=${REGISTRY},version=${VERSION}..."
 
 wget_or_cache()
 {
