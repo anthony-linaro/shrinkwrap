@@ -206,6 +206,7 @@ if [ "${DRIVER}" = "docker" ]; then
 elif [ "${DRIVER}" = "kaniko" ]; then
 	# Build the images.
 	/kaniko/executor \
+		--cleanup \
 		--build-arg=BASE=docker.io/library/debian:bookworm-slim \
 		--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 		--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
@@ -213,6 +214,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--destination=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--context=.
 	/kaniko/executor \
+		--cleanup \
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
@@ -221,6 +223,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--destination=${REGISTRY}/base-slim:${VERSION}-${ARCH} \
 		--context=.
 	/kaniko/executor \
+		--cleanup \
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=TCH_PKG_NAME_AARCH32=${TCH_PKG_NAME_AARCH32} \
 		--build-arg=TCH_PATH_AARCH32=${TCH_PATH_AARCH32} \
@@ -230,6 +233,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--destination=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--context=.
 	/kaniko/executor \
+		--cleanup \
 		--build-arg=BASE=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
