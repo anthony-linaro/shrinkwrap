@@ -75,6 +75,21 @@ build-docker-manifest:
     - curl -LsS https://github.com/estesp/manifest-tool/releases/download/v2.0.6/binaries-manifest-tool-2.0.6.tar.gz | tar -xz -C bin
     - ./docker/publish.sh --driver manifest-tool --user ${CI_REGISTRY_USER} --password ${CI_REGISTRY_PASSWORD} --registry ${CI_REGISTRY_IMAGE} --version ${CI_PIPELINE_IID}
 
+build-documentation:
+  stage: build
+  image: shrinkwraptool/base-slim:latest
+  tags:
+    - amd64
+  script:
+    - pip3 install requests
+    - |
+      if [ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]; then
+        ./documentation/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch latest --state active
+      else
+        ./documentation/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch main --state inactive
+        ./documentation/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch ${CI_COMMIT_BRANCH} --state inactive
+      fi
+
 prep-test-assets:
   stage: prep
   image: shrinkwraptool/base-slim:latest
