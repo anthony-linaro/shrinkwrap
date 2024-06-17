@@ -183,7 +183,6 @@ def print_results(junit=None):
 def run(cmd, timeout=None, expect=0, capture=False):
 	print(f'+ {cmd}')
 	ret = subprocess.run(cmd, timeout=timeout, shell=True,
-		universal_newlines=True,
 		stdout=subprocess.PIPE if capture else None,
 		stderr=subprocess.STDOUT if capture else None)
 	if ret.returncode != expect:
@@ -288,7 +287,7 @@ def run_configs(configs, overlay=None, rtvarss=None):
 		for result, stdout in pool.starmap(run_config, params):
 			results.append(result)
 			if stdout:
-				sys.stdout.write(stdout)
+				sys.stdout.write(stdout.decode())
 
 
 def do_main(args):
