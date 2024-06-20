@@ -21,8 +21,7 @@ build:
 
     prebuild:
       # Start from default config, but allow higher level layers to modify it.
-      - cp ${param:configdir}/buildroot.config ${param:builddir}/.config
-      - make BR2_JLEVEL=${param:jobs} O=${param:builddir} olddefconfig
+      - make BR2_JLEVEL=${param:jobs} O=${param:builddir} BR2_DEFCONFIG=${param:configdir}/buildroot.config defconfig
 
     build:
       # Finalize the config.
