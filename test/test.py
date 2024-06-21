@@ -50,6 +50,14 @@ CONFIGS = [
 		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 	{
+		'config': 'ns-edk2-optee.yaml',
+		'btvars': {},
+		'rtvars': {
+			'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+		},
+		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
+	},
+	{
 		'config': 'ffa-tftf.yaml',
 		'btvars': {},
 		'rtvars': {
