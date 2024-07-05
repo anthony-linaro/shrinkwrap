@@ -10,7 +10,7 @@ full system on FVP.
 - Shrinkwrap Container Images are available at: [DockerHub](https://hub.docker.com/u/shrinkwraptool)
 
 The documentation (linked above) contains a
-[QuckStart](https://shrinkwrap.docs.arm.com/en/latest/userguide/quickstart.html)
+[QuickStart](https://shrinkwrap.docs.arm.com/en/latest/userguide/quickstart.html)
 section, which details how to install and use the tool. However, if you are in a
 hurry, here are the minimal steps:
 
