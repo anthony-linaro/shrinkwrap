@@ -21,7 +21,7 @@ If the user provides an ext2/4 filesystem image via the GUEST_ROOTFS btvar, a gu
 
 Once built, the user must get some of the generated artifacts into the FVP environment. This can either be done by copying them to the host's rootfs or by sharing them into the FVP using 9p.
 
-If copying to the rootfs, something like this should work. For simplicity, this example reuses the guest filesystem generated with buildroot as the host's rootfs, after resizing it so that there is room for the guest's rootfs:
+For the time being, there is an issue in the linux kernel's handling of 9p which does not share correctly the guest image to the guest EFI, preventing the guest to boot. Copying the artifacts into the host's rootfs is the way to go. Something like the following example should work. For simplicity, this example reuses the guest filesystem generated with buildroot as the host's rootfs, after resizing it so that there is room for the guest's rootfs:
 
 .. code-block:: shell
 
@@ -52,20 +52,10 @@ Or alternatively, using ACPI:
   $ shrinkwrap run cca-3world.yaml -r ROOTFS=rootfs.ext2 --rtvar CMDLINE="mem=1G earlycon root=/dev/vda ip=dhcp acpi=force"
 
 
-Or if taking the shared directory approach, simply boot the host with the SHARE rtvar. This only works for DT-based environments:
+Finally, once the host has booted, log in as "root" (no password), and launch a realm using kvmtool from the /cca directory (that was created above):
 
 .. code-block:: shell
 
-  $ cd ~/.shrinkwrap/package/cca-3world
-  $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 --rtvar SHARE=.
-
-
-Finally, once the host has booted, log in as "root" (no password), and launch a realm using kvmtool. Note the mount command is only required if sharing a directory:
-
-.. code-block:: shell
-
-  # mkdir /cca
-  # mount -t 9p -o trans=virtio,version=9p2000.L FM /cca
   # cd /cca
   # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256
 
@@ -73,6 +63,23 @@ Finally, once the host has booted, log in as "root" (no password), and launch a 
 Be patient while this boots to the UEFI shell. Navigate to "Boot Manager", then "UEFI Shell" and wait for the startup.nsh script to execute, which will launch the kernel. Continue to be patient, and eventually you will land at a login prompt. Login as "root" (no password).
 
 This config also builds kvm-unit-tests, which can be run in the realm instead of Linux. It is also possible to launch Linux without using EDK2 as the guest FW.
+
+When the linux kernel 9p issue will be fixed, the shared directory approach can be used. Simply boot the host with the SHARE rtvar. This only works for DT-based environments though:
+
+.. code-block:: shell
+
+  $ cd ~/.shrinkwrap/package/cca-3world
+  $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 --rtvar SHARE=.
+
+
+Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realmn guest can then be launched as previously:
+
+.. code-block:: shell
+
+  # mkdir /cca
+  # mount -t 9p -o trans=virtio,version=9p2000.L FM /cca
+  # cd /cca
+  # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256
 
 Concrete
 ########
