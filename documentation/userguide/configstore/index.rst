@@ -19,5 +19,6 @@ out-of-the-box:
    cca-3world.rst
    cca-4world.rst
    ffa-tftf.rst
+   ns-edk2-optee.rst
    ns-edk2.rst
    ns-preload.rst
