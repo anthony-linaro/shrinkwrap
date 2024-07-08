@@ -22,24 +22,37 @@ def make_rst_table(headers, data):
 		colwidths.append(colwidth)
 
 	def track_str(colwidths):
-		return ' '.join(['=' * w for w in colwidths]) + '\n'
+		return ' '.join(['=' * w for w in colwidths])
 
 	def row_str(colwidths, data):
-		return ' '.join([f'{d:{w}}' for d, w in zip(data, colwidths)]) + '\n'
+		return ' '.join([f'{d:{w}}' for d, w in zip(data, colwidths)])
 
-	table = ''
-	table += track_str(colwidths)
-	table += row_str(colwidths, headers)
-	table += track_str(colwidths)
+	table = []
+	table.append(track_str(colwidths))
+	table.append(row_str(colwidths, headers))
+	table.append(track_str(colwidths))
 	for row in data:
-		table += row_str(colwidths, row)
-	table += track_str(colwidths)
+		table.append(row_str(colwidths, row))
+	table.append(track_str(colwidths))
 
-	return table
+	table = [r.rstrip() for r in table]
+	return '\n'.join(table) + '\n'
 
 
 def make_rst_table_from_dict(headers, data):
 	return make_rst_table(headers, [(k, v) for k, v in data.items()])
+
+
+def fix_whitespace(text):
+	lines = []
+	for line in text.splitlines():
+		line = line.rstrip()
+		if not line.startswith((' ', '\t')):
+			line += '\n'
+		lines.append(line)
+	if (len(lines)):
+		lines[-1] = lines[-1].rstrip()
+	return '\n'.join(lines)
 
 
 index = """..
@@ -113,7 +126,7 @@ with open(os.path.join(docsdir, 'index.rst'), 'w') as indexf:
 			'#' * len(c['name']),
 			c['name'],
 			'#' * len(c['name']),
-			c['description'].replace('\n', '\n\n'),
+			fix_whitespace(c['description']),
 			c['concrete'],
 			make_rst_table_from_dict(('btvar', 'default'), c['btvars']),
 			make_rst_table_from_dict(('rtvar', 'default'), c['rtvars']))

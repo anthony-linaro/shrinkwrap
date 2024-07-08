@@ -23,7 +23,6 @@ description: >-
 
   .. code-block:: shell
     # cat /sys/devices/arm-ffa-*/uuid
-
     b4b5671e-4a90-4fe1-b81f-fb13dae1dacb
     d1582309-f023-47b9-827c-4464f5578fc8
     79b55c73-1d8c-44b9-8593-61e1770ad8d2
