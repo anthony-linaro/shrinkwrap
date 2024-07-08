@@ -84,10 +84,10 @@ build-documentation:
     - pip3 install requests
     - |
       if [ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]; then
-        ./documentation/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch latest --state active
+        ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch latest --state active
       else
-        ./documentation/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch main --state inactive
-        ./documentation/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch ${CI_COMMIT_BRANCH} --state inactive
+        ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch main --state inactive
+        ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch ${CI_COMMIT_BRANCH} --state inactive
       fi
 
 prep-test-assets:
