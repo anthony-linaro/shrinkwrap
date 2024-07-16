@@ -895,6 +895,7 @@ command:
         -t: GCC5
         -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
         -b: RELEASE
+        --pcd: PcdShellDefaultDelay=0
       prebuild:
       - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE

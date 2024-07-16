@@ -167,6 +167,8 @@ build:
       -t: GCC5
       -p: edk2/ArmVirtPkg/ArmVirtKvmTool.dsc
       -b: RELEASE
+      --pcd: PcdShellDefaultDelay=0
+      ' --pcd': PcdPlatformBootTimeOut=0
 
     build:
       - source edk2/edksetup.sh --reconfig
