@@ -208,7 +208,7 @@ concrete config. You can view non-concrete fragments by providing extra args).
                                                root=/dev/vda ip=dhcp
                        KERNEL:                 None
                        ROOTFS:
-                       EDK2FLASH:              ${artifact:EDK2FLASH}
+                       EDK2FLASH:
 
   --------------------------------------------------------------------------------
 
@@ -237,15 +237,14 @@ concrete config. You can view non-concrete fragments by providing extra args).
                        supplied and the config will refuse to run unless it is
                        explicitly specified.
 
-                       Note that by default, a pre-canned flash image is loaded
-                       into the model, which contains UEFI variables directing
-                       EDK2 to boot to the shell. This will cause startup.nsh to
-                       be executed and will start the kernel boot. This way
-                       everything is automatic. By default, all EDK2 output is
-                       muxed to stdout. If you prefer booting UEFI to its UI,
-                       override the EDK2FLASH rtvar with an empty string and
-                       override terminals.'bp.terminal_0'.type to 'telnet'.
-
+                       Note that by default, UEFI variables are build time
+                       configured directing EDK2 to boot to the shell. This will
+                       cause startup.nsh to be executed and will start the kernel
+                       boot. This way everything is automatic. By default, all
+                       EDK2 output is muxed to stdout. If you prefer booting UEFI
+                       to its UI, override the the build pcd parameter
+                       `PcdUefiShellDefaultBootEnable` using the overlay and
+                       override terminals 'bp.terminal_0'.type to 'telnet'.
   concrete:            True
 
   run-time variables:  LOCAL_NET_PORT:         8022
@@ -257,7 +256,7 @@ concrete config. You can view non-concrete fragments by providing extra args).
                                                root=/dev/vda ip=dhcp
                        KERNEL:                 None
                        ROOTFS:
-                       EDK2FLASH:              ${artifact:EDK2FLASH}
+                       EDK2FLASH:
 
   --------------------------------------------------------------------------------
 
@@ -347,7 +346,6 @@ run:
   # Create directory structure.
   mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/dt
   mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
-  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2flash
   mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/tfa
   mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2
 
@@ -812,12 +810,12 @@ command:
     that the kernel completes its boot. No default kernel image is supplied and the
     config will refuse to run unless it is explicitly specified.
 
-    Note that by default, a pre-canned flash image is loaded into the model, which contains
-    UEFI variables directing EDK2 to boot to the shell. This will cause startup.nsh
-    to be executed and will start the kernel boot. This way everything is automatic.
-    By default, all EDK2 output is muxed to stdout. If you prefer booting UEFI to its
-    UI, override the EDK2FLASH rtvar with an empty string and override terminals.''bp.terminal_0''.type
-    to ''telnet''.'
+    Note that by default, UEFI variables are build time configured directing EDK2
+    to boot to the shell. This will cause startup.nsh to be executed and will
+    start the kernel boot. This way everything is automatic. By default, all EDK2
+    output is muxed to stdout. If you prefer booting UEFI to its UI, override the
+    the build pcd parameter `PcdUefiShellDefaultBootEnable` using the overlay
+    and override terminals 'bp.terminal_0'.type to 'telnet'.
   concrete: true
   graph: {}
   build:
@@ -896,6 +894,7 @@ command:
         -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
         -b: RELEASE
         --pcd: PcdShellDefaultDelay=0
+        ' --pcd': PcdUefiShellDefaultBootEnable=1
       prebuild:
       - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
@@ -910,17 +909,6 @@ command:
       postbuild: []
       artifacts:
         EDK2: ${param:builddir}/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
-    edk2flash:
-      repo: {}
-      sourcedir: null
-      builddir: null
-      toolchain: null
-      params: {}
-      prebuild: []
-      build: []
-      postbuild: []
-      artifacts:
-        EDK2FLASH: ${param:configdir}/edk2-flash.img
     tfa:
       repo:
         .:
@@ -982,7 +970,7 @@ command:
         value: ''
       EDK2FLASH:
         type: path
-        value: ${artifact:EDK2FLASH}
+        value: ''
     params:
       -C bp.dram_size: 4
       -C cluster0.NUM_CORES: 4

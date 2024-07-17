@@ -169,6 +169,7 @@ build:
       -b: RELEASE
       --pcd: PcdShellDefaultDelay=0
       ' --pcd': PcdPlatformBootTimeOut=0
+      '  --pcd': PcdUefiShellDefaultBootEnable=1
 
     build:
       - source edk2/edksetup.sh --reconfig

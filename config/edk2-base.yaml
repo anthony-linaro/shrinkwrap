@@ -48,6 +48,7 @@ build:
       -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
       -b: RELEASE
       --pcd: PcdShellDefaultDelay=0
+      ' --pcd': PcdUefiShellDefaultBootEnable=1
 
     build:
       - source edk2/edksetup.sh --reconfig

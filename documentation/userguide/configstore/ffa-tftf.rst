@@ -39,6 +39,6 @@ CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
 KERNEL         <null>
 ROOTFS         <empty>
 SHARE          <empty>
-EDK2FLASH      ${artifact:EDK2FLASH}
+EDK2FLASH      <empty>
 ============== ===============================================================
 
