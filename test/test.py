@@ -94,7 +94,7 @@ CONFIGS = [
 				'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
 			},
 		},
-		'arch': {'start': 'v8.5', 'end': 'v8.7'}, # BL2 freezes from v8.8. Haven't traced root cause yet.
+		'arch': {'start': 'v8.5', 'end': ARCH_LATEST},
 	},
 	{
 		'config': 'bootwrapper.yaml',
