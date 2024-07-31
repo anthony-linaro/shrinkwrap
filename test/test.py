@@ -58,6 +58,32 @@ CONFIGS = [
 		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
 	{
+		'config': 'ffa-optee.yaml',
+		'btvars': {},
+		'rtvars': {
+			'dt': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+			'acpi': {
+				'KERNEL': KERNEL,
+				'ROOTFS': ROOTFS,
+				'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			},
+		},
+		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
+	},
+	{
+		'config': 'ffa-hafnium-optee.yaml',
+		'btvars': {},
+		'rtvars': {
+			'dt': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+			'acpi': {
+				'KERNEL': KERNEL,
+				'ROOTFS': ROOTFS,
+				'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			},
+		},
+		'arch': {'start': 'v8.5', 'end': ARCH_LATEST},
+	},
+	{
 		'config': 'ffa-tftf.yaml',
 		'btvars': {},
 		'rtvars': {
