@@ -39,46 +39,25 @@ def _component_normalize(component, name):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
-	if 'repo' not in component:
-		component['repo'] = {}
+	component.setdefault('repo', {})
 
 	if len(component['repo']) > 0 and \
 		all(type(v) != dict for v in component['repo'].values()):
 		component['repo'] = {'.': component['repo']}
 
 	for repo in component['repo'].values():
-		if 'remote' not in repo:
-			repo['remote'] = None
+		repo.setdefault('remote', None)
+		repo.setdefault('revision', None)
 
-		if 'revision' not in repo:
-			repo['revision'] = None
-
-	if 'sourcedir' not in component:
-		component['sourcedir'] = None
-
-	if 'builddir' not in component:
-		component['builddir'] = None
-
-	if 'toolchain' not in component:
-		component['toolchain'] = None
-
-	if 'stderrfilt' not in component:
-		component['stderrfilt'] = None
-
-	if 'prebuild' not in component:
-		component['prebuild'] = []
-
-	if 'build' not in component:
-		component['build'] = []
-
-	if 'postbuild' not in component:
-		component['postbuild'] = []
-
-	if 'params' not in component:
-		component['params'] = {}
-
-	if 'artifacts' not in component:
-		component['artifacts'] = {}
+	component.setdefault('sourcedir', None)
+	component.setdefault('builddir', None)
+	component.setdefault('toolchain', None)
+	component.setdefault('stderrfilt', None)
+	component.setdefault('prebuild', [])
+	component.setdefault('build', [])
+	component.setdefault('postbuild', [])
+	component.setdefault('params', {})
+	component.setdefault('artifacts', {})
 
 	return component
 
@@ -98,72 +77,40 @@ def _buildex_normalize(buildex):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
-	if 'btvars' not in buildex:
-		buildex['btvars'] = {}
+	buildex.setdefault('btvars', {})
 
 
 def _run_normalize(run):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
-	if 'name' not in run:
-		run['name'] = None
-
-	if 'rtvars' not in run:
-		run['rtvars'] = {}
-
-	if 'params' not in run:
-		run['params'] = {}
-
-	if 'prerun' not in run:
-		run['prerun'] = []
-
-	if 'run' not in run:
-		run['run'] = []
-
-	if 'terminals' not in run:
-		run['terminals'] = {}
+	run.setdefault('name', None)
+	run.setdefault('rtvars', {})
+	run.setdefault('params', {})
+	run.setdefault('prerun', [])
+	run.setdefault('run', [])
+	run.setdefault('terminals', {})
 
 
 def _config_normalize(config):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
-	if 'name' not in config:
-		config['name'] = None
-
-	if 'fullname' not in config:
-		config['fullname'] = None
-
-	if 'description' not in config:
-		config['description'] = None
-
-	if 'image' not in config:
-		config['image'] = None
-
-	if 'concrete' not in config:
-		config['concrete'] = False
-
-	if 'layers' not in config:
-		config['layers'] = []
-
-	if 'graph' not in config:
-		config['graph'] = {}
-
-	if 'build' not in config:
-		config['build'] = {}
-
-	if 'buildex' not in config:
-		config['buildex'] = {}
+	config.setdefault('name', None)
+	config.setdefault('fullname', None)
+	config.setdefault('description', None)
+	config.setdefault('image', None)
+	config.setdefault('concrete', False)
+	config.setdefault('layers', [])
+	config.setdefault('graph', {})
+	config.setdefault('build', {})
+	config.setdefault('buildex', {})
 
 	_build_normalize(config['build'])
 	_buildex_normalize(config['buildex'])
 
-	if 'artifacts' not in config:
-		config['artifacts'] = {}
-
-	if 'run' not in config:
-		config['run'] = {}
+	config.setdefault('artifacts', {})
+	config.setdefault('run', {})
 
 	_run_normalize(config['run'])
 
