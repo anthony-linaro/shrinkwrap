@@ -1,0 +1,113 @@
+# Copyright (c) 2024, Linaro Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Integrate tools for CCA into the buildroot image:
+  - cca-workload-attestation to display an attestation token or send it to a
+    verifier.
+    https://git.codelinaro.org/linaro/dcap/cca-demos/cca-workload-attestation-poc
+  - keybroker-demo to demonstrate remote attestation for downloading secrets.
+    https://github.com/veraison/keybroker-demo/
+  - cca-realm-measurements to generate a DTB and run a VMM.
+    https://github.com/veraison/cca-realm-measurements
+  - kvmtool and QEMU to run Realm VMs.
+  - Automatically mount the shared 9p folder to /mnt, mount configfs for
+    attestation, and create a tap interface.
+
+  Use it with:
+
+  .. code-block:: shell
+    $ shrinkwrap build cca-3world.yaml --overlay buildroot-cca.yaml
+    $ shrinkwrap run cca-3world.yaml
+
+  In the host, launch a VM with:
+
+  .. code-block:: shell
+    $ gen-run-vmm.sh [--kvmtool]
+
+  In the guest, you can obtain an attestation token, and send it to a verifier:
+
+  .. code-block:: shell
+    $ cca-workload-attestation report
+    {
+      "cca-platform-token": {
+      ...
+    $ cca-workload-attestation passport
+    {
+      "ear.verifier-id": {
+        "build": "N/A",
+        "developer": "Veraison Project"
+      },
+      ...
+
+  You can also obtain a key from a keybroker running locally that performs
+  attestation. Run the keybroker-server on the build machine, using the
+  external IP of the build machine to be accessible from the keybroker-app (in
+  this case 192.168.0.10 on a local network):
+
+  .. code-block:: shell
+    $ keybroker-server -e http://192.168.0.10 -v -a 0.0.0.0
+
+  In the guest, connect to the server
+
+  .. code-block:: shell
+    $ keybroker-app -v -e http://192.168.0.10:8088 skywalker
+
+layers:
+  - buildroot.yaml
+
+build:
+  linux:
+    prebuild:
+      # We extend buildroot with an initscript that creates a macvtap interface,
+      # so enable it in the kernel
+      - ./scripts/config --file ${param:builddir}/.config --enable CONFIG_MACVLAN --enable CONFIG_MACVTAP
+
+  buildroot-external-cca:
+    repo:
+      remote: https://git.codelinaro.org/linaro/dcap/buildroot-external-cca.git
+      revision: main
+
+    artifacts:
+      BUILDROOT_EXTERNAL_CCA:
+        path: ${param:sourcedir}
+        export: false
+
+  buildroot:
+    repo:
+      remote: https://github.com/buildroot/buildroot.git
+      revision: 2024.08.2
+
+    prebuild:
+      - make BR2_JLEVEL=${param:jobs} O=${param:builddir} BR2_EXTERNAL=${artifact:BUILDROOT_EXTERNAL_CCA} cca_defconfig
+
+      # gen-vmm-run.sh configuration for the shrinkwrap package/ layout
+      - cat <<EOF> ${param:builddir}/gen-run-vmm.cfg
+      - KERNEL=/mnt/Image
+      - INITRD=/mnt/rootfs.cpio
+      - EDK2_DIR=/mnt/
+      - RUN_DISK=/mnt/guest-disk.img
+      - EOF
+
+      - sed -i '\@BR2_PACKAGE_CCA_REALM_MEASUREMENTS_CFG@s@=.*@="\${param:builddir}/gen-run-vmm.cfg"@' ${param:builddir}/.config
+
+    artifacts:
+      GUEST_INITRD: ${param:builddir}/images/rootfs.cpio
+
+buildex:
+  btvars:
+    GUEST_ROOTFS:
+      type: path
+      value: ${artifact:BUILDROOT}
+
+run:
+  rtvars:
+    ROOTFS:
+      type: path
+      value: ${artifact:BUILDROOT}
+
+    SHARE:
+      type: path
+      value: ${param:packagedir}
