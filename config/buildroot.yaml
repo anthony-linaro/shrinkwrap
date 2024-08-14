@@ -30,8 +30,21 @@ build:
       # Finalize the config.
       - make BR2_JLEVEL=${param:jobs} O=${param:builddir} olddefconfig
 
+      # Fakeroot takes a while to start when the file descriptor limit is high.
+      # Reduce it to significantly accelerate the build.
+      # - https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=920913
+      # - https://github.com/moby/moby/issues/45436
+      - saved_limit=$$(ulimit -S -n)
+      - new_limit=4096
+      - if [ "$$new_limit" -lt "$$saved_limit" ]; then
+      -   ulimit -S -n "$$new_limit"
+      - fi
+
       # Build.
       - make BR2_JLEVEL=${param:jobs} O=${param:builddir}
+
+      # Restore the previous file limit
+      - ulimit -S -n "$$saved_limit"
 
     artifacts:
       BUILDROOT: ${param:builddir}/images/rootfs.ext2
