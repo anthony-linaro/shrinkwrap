@@ -798,6 +798,11 @@ def resolver(config, rtvars={}, clivars={}):
 				v['value'] = os.path.expanduser(v['value'])
 				v['value'] = os.path.abspath(v['value'])
 
+			# Also check that the rtvar is well formed
+			t = v.get('type')
+			if t not in ('path', 'string'):
+				raise Exception(f'invalid type `{t}` for run-time variable {k}')
+
 	if run['runner'] is None:
 		run['runner'] = 'FVP'
  
