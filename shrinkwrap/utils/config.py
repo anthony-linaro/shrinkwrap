@@ -676,6 +676,7 @@ def resolver(config, rtvars={}, clivars={}):
 	# values for.
 	lut = {
 		'param': {
+			'packagedir': os.path.join(workspace.package, config['name']),
 			**dict(clivars),
 		},
 		'artifact': {k: v['dst']

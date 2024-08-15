@@ -133,6 +133,8 @@ macro                   scope                                                   
 ``${param:join_equal}`` build.<component>.{prebuild, build, postbuild}                                                                        String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
 ``${param:join_space}`` build.<component>.{prebuild, build, postbuild}                                                                        String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
 ``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, artifacts}, build.btvars                                       Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph.
+``${param:packagedir}`` run.rtvars
+               Root directory containing all component artifacts.
 ``${artifact:<name>}``  run.rtvars                                                                                                            Package path of an artifact.
 ``${rtvar:<name>}``     run.params                                                                                                            Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
 ======================= ===================================================================================================================== ====
