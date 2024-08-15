@@ -113,6 +113,8 @@ build:
     repo:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
       revision: cca-host/v7
+    prebuild:
+      - ./scripts/config --file ${param:builddir}/.config --enable CONFIG_VIRT_DRIVERS --enable CONFIG_ARM_CCA_GUEST
 
   kvmtool:
     repo:
