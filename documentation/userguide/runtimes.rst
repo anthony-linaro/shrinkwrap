@@ -74,7 +74,7 @@ you can do it as follows:
 .. code-block:: shell
 
   cd docker
-  ./build.sh local
+  ./build.sh --version local
 
 This will build a set of images called:
 
