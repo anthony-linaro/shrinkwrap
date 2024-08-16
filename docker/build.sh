@@ -22,9 +22,9 @@ Where:
             running inside the kaniko container.
 
   --arch optionally provides a target arch label that overrides the default
-  `uname -m`. Must be either "aarch64" or "x86_64". Unless `--version none`,
+  `uname -m`. Must be either "aarch64" or "x86_64". Unless '--version none',
   must match the arch of the machine used to run the script. For
-  `--version none` can be set to any supported arch to download that arch's
+  '--version none' can be set to any supported arch to download that arch's
   package cache.
 
   <url> is the registry to publish to (defaults to docker.io/shrinkwraptool).
