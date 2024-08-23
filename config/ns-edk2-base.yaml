@@ -1,0 +1,83 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Internal building block for edk2-based systems. Requires separate layer to add
+  TF-A, DT and FVP (configured to suit).
+
+layers:
+  - edk2-base.yaml
+
+build:
+  tfa:
+    params:
+      BL33: ${artifact:EDK2}
+
+run:
+  rtvars:
+    BL1:
+      type: path
+      value: ${artifact:BL1}
+
+    FIP:
+      type: path
+      value: ${artifact:FIP}
+
+    DTB:
+      type: path
+      value: ${artifact:DTB}
+
+    CMDLINE:
+      type: string
+      value: console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
+
+    KERNEL:
+      type: path
+      value: null
+
+    ROOTFS:
+      type: path
+      value: ''
+
+    SHARE:
+      type: path
+      value: ''
+
+    EDK2FLASH:
+      type: path
+      value: ''
+
+  params:
+    -C bp.secureflashloader.fname: ${rtvar:BL1}
+    -C bp.flashloader0.fname: ${rtvar:FIP}
+    -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+    -C cluster0.cpu0.semihosting-cwd: $${SEMIHOSTDIR}
+    -C bp.flashloader1.fname: ${rtvar:EDK2FLASH}
+    -C bp.virtiop9device.root_path: ${rtvar:SHARE}
+
+  prerun:
+    # We use the FVP's and UEFI's semihosting capability to get the images into
+    # the system. Wrap this up as a command in the startup.nsh along with the
+    # command line. UEFI will execute this when entering its shell. Copy the
+    # images to a unique temp directory (which is the root of our semihosting
+    # environment) then refer to them by its base name to UEFI. Using a unique
+    # temp directory means we can run multiple instances in parallel.
+    - SEMIHOSTDIR=`mktemp -d`
+    - function finish { rm -rf $$SEMIHOSTDIR; }
+    - trap finish EXIT
+    - cp ${rtvar:KERNEL} $${SEMIHOSTDIR}/Image
+    - cp ${rtvar:DTB} $${SEMIHOSTDIR}/fdt.dtb
+    - cat <<EOF > $${SEMIHOSTDIR}/startup.nsh
+    - Image dtb=fdt.dtb ${rtvar:CMDLINE}
+    - EOF
+
+  terminals:
+    bp.terminal_0:
+      friendly: ''
+      type: stdinout
+      no_color: true
+      no_escapes: 'EFI stub: Booting Linux Kernel...'
+    bp.terminal_1:
+      friendly: edk2

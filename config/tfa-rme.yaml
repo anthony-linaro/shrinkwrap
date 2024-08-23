@@ -1,0 +1,29 @@
+# Copyright (c) 2024, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Layer builds TF-A, TF-RMM, along with the required device tree, configured for
+  RME with Armv9.2 architecture extension. This yaml file can be customized and
+  used as base for building higher layers.
+
+layers:
+  - FVP_Base_RevC-2xAEMvA-rme.yaml
+  - tfa-base.yaml
+  - rmm-base.yaml
+  - dt-base.yaml
+  - arch/v9.2.yaml
+
+build:
+  tfa:
+    params:
+      ENABLE_RME: 1
+      RMM: ${artifact:RMM}
+      FVP_HW_CONFIG: ${artifact:DTB}
+
+run:
+  terminals:
+    bp.terminal_3:
+      friendly: rmm
+

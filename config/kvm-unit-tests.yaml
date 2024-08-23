@@ -1,0 +1,28 @@
+# Copyright (c) 2024, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Build KVM unit tests.
+
+build:
+  kvm-unit-tests:
+    repo:
+        remote: https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca
+        revision: cca/rmm-v1.0-eac5
+
+    toolchain: aarch64-linux-gnu-
+
+    params:
+      --arch: arm64
+      --cross-prefix: $${CROSS_COMPILE}
+      --target: kvmtool
+
+    build:
+      - ./configure ${param:join_equal}
+      - make -j${param:jobs}
+      - tar -caf ${param:builddir}/kvm-unit-tests.tgz -C ${param:sourcedir} .
+
+    artifacts:
+       KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz

@@ -93,28 +93,12 @@ description: >-
 concrete: true
 
 layers:
-  - ns-edk2.yaml
-  - rmm-base.yaml
+  - cca-edk2.yaml
   - linux-base.yaml
   - kvmtool-base.yaml
-  - arch/v9.2.yaml
+  - kvm-unit-tests.yaml
 
 build:
-  tfa:
-    params:
-      ENABLE_RME: 1
-      RMM: ${artifact:RMM}
-      FVP_HW_CONFIG: ${artifact:DTB}
-
-  edk2:
-    repo:
-      edk2:
-        remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
-        revision: 2802_arm_cca_rmm-v1.0-eac5
-      edk2-platforms:
-        remote: https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git
-        revision: 2802_arm_cca_rmm-v1.0-eac5
-
   linux:
     repo:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
@@ -127,26 +111,6 @@ build:
       kvmtool:
         remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
         revision: cca/rmm-v1.0-eac5
-
-  kvm-unit-tests:
-    repo:
-      remote: https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca
-      revision: cca/rmm-v1.0-eac5
-
-    toolchain: aarch64-linux-gnu-
-
-    params:
-      --arch: arm64
-      --cross-prefix: $${CROSS_COMPILE}
-      --target: kvmtool
-
-    build:
-      - ./configure ${param:join_equal}
-      - make -j${param:jobs}
-      - tar -caf ${param:builddir}/kvm-unit-tests.tgz -C ${param:sourcedir} .
-
-    artifacts:
-      KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz
 
   edk2-cca-guest:
     repo:
@@ -229,37 +193,3 @@ run:
     KERNEL:
       value: ${artifact:KERNEL}
 
-  params:
-    -C cluster0.rme_support_level: 2
-    -C cluster1.rme_support_level: 2
-    -C bp.secure_memory: 0                                            # Disable security checking by TZC-400
-    -C bp.has_rme: 1                                                  # Enable Realm Management Extension(RME) support
-                                                                      # Only Root access to Trusted ROM and SRAM.
-                                                                      # SECURE/ROOT access only for below peripherals:
-                                                                      # -Trusted DRAM
-                                                                      # -REFCLK CNTControl (Generic Timer)
-                                                                      # -Trusted Watchdog SP805, Trustzone address space controller
-                                                                      # -AP_REFCLK CNTBase0 (Generic Timer)
-                                                                      # -Trusted RNG, Non-Volatile Counter and Root-Key Storage
-                                                                      # -Flash0, Flash1
-                                                                      # -uart0, uart1, uart2, uart3
-
-    # Suppress "WARNING: MPAM_NS is deprecated when RME is in use. Should use MPAM_SP"
-    -C cluster0.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
-    -C cluster1.output_attributes: ExtendedID[62:55]=MPAM_PMG,ExtendedID[54:39]=MPAM_PARTID,ExtendedID[38:37]=MPAM_SP
-
-    # CCA-specific SMMU settings.
-    -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0: 3
-    -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 0x43B
-    -C pci.pci_smmuv3.mmu.root_register_page_offset: 0x20000
-
-    # Enable FEAT_CSV2_2, which is optional. But TFA 2.10 force-enables it when
-    # ENABLE_RME=1 so if it's not there we see an exception.
-    -C cluster0.restriction_on_speculative_execution: 2
-    -C cluster1.restriction_on_speculative_execution: 2
-    -C cluster0.restriction_on_speculative_execution_aarch32: 2
-    -C cluster1.restriction_on_speculative_execution_aarch32: 2
-
-  terminals:
-    bp.terminal_3:
-      friendly: rmm

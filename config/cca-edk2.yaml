@@ -1,20 +1,15 @@
-# Copyright (c) 2022, Arm Limited.
+# Copyright (c) 2024, Arm Limited.
 # SPDX-License-Identifier: MIT
 
 %YAML 1.2
 ---
 description: >-
-  Best choice for: I want to run Linux on FVP, booting with ACPI/DT, and have
-  easy control over its command line.
-
-  Brings together TF-A and EDK2 to provide a simple non-secure world environment
-  running on FVP. Allows easy specification of the kernel image and command
-  line, and rootfs at runtime (see rtvars). ACPI is provided by UEFI.
-
-  An extra rtvar is added (DTB) which allows specification of a custom device
-  tree. By default (if not overriding the rtvar), the upstream kernel device
-  tree is used. DT is enabled by default. Use 'acpi=force' to enable ACPI
-  boot.
+  Brings together TF-A, TF-RMM and EDK2 to provide a 3 world environment running
+  on FVP. In this config TF-A is in Root World, TF-RMM is in Realm EL2 and EDK2
+  and Linux form the non-secure EL2. Allows easy specification of the kernel
+  image and command line, and rootfs at runtime (see rtvars). ACPI is provided
+  by UEFI. DT is enabled by default. Use 'acpi=force' command line option to
+  enable ACPI boot.
 
   By default (if not overriding the rtvars) a sensible command line is used that
   will set up the console for logging and attempt to mount the rootfs image from
@@ -31,6 +26,12 @@ description: >-
   the build pcd parameter `PcdUefiShellDefaultBootEnable` using the overlay and
   override terminals 'bp.terminal_0'.type to 'telnet'.
 
+  .. code-block:: shell
+    $ shrinkwrap build cca-edk2.yaml
+
+  .. code-block:: shell
+    $ shrinkwrap run cca-edk2.yaml --rtvar KERNEL=path/to/Image --rtvar ROOTFS=path/to/rootfs.img
+
   When booting with device tree, a directory can optionally be shared from the
   host system into the Linux environment running in the FVP. To do so, set the
   SHARE rtvar to the desired directory, then mount the share inside the FVP with
@@ -43,7 +44,16 @@ description: >-
 concrete: true
 
 layers:
-  - FVP_Base_RevC-2xAEMvA-base.yaml
-  - tfa-base.yaml
-  - dt-base.yaml
+  - FVP_Base_RevC-2xAEMvA-rme.yaml
+  - tfa-rme.yaml
   - ns-edk2-base.yaml
+
+build:
+  edk2:
+    repo:
+      edk2:
+        remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
+        revision: 2802_arm_cca_rmm-v1.0-eac5
+      edk2-platforms:
+        remote: https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git
+        revision: 2802_arm_cca_rmm-v1.0-eac5
