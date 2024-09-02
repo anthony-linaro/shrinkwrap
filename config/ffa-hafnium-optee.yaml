@@ -41,10 +41,6 @@ build:
     - "}"
     - EOF
     params:
-      # This DEPENDS_ON_PARAM is not used by TF-A but just to ensure OPTEE is
-      # built before TF-A though it is not used by TF-A directly but
-      # indirectly via SP_LAYOUT_FILE
-      DEPENDS_ON_PARAM: ${artifact:OPTEE_PAGER_BIN}
       ARM_SPMC_MANIFEST_DTS: ${param:sourcedir}/plat/arm/board/fvp/fdts/fvp_spmc_optee_sp_manifest.dts
       SP_LAYOUT_FILE: ${param:builddir}/sp_layout.json
       BL32: ${artifact:HAFNIUM}
