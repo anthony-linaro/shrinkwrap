@@ -13,7 +13,7 @@ build:
   buildroot:
     repo:
       remote: https://github.com/buildroot/buildroot.git
-      revision: 2022.05.3
+      revision: 2024.05.2
 
     toolchain: aarch64-linux-gnu-
 
@@ -22,6 +22,9 @@ build:
     prebuild:
       # Start from default config, but allow higher level layers to modify it.
       - make BR2_JLEVEL=${param:jobs} O=${param:builddir} BR2_DEFCONFIG=${param:configdir}/buildroot.config defconfig
+      # Uncomment the below line if you want to regenerate the defconfig and
+      # save it to ${param:configdir}/buildroot.config
+      # - make BR2_JLEVEL=${param:jobs} O=${param:builddir} BR2_DEFCONFIG=${param:configdir}/buildroot.config savedefconfig
 
     build:
       # Finalize the config.
