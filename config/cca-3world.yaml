@@ -114,6 +114,8 @@ build:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
       revision: cca-host/v7
     prebuild:
+      # Use source dir modification time as timestamp (for locally reproducible build)
+      - export KBUILD_BUILD_TIMESTAMP="@$$(stat -c '%Y' ${param:sourcedir})"
       - ./scripts/config --file ${param:builddir}/.config --enable CONFIG_VIRT_DRIVERS --enable CONFIG_ARM_CCA_GUEST
       # Reduce the number of timer exits from the guest
       - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_HZ_250 --enable CONFIG_HZ_100
