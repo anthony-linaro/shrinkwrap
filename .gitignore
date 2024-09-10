@@ -3,3 +3,5 @@ shrinkwrap/build/
 shrinkwrap/package/
 documentation/_build/
 public/
+test/assets/
+test/build/
