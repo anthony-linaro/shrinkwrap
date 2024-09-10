@@ -1,0 +1,59 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Generation of asset images for testing. This config can be used to build
+  the assets required to run the test script. It builds
+  1. Buildroot based rootfs that automatically invokes `poweroff -f`
+  2. Linux kernel image
+  3. Bootwrapper image
+
+concrete: true
+
+layers:
+  - buildroot.yaml
+  - linux-base.yaml
+
+build:
+  linux:
+    build:
+      - make -j${param:jobs} O=${param:builddir} arm/fvp-base-revc.dtb
+
+    postbuild:
+      - echo -e "${param:builddir}" > ${param:builddir}/kernel_dir.txt
+
+    artifacts:
+      KERNEL_DIR: ${param:builddir}/kernel_dir.txt
+
+  bootwrapper:
+    repo:
+      remote: https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git
+      revision: master
+
+    prebuild:
+      - autoreconf -i
+      - ./configure --host=aarch64-linux-gnu --enable-gicv3 --with-cmdline="console=ttyAMA0 earlycon root=/dev/vda ip=dhcp" --with-kernel-dir=`cat ${artifact:KERNEL_DIR}`
+
+    build:
+      # Finalize the config.
+      - make -j${param:jobs}
+
+    artifacts:
+      BOOTWRAPPER_SYS_IMG: ${param:sourcedir}/linux-system.axf
+
+  buildroot:
+    prebuild:
+      - mkdir -p ${param:builddir}/overlay/etc/init.d
+      - |
+        echo -e "#!/bin/sh
+        case \$$1 in
+                start|stop|restart|reload)
+                        poweroff -f;;
+                *)
+                        echo Usage \$$0 {start|stop|restart|reload}
+                        exit 1;
+        esac" > ${param:builddir}/overlay/etc/init.d/S10poweroff
+      - chmod +x ${param:builddir}/overlay/etc/init.d/S10poweroff
+      - ${param:sourcedir}/utils/config --file ${param:builddir}/.config --set-val BR2_ROOTFS_OVERLAY \"${param:builddir}/overlay\"
