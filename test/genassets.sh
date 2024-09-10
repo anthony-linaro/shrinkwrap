@@ -2,74 +2,46 @@
 # Copyright (c) 2022, Arm Limited.
 # SPDX-License-Identifier: MIT
 
-# This script builds the assets required to run the test script.
-# - rootfs that automatically invokes `poweroff -f`
-# - Linux kernel image
-# - bootwrapper image
-# TODO: Build all of this using shrinkwrap.
-
 # Exit on error and echo commands.
-set -ex
+set -e
 
 SOURCE_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-ASSETS_DIR=${SOURCE_DIR}/assets
-BUILD_DIR=${SOURCE_DIR}/build
-export ARCH=arm64
-export CROSS_COMPILE=aarch64-linux-gnu-
+export SHRINKWRAP_BUILD=${SOURCE_DIR}/build
+export SHRINKWRAP_PACKAGE=${SOURCE_DIR}
+export PATH=${PATH}:${SOURCE_DIR}/../shrinkwrap
 
-# Delete any previous assets and build directories and start from scratch.
-rm -rf ${ASSETS_DIR} &> /dev/null
-mkdir -p ${ASSETS_DIR}
-rm -rf ${BUILD_DIR} &> /dev/null
-mkdir -p ${BUILD_DIR}
-pushd ${BUILD_DIR}
+USAGE="$(basename "$0") - A build script to generate test assets/builds
+The following parameters are valid:
+    -h Show this help
+    -R <shrinkwrap runtime> Specify the choice for shrinkwrap runtime. Defaults to 'docker'
+    -n Dryrun mode for shrinkwrap build
+    -v Versbose mode for shrinkwrap build
+"
 
-# Prepare the init script that will immediately power off the system.
-mkdir -p buildroot_overlay/etc/init.d
-cat <<EOF > buildroot_overlay/etc/init.d/S10poweroff
-#!/bin/sh
-case "\$1" in
-        start|stop|restart|reload)
-                poweroff -f;;
-        *)
-                echo "Usage: \$0 {start|stop|restart|reload}"
-                exit 1
+RUNTIME=docker
+
+while getopts hnvR: option
+do
+case "${option}"
+in
+n) DRYRUN="--dry-run";;
+v) VERBOSE="--verbose";;
+R) RUNTIME=${OPTARG};;
+h) echo "$USAGE"
+   exit 0;;
+*) echo "$USAGE"
+   exit 0;;
 esac
-EOF
-chmod +x buildroot_overlay/etc/init.d/S10poweroff
+done
 
-# Clone and build a very simple buildroot with the above overlay.
-git clone https://github.com/buildroot/buildroot.git
-cd buildroot
-git checkout 2022.05.3
-cp ${SOURCE_DIR}/buildroot.config .config
-./utils/config --set-val BR2_ROOTFS_OVERLAY "\"${BUILD_DIR}/buildroot_overlay\""
-make olddefconfig
-make BR2_JLEVEL=`nproc`
-cp output/images/rootfs.ext4 ${ASSETS_DIR}/.
-cd -
-
-# Build Linux defconfig.
-git clone https://github.com/torvalds/linux.git
-cd linux
-git checkout v6.6
-make defconfig
-make -j`nproc` Image arm/fvp-base-revc.dtb
-cp arch/arm64/boot/Image ${ASSETS_DIR}/.
-cd -
-
-# Build a bootwrapper axf.
-git clone https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git
-cd boot-wrapper-aarch64
-autoreconf -i
-./configure \
-	--host=aarch64-linux-gnu \
-	--with-kernel-dir=${BUILD_DIR}/linux \
-	--with-cmdline="console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp" \
-	--enable-gicv3
-make
-cp linux-system.axf ${ASSETS_DIR}/.
-cd -
-
-popd
-rm -rf ${BUILD_DIR} &> /dev/null
+BUILD_USER=`whoami`
+# Certain packages can't be configured when running as a root.
+# However the check can be bypassed by setting FORCE_UNSAFE_CONFIGURE
+if [ "${BUILD_USER}" == "root" ]; then
+	echo -e "You are building as a root, you are being warned"
+	echo -e "Setting FORCE_UNSAFE_CONFIGURE=1 for build to succeed"
+	export FORCE_UNSAFE_CONFIGURE=1
+fi
+shrinkwrap -R ${RUNTIME} build ${VERBOSE} ${DRYRUN} assets.yaml
+# Remove the generated config as it may picked up by default
+rm -fr ${SHRINKWRAP_PACKAGE}/assets.yaml

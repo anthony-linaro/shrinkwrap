@@ -105,7 +105,7 @@ prep-test-assets:
       if [ -f ./test/assets/.cache_exists ] && [ "$FORCE_PREP_TEST_ASSETS" == "false" ]; then
         echo "Cache already exists and prep not forced: skipping."
       else
-        ./test/genassets.sh
+        ./test/genassets.sh -R null
         echo > ./test/assets/.cache_exists
       fi
 
