@@ -45,3 +45,6 @@ build:
 
     artifacts:
       BUILDROOT: ${param:builddir}/images/rootfs.ext2
+      # Some scripts including test.py in shrinkwrap might depend on the
+      # rootfs.ext4 which is just symlink to rootfs.ext2, copy that too
+      BUILDROOT_EXT4: ${param:builddir}/images/rootfs.ext4
