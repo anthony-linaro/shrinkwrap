@@ -58,6 +58,11 @@ def _component_normalize(component, name):
 	component.setdefault('postbuild', [])
 	component.setdefault('params', {})
 	component.setdefault('artifacts', {})
+	component.setdefault('sync', None)
+	if component['sync'] == False:
+		component['sync'] = 'false'
+	elif component['sync'] == True:
+		component['sync'] = 'true'
 
 	return component
 
@@ -116,6 +121,14 @@ def _config_normalize(config):
 
 	return config
 
+def _component_validate(component):
+	sync = component.get('sync')
+	if sync not in (None, 'true', 'false', 'force'):
+		raise Exception(f'invalid "sync" value "{sync}"')
+
+def _build_validate(build):
+	for component in build.values():
+		_component_validate(component)
 
 def _config_validate(config):
 	"""
@@ -124,14 +137,17 @@ def _config_validate(config):
 	"""
 	# TODO:
 
+	if 'build' in config:
+		_build_validate(config['build'])
+
 
 def _component_sort(component):
 	"""
 	Sort the component so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'stderrfilt', 'params',
-			'prebuild', 'build', 'postbuild', 'artifacts']
+	lut = ['repo', 'sync', 'sourcedir', 'builddir', 'toolchain', 'stderrfilt',
+			'params', 'prebuild', 'build', 'postbuild', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
 
@@ -548,6 +564,8 @@ def resolveb(config, btvars={}, clivars={}):
 			desc['builddir'] = os.path.join(workspace.build,
 							'build',
 							comp_dir)
+		if desc['sync'] is None:
+			desc['sync'] = 'true'
 
 	macro_lut = {
 		'param': {
@@ -872,14 +890,18 @@ def build_graph(configs, echo, nosync, force_sync):
 	for config in configs:
 		build_scripts = {}
 
-		if force_sync_all:
-			force_sync = list(config['build'].keys())
-		if sync_none:
-			nosync = list(config['build'].keys())
+		# Make copies of nosync and force_sync that we can modify below
+		force_sync = set(config['build'].keys() if force_sync_all else force_sync)
+		nosync = set(config['build'].keys() if sync_none else nosync)
 
-		invalid_sync_cfg = set(force_sync).intersection(nosync)
+		invalid_sync_cfg = force_sync.intersection(nosync)
 		if invalid_sync_cfg:
 			raise Exception(f'Conflicting sync configuration for {invalid_sync_cfg}')
+		for name, component in config['build'].items():
+			if component['sync'] == 'false' and name not in force_sync:
+				nosync.add(name)
+			elif component['sync'] == 'force' and name not in nosync:
+				force_sync.add(name)
 
 		ts = graphlib.TopologicalSorter(config['graph'])
 		ts.prepare()

@@ -73,6 +73,7 @@ Create a file called ``my-overlay.yaml``:
   build:
     tfa:
       sourcedir: /path/to/my/tfa/git/repo
+      sync: false
 
 Now do a build, passing in the overlay:
 

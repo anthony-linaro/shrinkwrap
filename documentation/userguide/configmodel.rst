@@ -191,7 +191,7 @@ component section
 =========== =========== ===========
 key         type        description
 =========== =========== ===========
-repo        dictionary  Specifies information about the git repo(s) that must be cloned and checked out. By default, Shrinkwrap syncs the git repo to the specified revision when building. ``--no-sync`` or ``--no-sync-all`` can be used to tell Shrinkwrap to build it in whatever state the user left it in. Not required if ``sourcedir`` is provided.
+repo        dictionary  Specifies information about the git repo(s) that must be cloned and checked out. By default, Shrinkwrap syncs the git repo to the specified revision when building. ``--no-sync``, ``--no-sync-all`` or the ``sync`` parameter can be used to tell Shrinkwrap to build it in whatever state the user left it in. Not required if ``sourcedir`` is provided.
 sourcedir   string      If specified, points to the path on disk where the source repo can be found. Useful for developer use cases where a local repo already exists.
 builddir    string      If specified, the location where the component will be built. If not specified, shrinkwrap allocates its own location based on SHRINKWRAP_BUILD.
 toolchain   string      Defines the toolchain to be used for compilation. Value is set as CROSS_COMPILE environment variable before invoking any prebuild/build/postbuild commands. When using the standard image with a container runtime, the options are: ``aarch64-none-elf-``, ``arm-none-eabi-``, ``aarch64-linux-gnu-``, or ``arm-linux-gnueabihf-``.
@@ -201,7 +201,14 @@ prebuild    list        List of shell commands to be executed during component b
 build       list        List of shell commands to be executed during component build.
 postbuild   list        List of shell commands to be executed during component build after the ``build`` list.
 artifacts   dictionary  Set of artifacts (files and/or directories) that the component exports. Key is artifact name and value is path to built artifact. Other components can reference them with the ``${artifact:<name>}`` macros. Used to determine build dependencies.
+sync        enum-string Specifies how shrinkwrap should synchronize the repository. See below for options.
 =========== =========== ===========
+
+Sync mode:
+
+- **true**: synchronize the source directory. Do not overwrite user modifications or download updates.
+- **false**: do not synchronize the source directory.
+- **force**: synchronize the source directory. Overwrite any user modification and download branch updates.
 
 -----------
 run section

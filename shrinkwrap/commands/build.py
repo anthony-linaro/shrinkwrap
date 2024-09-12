@@ -69,7 +69,8 @@ def add_parser(parser, formatter):
 		required=False, default=False, action='store_true',
 		help="""Synchronize all components even if the local source directories
 		     contain unsaved changes. YOUR CHANGES WILL BE LOST! In addition,
-		     download all remote branch updates.""")
+		     download all remote branch updates. Note that this will override
+		     any 'sync: false' config option.""")
 
 	buildall.add_common_args(cmdp)
 
