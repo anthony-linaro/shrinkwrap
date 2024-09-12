@@ -32,8 +32,11 @@ description: >-
 
   .. code-block:: shell
     $ cd ~/.shrinkwrap/package/cca-3world
+    $ ORIGINAL_PATH=$PATH
+    $ export PATH=$PATH:~/.shrinkwrap/build/build/cca-3world/buildroot/host/bin/
     $ e2fsck -fp rootfs.ext2
     $ resize2fs rootfs.ext2 256M
+    $ export PATH=$ORIGINAL_PATH
     $ sudo su
     # mkdir mnt
     # mount rootfs.ext2 mnt
