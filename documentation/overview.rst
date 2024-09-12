@@ -22,7 +22,7 @@ Shrinkwrap focuses on building FW stacks and configuring the FVP for a desired
 set of architecture features so that all components are consistent. Engineers
 bring their own kernel and rootfs to run on top of this foundation.
 
-Shrinkwrap provides an intuative command line interface frontend and (by
+Shrinkwrap provides an intuitive command line interface frontend and (by
 default) a container-based backend so users don't have to think about the
 tools required to build or run their configs. Everything is also transparent;
 users can discover every single invoked command with the ``--dry-run`` option.

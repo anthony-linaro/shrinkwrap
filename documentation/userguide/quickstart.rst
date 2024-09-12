@@ -756,13 +756,13 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
 Overlays are an important concept for Shrinkwrap. An overlay is a config
 fragment (either a yaml file or a json-encoded string) that can be passed
 separately on the command line and forms the top layer of the config. In this
-way, it can override or add any required configuration. You could achive the
+way, it can override or add any required configuration. You could achieve the
 same effect by creating a new config and specifying the main config as a layer
 in that new config, but with an overlay, you can apply a config fragment to many
 different existing configs without the need to write a new config file each
 time. You can see overlays being using in the above commands to target a
 specific Arm architecture revision (v9.3 in the example). You can change the
-targetted architecture just by changing the overlay. There are many other places
+targeted architecture just by changing the overlay. There are many other places
 where overlays come in handy. See :ref:`userguide/recipes:Shrinkwrap Recipes`
 for more examples.
 

@@ -72,7 +72,7 @@ When the linux kernel 9p issue will be fixed, the shared directory approach can 
   $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 --rtvar SHARE=.
 
 
-Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realmn guest can then be launched as previously:
+Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realm guest can then be launched as previously:
 
 .. code-block:: shell
 

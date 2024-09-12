@@ -226,7 +226,7 @@ Boot Linux with ACPI
 
 ``ns-edk2.yaml`` uses EDK2 to boot Linux, and defaults to using the Device Tree.
 You can change the behaviour to boot with ACPI by passing ``acpi=force`` on the
-comand line:
+command line:
 
 .. code-block:: shell
 

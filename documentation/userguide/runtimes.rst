@@ -51,7 +51,7 @@ freely downloaded without the need for an account.
 image name                                      description
 =============================================== ====
 docker.io/shrinkwraptool/base-slim-nofvp:latest Contains all toolchains and other dependencies required to build all standard configs. Can be used as a base to create an image with a custom FVP.
-docker.io/shrinkwraptool/base-slim:latest       (default). As per ``shrinkwraptool/base-slim-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP. This is suffcient for most use cases and is much smaller than the ``full`` variant.
+docker.io/shrinkwraptool/base-slim:latest       (default). As per ``shrinkwraptool/base-slim-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP. This is sufficient for most use cases and is much smaller than the ``full`` variant.
 docker.io/shrinkwraptool/base-full-nofvp:latest Builds upon ``shrinkwraptool/base-slim:latest``, adding aarch32 toolchains (both arm-none-eabi and arm-linux-gnueabihf). These are not needed for standard configs, but will be required if creating a custom config that includes (e.g.) SCP FW. Separated out due to big size increase.
 docker.io/shrinkwraptool/base-full:latest       As per ``shrinkwraptool/base-full-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP.
 =============================================== ====
