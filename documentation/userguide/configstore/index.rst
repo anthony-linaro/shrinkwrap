@@ -14,10 +14,13 @@ out-of-the-box:
    :titlesonly:
    :maxdepth: 1
 
+   assets.rst
    bootwrapper.rst
    buildroot.rst
    cca-3world.rst
    cca-4world.rst
+   ffa-hafnium-optee.rst
+   ffa-optee.rst
    ffa-tftf.rst
    ns-edk2-optee.rst
    ns-edk2.rst
