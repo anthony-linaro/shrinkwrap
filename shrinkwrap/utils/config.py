@@ -949,7 +949,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							'''.strip()
 
 						g.append_multiline(f'''
-						if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then
+						if [ ! -e "{gitlocal}/.git" ] || [ -f "{sync}" ]; then
 							rm -rf {gitlocal} > /dev/null 2>&1 || true
 							mkdir -p {basedir}
 							touch {sync}
