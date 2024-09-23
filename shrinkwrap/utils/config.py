@@ -212,7 +212,7 @@ def _config_merge(base, new):
 
 		if type(base) is dict and type(new) is dict:
 			d = {}
-			for k in list(base.keys()) + list(new.keys()):
+			for k in list(set(list(base.keys()) + list(new.keys()))):
 				d[k] = _merge(base.get(k), new.get(k), level+1)
 			return d
 
