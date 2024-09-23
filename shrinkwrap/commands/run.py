@@ -228,7 +228,7 @@ def dispatch(args):
 	# Run under a runtime environment, which may just run commands natively
 	# on the host or may execute commands in a container, depending on what
 	# the user specified.
-	with runtime.Runtime(name=args.runtime, image=args.image,
+	with runtime.Runtime(name=args.runtime, image=config.get_image([resolveb], args),
 		       		ssh_agent_keys=args.ssh_agent_keys) as rt:
 		for rtvar in resolver['run']['rtvars'].values():
 			if rtvar['type'] == 'path':

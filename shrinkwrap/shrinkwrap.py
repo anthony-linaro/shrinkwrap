@@ -79,9 +79,11 @@ def main():
 	parser.add_argument('-I', '--image',
 		metavar='name',
 		required=False,
-		default='docker.io/shrinkwraptool/base-slim:latest',
+		type=str,
+		default=None,
 		help="""If using a container runtime, specifies the name of the
-		     image to use. Defaults to the official shrinkwrap image.""")
+		     image to use. Defaults to the official shrinkwrap image,
+			 unless a specific image is required in the config file.""")
 
 	parser.add_argument('--ssh-agent',
 		default=False,

@@ -10,6 +10,29 @@ import yaml
 import shrinkwrap.utils.clivars as uclivars
 import shrinkwrap.utils.workspace as workspace
 
+default_image = 'docker.io/shrinkwraptool/base-slim:latest'
+
+def get_image(configs, args):
+	"""
+	Determine the image to use
+	"""
+	if args.image is not None:
+		# An image was specified on the command line, just use it !
+		return args.image
+	else:
+		# No image forced on the command line, use one required by one of the configs,
+		# but make sure that if multiple config require an image, this is the same.
+		image = None
+		for c in configs:
+			if c['image'] is not None:
+				if image is None:
+					image = c['image']
+				elif c['image'] == image:
+					pass
+				else:
+					raise Exception('Unsupported case of different images requested.')
+		# No image required in the configs or from the command line, use the default one
+		return image if image else default_image
 
 def _component_normalize(component, name):
 	"""
@@ -114,6 +137,9 @@ def _config_normalize(config):
 	if 'description' not in config:
 		config['description'] = None
 
+	if 'image' not in config:
+		config['image'] = None
+
 	if 'concrete' not in config:
 		config['concrete'] = False
 
@@ -190,7 +216,7 @@ def _config_sort(config):
 	config['build'] = _build_sort(config['build'])
 	config['run'] = _run_sort(config['run'])
 
-	lut = ['name', 'fullname', 'description', 'concrete', 'layers',
+	lut = ['name', 'fullname', 'description', 'image', 'concrete', 'layers',
 			'graph', 'build', 'buildex', 'artifacts', 'run']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))

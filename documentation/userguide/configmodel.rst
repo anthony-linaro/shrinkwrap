@@ -154,6 +154,7 @@ not documented.
 key         type       description
 =========== ========== ===========
 description string     A human-readable description of what the config contains and does. Displayed by the ``inspect`` command.
+image       string     An optional field to require a specific runtime image to build / run this config. If not defined, the default image used by ``shrinkwrap`` will be used. This can be overriden with the ``--image`` command line option to ``shrinkwrap``.
 concrete    boolean    true if the config is intended to be directly built and run, or false if it is intended as a fragment to be included in other configs.
 build       dictionary Contains all the components to be built. The key is the component name and the value is a dictionary.
 run         dictionary Contains all the information about how to run the built artifacts on the FVP.

@@ -9,7 +9,7 @@ description: >-
   Build with:
 
   .. code-block:: shell
-    $ shrinkwrap --image shrinkwraptool/base-full build cca-4world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
+    $ shrinkwrap build cca-4world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
 
   Then run the model with:
 
@@ -30,6 +30,8 @@ description: >-
 
   See cca-3worlds.yaml config :ref:`userguide/configstore/cca-3world:description`
   if willing to launch a realm using kvmtool.
+
+image: shrinkwraptool/base-full
 
 concrete: true
 

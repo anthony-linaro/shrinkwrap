@@ -66,6 +66,7 @@ def dispatch(args):
 		cfgs.append({
 			'name': c['fullname'],
 			'description': c['description'],
+			'image': c['image'] if c['image'] is not None else '<none>',
 			'concrete': c['concrete'],
 			'btvars': {
 				k: _var_value(v['value'])
@@ -97,6 +98,12 @@ def dispatch(args):
 		buf.write('\n')
 		buf.write(_text_wrap('description',
 				     c['description'],
+				     width=width,
+				     indent=indent,
+				     paraspace=1))
+		buf.write('\n')
+		buf.write(_text_wrap('image',
+				     c['image'],
 				     width=width,
 				     indent=indent,
 				     paraspace=1))

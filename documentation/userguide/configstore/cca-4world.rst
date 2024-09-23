@@ -14,7 +14,7 @@ Builds on cca-3world.yaml, and adds support for running Hafnium along with some 
 
 .. code-block:: shell
 
-  $ shrinkwrap --image shrinkwraptool/base-full build cca-4world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
+  $ shrinkwrap build cca-4world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
 
 
 Then run the model with:
