@@ -40,7 +40,7 @@ def make_rst_table(headers, data):
 
 
 def make_rst_table_from_dict(headers, data):
-	return make_rst_table(headers, [(k, v) for k, v in data.items()])
+	return make_rst_table(headers, sorted(data.items()))
 
 
 def fix_whitespace(text):

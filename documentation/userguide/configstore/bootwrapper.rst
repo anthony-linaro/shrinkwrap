@@ -33,8 +33,8 @@ Run-Time Variables
 ============== =======
 rtvar          default
 ============== =======
-LOCAL_NET_PORT 8022
 BOOTWRAPPER    <null>
+LOCAL_NET_PORT 8022
 ROOTFS         <empty>
 ============== =======
 

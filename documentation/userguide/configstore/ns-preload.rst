@@ -42,10 +42,10 @@ Run-Time Variables
 ============== ================
 rtvar          default
 ============== ================
-LOCAL_NET_PORT 8022
 BL31           ${artifact:BL31}
 DTB            ${artifact:DTB}
 KERNEL         <null>
+LOCAL_NET_PORT 8022
 ROOTFS         <empty>
 SHARE          <empty>
 ============== ================

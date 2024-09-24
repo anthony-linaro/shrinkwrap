@@ -26,8 +26,11 @@ For the time being, there is an issue in the linux kernel's handling of 9p which
 .. code-block:: shell
 
   $ cd ~/.shrinkwrap/package/cca-3world
+  $ ORIGINAL_PATH=$PATH
+  $ export PATH=$PATH:~/.shrinkwrap/build/build/cca-3world/buildroot/host/bin/
   $ e2fsck -fp rootfs.ext2
   $ resize2fs rootfs.ext2 256M
+  $ export PATH=$ORIGINAL_PATH
   $ sudo su
   # mkdir mnt
   # mount rootfs.ext2 mnt
@@ -72,7 +75,7 @@ When the linux kernel 9p issue will be fixed, the shared directory approach can 
   $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 --rtvar SHARE=.
 
 
-Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realm guest can then be launched as previously:
+Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realmn guest can then be launched as previously:
 
 .. code-block:: shell
 
@@ -101,14 +104,14 @@ Run-Time Variables
 ============== ===============================================================
 rtvar          default
 ============== ===============================================================
-LOCAL_NET_PORT 8022
 BL1            ${artifact:BL1}
-FIP            ${artifact:FIP}
-DTB            ${artifact:DTB}
 CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
+DTB            ${artifact:DTB}
+EDK2FLASH      <empty>
+FIP            ${artifact:FIP}
 KERNEL         ${artifact:KERNEL}
+LOCAL_NET_PORT 8022
 ROOTFS         <empty>
 SHARE          <empty>
-EDK2FLASH      <empty>
 ============== ===============================================================
 
