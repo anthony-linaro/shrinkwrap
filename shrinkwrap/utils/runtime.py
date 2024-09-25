@@ -163,7 +163,13 @@ print(ip)
 		assert _instance == self
 		_instance = None
 		if self._rt:
-			self._rt.cleanup()
+			# Horrible hack alert; I've observed that docker can
+			# take over 10 seconds to stop the container on at least
+			# 1 system running Ubuntu 24.04. Let's cleanup the
+			# container asynchonously in a child process.
+			if os.fork() == 0:
+				self._rt.cleanup()
+				exit()
 			self._rt = None
 
 
