@@ -61,6 +61,12 @@ def add_parser(parser, formatter):
 		required=False, default=False, action='store_true',
 		help="""If specified, logs will not be colorized.""")
 
+	cmdp.add_argument('-t', '--timeout',
+		required=False, default=None, type=int,
+		help="""Number of days after which to automatically shutdown the
+		     container, if using a container runtime. Defaults to 1 day.
+		     """)
+
 	return cmd_name
 
 
@@ -229,7 +235,8 @@ def dispatch(args):
 	# on the host or may execute commands in a container, depending on what
 	# the user specified.
 	with runtime.Runtime(name=args.runtime, image=config.get_image([resolveb], args),
-		       		ssh_agent_keys=args.ssh_agent_keys) as rt:
+		       		ssh_agent_keys=args.ssh_agent_keys,
+				timeout=args.timeout) as rt:
 		for rtvar in resolver['run']['rtvars'].values():
 			if rtvar['type'] == 'path':
 				rt.add_volume(rtvar['value'])

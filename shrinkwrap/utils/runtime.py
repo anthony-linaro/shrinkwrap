@@ -25,9 +25,11 @@ class Runtime:
 	an abstracted runtime. Multiple runtimes are supported, identified by a
 	`name`. The 'null' runtime simply executes the commands on the native
 	host. The 'docker', 'docker-local', 'podman' and 'podman-local' runtimes
-	execute the commands in a container.
+	execute the commands in a container. `timeout`, if provided, is an
+	integer number of days after which the container will be shutdown if
+	still running. If None, the default timeout is used.
 	"""
-	def __init__(self, *, name, image=None, ssh_agent_keys=None):
+	def __init__(self, *, name, image=None, ssh_agent_keys=None, timeout=None):
 		self._rt = None
 		self._mountpoints = set()
 
@@ -36,6 +38,7 @@ class Runtime:
 
 		is_mac = sys.platform.startswith('darwin')
 		is_docker = name.startswith('docker')
+		is_container = is_docker or name.startswith('podman')
 
 		# MacOS uses GIDs that overlap with already defined GIDs in the
 		# container so we can't just bind the macos host UID/GID to the
@@ -56,6 +59,23 @@ class Runtime:
 		else:
 			self._rt.set_user('shrinkwrap')
 			self._rt.set_group('shrinkwrap')
+
+		# Tuxmake always starts the container with "sleep 1d" so that it
+		# automatically shuts down after 1 day if it ends up dangling.
+		# This is problematic for some long running FVP test cases, so
+		# we allow overriding it on the command line. We add a filter
+		# for spawn_container() which modifies the sleep argument which
+		# is the last element in the cmd list. Avoid hooking unless the
+		# user explicitly specified a timeout that is different from the
+		# expected default.
+		if is_container and timeout and timeout != 1:
+			spawn_container_orig = self._rt.spawn_container
+			def spawn_container_new(self, cmd):
+				if (cmd[-1] == '1d'):
+					cmd[-1] = f'{timeout}d'
+				return spawn_container_orig(cmd)
+			self._rt.spawn_container = \
+				types.MethodType(spawn_container_new, self._rt)
 
 		for key in ssh_agent_keys:
 			ssh_agent_lib.add(key)
