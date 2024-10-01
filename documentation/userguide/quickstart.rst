@@ -343,93 +343,165 @@ run:
   set -e
 
   # Remove old package.
-  rm -rf /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2.yaml > /dev/null 2>&1 || true
-  rm -rf /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2 > /dev/null 2>&1 || true
+  rm -rf package/ns-edk2.yaml > /dev/null 2>&1 || true
+  rm -rf package/ns-edk2 > /dev/null 2>&1 || true
 
   # Create directory structure.
-  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/dt
-  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
-  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/tfa
-  mkdir -p /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2
+  mkdir -p source/ns-edk2/acpica
+  mkdir -p source/ns-edk2/dt
+  mkdir -p source/ns-edk2/edk2
+  mkdir -p source/ns-edk2/tfa
+  mkdir -p package/ns-edk2
+
+  # Sync git repo for config=ns-edk2 component=acpica.
+  pushd source/ns-edk2
+  if [ ! -e "acpica/.git" ] || [ -f "./.acpica_sync" ]; then
+  	rm -rf acpica > /dev/null 2>&1 || true
+  	mkdir -p .
+  	touch ./.acpica_sync
+  	git clone --quiet https://github.com/acpica/acpica.git acpica
+  	pushd acpica
+  	git checkout --quiet --force R06_28_23
+  	git submodule --quiet update --init --checkout --recursive --force
+  	popd
+  	rm ./.acpica_sync
+  else
+  	pushd acpica
+  	if ! git checkout --quiet  R06_28_23 > /dev/null 2>&1 &&
+  	   ! ( git remote set-url origin https://github.com/acpica/acpica.git &&
+  	       git fetch --quiet --prune --tags origin &&
+  	       git checkout --quiet  R06_28_23) ||
+  	   ! git submodule --quiet update --init --checkout --recursive
+  	then
+  		echo "note: use --force-sync=acpica to override any change"
+  		exit 1
+  	fi
+  	popd
+  fi
+  popd
 
   # Sync git repo for config=ns-edk2 component=dt.
-  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2
-  if [ ! -d "dt/.git" ] || [ -f "./.dt_sync" ]; then
+  pushd source/ns-edk2
+  if [ ! -e "dt/.git" ] || [ -f "./.dt_sync" ]; then
   	rm -rf dt > /dev/null 2>&1 || true
   	mkdir -p .
   	touch ./.dt_sync
-  	git clone --quiet git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git dt
+  	git clone --quiet https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git dt
   	pushd dt
-  	git checkout --quiet --force v6.1-dts
+  	git checkout --quiet --force v6.6-dts
   	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm ./.dt_sync
+  else
+  	pushd dt
+  	if ! git checkout --quiet  v6.6-dts > /dev/null 2>&1 &&
+  	   ! ( git remote set-url origin https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git &&
+  	       git fetch --quiet --prune --tags origin &&
+  	       git checkout --quiet  v6.6-dts) ||
+  	   ! git submodule --quiet update --init --checkout --recursive
+  	then
+  		echo "note: use --force-sync=dt to override any change"
+  		exit 1
+  	fi
+  	popd
   fi
   popd
 
   # Sync git repo for config=ns-edk2 component=edk2.
-  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2
-  if [ ! -d "edk2/edk2/.git" ] || [ -f "edk2/.edk2_sync" ]; then
+  pushd source/ns-edk2
+  if [ ! -e "edk2/edk2/.git" ] || [ -f "edk2/.edk2_sync" ]; then
   	rm -rf edk2/edk2 > /dev/null 2>&1 || true
   	mkdir -p edk2
   	touch edk2/.edk2_sync
   	git clone --quiet https://github.com/tianocore/edk2.git edk2/edk2
   	pushd edk2/edk2
-  	git checkout --quiet --force edk2-stable202211
+  	git checkout --quiet --force edk2-stable202311
   	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm edk2/.edk2_sync
+  else
+  	pushd edk2/edk2
+  	if ! git checkout --quiet  edk2-stable202311 > /dev/null 2>&1 &&
+  	   ! ( git remote set-url origin https://github.com/tianocore/edk2.git &&
+  	       git fetch --quiet --prune --tags origin &&
+  	       git checkout --quiet  edk2-stable202311) ||
+  	   ! git submodule --quiet update --init --checkout --recursive
+  	then
+  		echo "note: use --force-sync=edk2 to override any change"
+  		exit 1
+  	fi
+  	popd
   fi
-  if [ ! -d "edk2/edk2-platforms/.git" ] || [ -f "edk2/.edk2-platforms_sync" ]; then
+  if [ ! -e "edk2/edk2-platforms/.git" ] || [ -f "edk2/.edk2-platforms_sync" ]; then
   	rm -rf edk2/edk2-platforms > /dev/null 2>&1 || true
   	mkdir -p edk2
   	touch edk2/.edk2-platforms_sync
   	git clone --quiet https://github.com/tianocore/edk2-platforms.git edk2/edk2-platforms
   	pushd edk2/edk2-platforms
-  	git checkout --quiet --force 20e07099d8f11889d101dd710ca85001be20e179
+  	git checkout --quiet --force 4b07df2e6f3813c6e955197dacb2cdfbe3471caa
   	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm edk2/.edk2-platforms_sync
-  fi
-  if [ ! -d "edk2/acpica/.git" ] || [ -f "edk2/.acpica_sync" ]; then
-  	rm -rf edk2/acpica > /dev/null 2>&1 || true
-  	mkdir -p edk2
-  	touch edk2/.acpica_sync
-  	git clone --quiet https://github.com/acpica/acpica.git edk2/acpica
-  	pushd edk2/acpica
-  	git checkout --quiet --force R10_20_22
-  	git submodule --quiet update --init --checkout --recursive --force
+  else
+  	pushd edk2/edk2-platforms
+  	if ! git checkout --quiet  4b07df2e6f3813c6e955197dacb2cdfbe3471caa > /dev/null 2>&1 &&
+  	   ! ( git remote set-url origin https://github.com/tianocore/edk2-platforms.git &&
+  	       git fetch --quiet --prune --tags origin &&
+  	       git checkout --quiet  4b07df2e6f3813c6e955197dacb2cdfbe3471caa) ||
+  	   ! git submodule --quiet update --init --checkout --recursive
+  	then
+  		echo "note: use --force-sync=edk2 to override any change"
+  		exit 1
+  	fi
   	popd
-  	rm edk2/.acpica_sync
   fi
   popd
 
-
   # Sync git repo for config=ns-edk2 component=tfa.
-  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2
-  if [ ! -d "tfa/.git" ] || [ -f "./.tfa_sync" ]; then
+  pushd source/ns-edk2
+  if [ ! -e "tfa/.git" ] || [ -f "./.tfa_sync" ]; then
   	rm -rf tfa > /dev/null 2>&1 || true
   	mkdir -p .
   	touch ./.tfa_sync
   	git clone --quiet https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git tfa
   	pushd tfa
-  	git checkout --quiet --force v2.8.0
+  	git checkout --quiet --force v2.11
   	git submodule --quiet update --init --checkout --recursive --force
   	popd
   	rm ./.tfa_sync
+  else
+  	pushd tfa
+  	if ! git checkout --quiet  v2.11 > /dev/null 2>&1 &&
+  	   ! ( git remote set-url origin https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git &&
+  	       git fetch --quiet --prune --tags origin &&
+  	       git checkout --quiet  v2.11) ||
+  	   ! git submodule --quiet update --init --checkout --recursive
+  	then
+  		echo "note: use --force-sync=tfa to override any change"
+  		exit 1
+  	fi
+  	popd
   fi
+  popd
+
+  # Build for config=ns-edk2 component=acpica.
+  export CROSS_COMPILE=
+  pushd source/ns-edk2/acpica
+  rm -rf source/ns-edk2/acpica/generate/unix/acpica
+  make -j4
+  mv source/ns-edk2/acpica/generate/unix/bin source/ns-edk2/acpica/generate/unix/acpica
   popd
 
   # Build for config=ns-edk2 component=dt.
   export CROSS_COMPILE=aarch64-none-elf-
-  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/dt
+  pushd source/ns-edk2/dt
   DTS=fvp-base-revc.dts
   INITRD_START=
   INITRD_END=
   DT_BASENAME=$(basename ${DTS} .dts)
   DTB_INTER=src/arm64/arm/${DT_BASENAME}.dtb
-  DTB_FINAL=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/dt/dt_bootargs.dtb
-  make CPP=${CROSS_COMPILE}cpp -j28 ${DTB_INTER}
+  DTB_FINAL=build/ns-edk2/dt/dt_bootargs.dtb
+  make CPP=${CROSS_COMPILE}cpp -j4 ${DTB_INTER}
   CHOSEN=
   if [ ! -z "" ]; then
   CHOSEN="${CHOSEN}bootargs = \"\";\n"
@@ -492,35 +564,40 @@ run:
   fi
   popd
 
+  # Copy artifacts for config=ns-edk2 component=acpica.
+  cp -r source/ns-edk2/acpica/generate/unix/acpica package/ns-edk2/acpica
+
   # Build for config=ns-edk2 component=edk2.
   export CROSS_COMPILE=aarch64-none-elf-
-  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
-  export WORKSPACE=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/edk2
+  pushd source/ns-edk2/edk2
+  export WORKSPACE=source/ns-edk2/edk2
   export GCC5_AARCH64_PREFIX=$CROSS_COMPILE
   export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms
-  export IASL_PREFIX=$WORKSPACE/acpica/generate/unix/bin/
+  export IASL_PREFIX=source/ns-edk2/acpica/generate/unix/acpica/
   export PYTHON_COMMAND=/usr/bin/python3
-  make -j28 -C acpica
-  source edk2/edksetup.sh
-  make -j28 -C edk2/BaseTools
-  build -n 28 -D EDK2_OUT_DIR=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/edk2 -a AARCH64 -t GCC5 -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE
+  source edk2/edksetup.sh --reconfig
+  make -j4 -C edk2/BaseTools
+  build -n 4 -D EDK2_OUT_DIR=build/ns-edk2/edk2 -a AARCH64 -t GCC5 -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE --pcd PcdShellDefaultDelay=0  --pcd PcdUefiShellDefaultBootEnable=1
   popd
 
+  # Copy artifacts for config=ns-edk2 component=dt.
+  cp -r build/ns-edk2/dt/dt_bootargs.dtb package/ns-edk2/dt_bootargs.dtb
+
+  # Copy artifacts for config=ns-edk2 component=edk2.
+  cp -r build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd package/ns-edk2/FVP_AARCH64_EFI.fd
 
   # Build for config=ns-edk2 component=tfa.
   export CROSS_COMPILE=aarch64-none-elf-
-  pushd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/source/ns-edk2/tfa
-  make BUILD_BASE=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa PLAT=fvp DEBUG=0 LOG_LEVEL=40 ARM_DISABLE_TRUSTED_WDOG=1 FVP_HW_CONFIG_DTS=fdts/fvp-base-gicv3-psci-1t.dts BL33=/data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd ARM_ARCH_MINOR=5 ENABLE_SVE_FOR_NS=1 ENABLE_SVE_FOR_SWD=1 CTX_INCLUDE_PAUTH_REGS=1 BRANCH_PROTECTION=1 CTX_INCLUDE_MTE_REGS=1 ENABLE_FEAT_HCX=1 CTX_INCLUDE_AARCH32_REGS=0 ENABLE_SME_FOR_NS=1 ENABLE_SME_FOR_SWD=1 all fip
+  pushd source/ns-edk2/tfa
+  make BUILD_BASE=build/ns-edk2/tfa LOG_LEVEL=40 ARM_ARCH_MINOR=2 DEBUG=0 ARM_DISABLE_TRUSTED_WDOG=1 CTX_INCLUDE_AARCH32_REGS=0 BRANCH_PROTECTION=1 ARM_ARCH_MAJOR=9 PLAT=fvp BL33=build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd FVP_HW_CONFIG_DTS=fdts/fvp-base-gicv3-psci-1t.dts -j$(( 4 < 8 ? 4 : 8 )) all fip
   popd
 
-  # Copy artifacts for config=ns-edk2.
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/dt/dt_bootargs.dtb /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/dt_bootargs.dtb
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/FVP_AARCH64_EFI.fd
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/shrinkwrap/config/edk2-flash.img /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/edk2-flash.img
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/bl1.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/bl1.bin
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/bl2.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/bl2.bin
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/bl31.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/bl31.bin
-  cp /data_nvme0n1/ryarob01/shrinkwrap_demo/live/build/build/ns-edk2/tfa/fvp/release/fip.bin /data_nvme0n1/ryarob01/shrinkwrap_demo/live/package/ns-edk2/fip.bin
+  # Copy artifacts for config=ns-edk2 component=tfa.
+  cp -r build/ns-edk2/tfa/fvp/release/bl31.bin package/ns-edk2/bl31.bin
+  cp -r build/ns-edk2/tfa/fvp/release/bl1.bin package/ns-edk2/bl1.bin
+  cp -r build/ns-edk2/tfa/fvp/release/fip.bin package/ns-edk2/fip.bin
+  cp -r build/ns-edk2/tfa/fvp/release/bl2.bin package/ns-edk2/bl2.bin
+
 
 .. raw:: html
 
