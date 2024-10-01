@@ -6,6 +6,7 @@ import io
 import json
 import os
 import re
+import textwrap
 import yaml
 import shrinkwrap.utils.clivars as uclivars
 import shrinkwrap.utils.workspace as workspace
@@ -825,6 +826,10 @@ class Script:
 
 		self._cmds += buf.getvalue()
 
+	def append_multiline(self, text, *args, indent='', **kwargs):
+		text = textwrap.indent(textwrap.dedent(text).strip(), indent)
+		self.append(text, *args, **kwargs)
+
 	def seal(self):
 		assert(not self._sealed)
 		self._sealed = True
@@ -923,41 +928,42 @@ def build_graph(configs, echo, nosync):
 			for name in ts.get_ready():
 				component = config['build'][name]
 
-				if (type(nosync) == list and name not in nosync) or \
-				   (type(nosync) != list and not nosync):
+				if ((type(nosync) == list and name not in nosync) or
+				    (type(nosync) != list and not nosync)) and \
+				   len(component['repo']) > 0:
 					g = Script('Syncing git repo', config["name"], name, preamble=pre)
-					if len(component['repo']) > 0:
-						g.append(f'# Sync git repo for config={config["name"]} component={name}.')
-						g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
+					g.append(f'# Sync git repo for config={config["name"]} component={name}.')
+					g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
 
-						for gitlocal, repo in component['repo'].items():
-							parent = os.path.basename(component["sourcedir"])
-							gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
-							gitremote = repo['remote']
-							gitrev = repo['revision']
-							basedir = os.path.normpath(os.path.join(gitlocal, '..'))
-							sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+					for gitlocal, repo in component['repo'].items():
+						parent = os.path.basename(component["sourcedir"])
+						gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
+						gitremote = repo['remote']
+						gitrev = repo['revision']
+						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
+						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
 
-							g.append(f'if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then')
-							g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
-							g.append(f'\tmkdir -p {basedir}')
-							g.append(f'\ttouch {sync}')
-							g.append(f'\tgit clone {gitargs}{gitremote} {gitlocal}')
-							g.append(f'\tpushd {gitlocal}')
-							g.append(f'\tgit checkout {gitargs}--force {gitrev}')
-							g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
-							g.append(f'\tpopd')
-							g.append(f'\trm {sync}')
-							g.append(f'else')
-							g.append(f'\tpushd {gitlocal}')
-							g.append(f'\tgit checkout {gitargs}--force {gitrev} > /dev/null 2>&1 || (')
-							g.append(f'\t\tgit fetch {gitargs}--prune --prune-tags {gitremote} &&')
-							g.append(f'\t\tgit checkout {gitargs}--force {gitrev})')
-							g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
-							g.append(f'\tpopd')
-							g.append(f'fi')
+						g.append_multiline(f'''
+						if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then
+							rm -rf {gitlocal} > /dev/null 2>&1 || true
+							mkdir -p {basedir}
+							touch {sync}
+							git clone {gitargs}{gitremote} {gitlocal}
+							pushd {gitlocal}
+							git checkout {gitargs}--force {gitrev}
+							git submodule {gitargs}update --init --checkout --recursive --force
+							popd
+							rm {sync}
+						else
+							pushd {gitlocal}
+							git checkout {gitargs}--force {gitrev} > /dev/null 2>&1 || (
+								git fetch {gitargs}--prune --prune-tags {gitremote} &&
+								git checkout {gitargs}--force {gitrev})
+							git submodule {gitargs}update --init --checkout --recursive --force
+							popd
+						fi''')
 
-						g.append(f'popd')
+					g.append(f'popd')
 					g.seal()
 					graph[g] = [gl2]
 				else:
@@ -1036,13 +1042,14 @@ def clean_graph(configs, echo):
 						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
 						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
 
-						c.append(f'\tif [ -d "{gitlocal}/.git" ] && [ ! -f "{sync}" ]; then')
-						c.append(f'\t\tpushd {gitlocal}')
-						c.append(f'\t\tgit clean {gitargs}-xdff')
-						c.append(f'\t\tpopd')
-						c.append(f'\telse')
-						c.append(f'\t\trm -rf {gitlocal} {sync} > /dev/null 2>&1 || true')
-						c.append(f'\tfi')
+						c.append_multiline(f'''
+						if [ -d "{gitlocal}/.git" ] && [ ! -f "{sync}" ]; then
+							pushd {gitlocal}
+							git clean {gitargs}-xdff
+							popd
+						else
+							rm -rf {gitlocal} {sync} > /dev/null 2>&1 || true
+						fi''', indent='\t')
 
 					c.append(f'\tpopd')
 					c.append(f'fi')
