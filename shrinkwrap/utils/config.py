@@ -878,7 +878,7 @@ def script_preamble(echo):
 	return pre.commands(False)
 
 
-def build_graph(configs, echo, nosync):
+def build_graph(configs, echo, nosync, force_sync):
 	"""
 	Returns a graph of scripts where the edges represent dependencies. The
 	scripts should be executed according to the graph in order to correctly
@@ -919,8 +919,20 @@ def build_graph(configs, echo, nosync):
 	gl2.seal()
 	graph[gl2] = [gl1]
 
+	force_sync_all = type(force_sync) != list
+	sync_none = type(nosync) != list
+
 	for config in configs:
 		build_scripts = {}
+
+		if force_sync_all:
+			force_sync = list(config['build'].keys())
+		if sync_none:
+			nosync = list(config['build'].keys())
+
+		invalid_sync_cfg = set(force_sync).intersection(nosync)
+		if invalid_sync_cfg:
+			raise Exception(f'Conflicting sync configuration for {invalid_sync_cfg}')
 
 		ts = graphlib.TopologicalSorter(config['graph'])
 		ts.prepare()
@@ -928,9 +940,7 @@ def build_graph(configs, echo, nosync):
 			for name in ts.get_ready():
 				component = config['build'][name]
 
-				if ((type(nosync) == list and name not in nosync) or
-				    (type(nosync) != list and not nosync)) and \
-				   len(component['repo']) > 0:
+				if name not in nosync and len(component['repo']) > 0:
 					g = Script('Syncing git repo', config["name"], name, preamble=pre)
 					g.append(f'# Sync git repo for config={config["name"]} component={name}.')
 					g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
@@ -942,6 +952,32 @@ def build_graph(configs, echo, nosync):
 						gitrev = repo['revision']
 						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
 						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+
+						if name in force_sync:
+							# We don't update any submodule before `git submodule sync`,
+							# to handle the case where a remote changes the submodule's URL.
+							# `git checkout` handles most cases, but doesn't update a local
+							# branch. So if gitrev is not a tag, do a `git reset`.
+							sync_cmd_when_exists = f'''
+							git remote set-url origin {gitremote}
+							git fetch {gitargs}--prune --prune-tags --force --recurse-submodules=off origin
+							git checkout {gitargs}--force {gitrev}
+							[ $(git tag -l {gitrev}) ] || git reset {gitargs}--hard origin/{gitrev}
+							git submodule {gitargs}sync --recursive
+							git submodule {gitargs}update --init --checkout --recursive --force
+							'''.strip()
+						else:
+							sync_cmd_when_exists = f'''
+							if ! git checkout {gitargs} {gitrev} > /dev/null 2>&1 &&
+							   ! ( git remote set-url origin {gitremote} &&
+							       git fetch {gitargs}--prune --tags origin &&
+							       git checkout {gitargs} {gitrev}) ||
+							   ! git submodule {gitargs}update --init --checkout --recursive
+							then
+								echo "note: use --force-sync={name} to override any change"
+								exit 1
+							fi
+							'''.strip()
 
 						g.append_multiline(f'''
 						if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then
@@ -956,13 +992,9 @@ def build_graph(configs, echo, nosync):
 							rm {sync}
 						else
 							pushd {gitlocal}
-							git checkout {gitargs}--force {gitrev} > /dev/null 2>&1 || (
-								git fetch {gitargs}--prune --prune-tags {gitremote} &&
-								git checkout {gitargs}--force {gitrev})
-							git submodule {gitargs}update --init --checkout --recursive --force
+							{sync_cmd_when_exists}
 							popd
 						fi''')
-
 					g.append(f'popd')
 					g.seal()
 					graph[g] = [gl2]

@@ -314,9 +314,12 @@ artifacts.
 
   By default, Shrinkwrap will sync all component repos to the revision specified
   in the config on every build invocation. If you have made changes in the
-  working directory, your CHANGES WILL BE LOST! You can override this behaviour
-  so that Shrinkwrap just builds whatever is in the working directory by adding
-  ``--no-sync <component>`` or ``--no-sync-all`` to the command line.
+  working directory, shrinkwrap refuses to sync and displays an error. You can
+  override this behaviour so that Shrinkwrap just builds whatever is in the
+  working directory by adding ``--no-sync <component>`` or ``--no-sync-all`` to
+  the command line. Alternatively you can force shrinkwrap to override your
+  changes by adding ``--force-sync <component>`` or ``--force-sync-all`` to the
+  command line.
 
 Alternatively, pass ``--dry-run`` to view the shell script that would have been
 run:

@@ -59,6 +59,18 @@ def add_parser(parser, formatter):
 		help="""Do not sync repos for any component, as if --no-sync was
 		     specified for every component in the config.""")
 
+	cmdp.add_argument('--force-sync',
+		metavar='component', required=False, default=[], action='append',
+		help="""Synchronize the repo of the given component even if the local
+		     source directory contains unsaved changes. YOUR CHANGES WILL BE
+		     LOST! In addition, download updates from remote branches.""")
+
+	cmdp.add_argument('--force-sync-all',
+		required=False, default=False, action='store_true',
+		help="""Synchronize all components even if the local source directories
+		     contain unsaved changes. YOUR CHANGES WILL BE LOST! In addition,
+		     download all remote branch updates.""")
+
 	buildall.add_common_args(cmdp)
 
 	return cmd_name
@@ -73,4 +85,6 @@ def dispatch(args):
 	btvars = vars.parse(args.btvar, type='bt')
 	if args.no_sync_all:
 		args.no_sync = True
-	buildall.build([args.config], [btvars], args.no_sync, args)
+	if args.force_sync_all:
+		args.force_sync = True
+	buildall.build([args.config], [btvars], args.no_sync, args.force_sync, args)
