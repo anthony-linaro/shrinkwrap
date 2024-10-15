@@ -19,6 +19,7 @@ out-of-the-box:
    buildroot.rst
    cca-3world.rst
    cca-4world.rst
+   cca-edk2.rst
    ffa-hafnium-optee.rst
    ffa-optee.rst
    ffa-tftf.rst
