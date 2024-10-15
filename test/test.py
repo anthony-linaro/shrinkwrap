@@ -114,6 +114,18 @@ CONFIGS = [
 		'btvars': {'GUEST_ROOTFS': ROOTFS},
 		'rtvars': {'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
 	},
+	{
+		'config': 'cca-edk2.yaml',
+		'btvars': {},
+		'rtvars': {
+			'dt': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS},
+			'acpi': {
+				'KERNEL': KERNEL,
+				'ROOTFS': ROOTFS,
+				'CMDLINE': '\"console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp acpi=force\"'
+			},
+		},
+	},
 ]
 
 
