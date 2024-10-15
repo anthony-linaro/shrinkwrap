@@ -104,6 +104,16 @@ CONFIGS = [
 		},
 		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
 	},
+	{
+		'config': 'cca-3world.yaml',
+		'btvars': {'GUEST_ROOTFS': ROOTFS},
+		'rtvars': {'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
+	},
+	{
+		'config': 'cca-4world.yaml',
+		'btvars': {'GUEST_ROOTFS': ROOTFS},
+		'rtvars': {'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
+	},
 ]
 
 
@@ -325,31 +335,30 @@ def run_configs(configs, overlay=None, rtvarss=None):
 
 
 def do_main(args):
+	arch_configs = [c for c in CONFIGS if 'arch' in c]
+	noarch_configs = [c for c in CONFIGS if 'arch' not in c]
+
 	if args.smoke_test:
-		arches = set([c['arch']['end'] for c in CONFIGS])
+		arches = set([c['arch']['end'] for c in arch_configs])
 	else:
 		arches = list(arch_range('v8.0', ARCH_LATEST))
 
+	# Configs that support an arch override.
 	for arch in arches:
-		configs = [c['config'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
-		btvarss = [c['btvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
-		rtvarss = [c['rtvars'] for c in CONFIGS if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
-		if len(configs) == 0:
-			continue
-		build_configs(configs, f'arch/{arch}.yaml', btvarss=btvarss)
-		run_configs(configs, f'arch/{arch}.yaml', rtvarss=rtvarss)
+		configs = [c['config'] for c in arch_configs if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
+		btvarss = [c['btvars'] for c in arch_configs if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
+		rtvarss = [c['rtvars'] for c in arch_configs if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
+		if len(configs) > 0:
+			build_configs(configs, f'arch/{arch}.yaml', btvarss=btvarss)
+			run_configs(configs, f'arch/{arch}.yaml', rtvarss=rtvarss)
 
-	# Special-case configs that don't support arch overrides.
-	build_configs(['cca-3world.yaml', 'cca-4world.yaml'],
-	       			btvarss=[
-					{'GUEST_ROOTFS': ROOTFS},
-					{'GUEST_ROOTFS': ROOTFS}
-				])
-	run_configs(['cca-3world.yaml', 'cca-4world.yaml'], None,
-	     			rtvarss=[
-					{'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
-					{'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
-				])
+	# Configs that don't support an arch override.
+	configs = [c['config'] for c in noarch_configs]
+	btvarss = [c['btvars'] for c in noarch_configs]
+	rtvarss = [c['rtvars'] for c in noarch_configs]
+	if len(configs) > 0:
+		build_configs(configs, btvarss=btvarss)
+		run_configs(configs, rtvarss=rtvarss)
 
 	success = print_results(args.junit)
 	exit(not success)
