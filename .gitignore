@@ -5,3 +5,4 @@ documentation/_build/
 public/
 test/assets/
 test/build/
+docker/assets/
