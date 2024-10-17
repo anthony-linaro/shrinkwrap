@@ -539,4 +539,27 @@ OK "config sync=force updates" -o $T/overlay.yaml
 CONTENT $SHRINKWRAP_BUILD/source/base/test1/README "repo 1 commit 5"
 
 
+################################################################################
+TESTS   hash sync
+
+# Obtain hash of a specific commit
+old_hash=$(git -C $T/repo1 show-ref --hash v0.1)
+
+cat << EOF > $T/overlay.yaml
+build:
+  test1:
+    repo:
+      revision: $old_hash
+EOF
+
+OK "switch to old git hash" -o $T/overlay.yaml
+CONTENT $SHRINKWRAP_BUILD/source/base/test1/README "repo 1 commit 2"
+OK "switch to main"
+CONTENT $SHRINKWRAP_BUILD/source/base/test1/README "repo 1 commit 5"
+
+OK "switch to old git hash with --force-sync" -o $T/overlay.yaml --force-sync=test1
+CONTENT $SHRINKWRAP_BUILD/source/base/test1/README "repo 1 commit 2"
+OK "switch to main with --force-sync" --force-sync=test1
+CONTENT $SHRINKWRAP_BUILD/source/base/test1/README "repo 1 commit 5"
+
 echo ALL TESTS PASS
