@@ -926,12 +926,12 @@ def build_graph(configs, echo, nosync, force_sync):
 							# We don't update any submodule before `git submodule sync`,
 							# to handle the case where a remote changes the submodule's URL.
 							# `git checkout` handles most cases, but doesn't update a local
-							# branch. So if gitrev is not a tag, do a `git reset`.
+							# branch. So if gitrev is a branch, do a `git reset` as well.
 							sync_cmd_when_exists = f'''
 							git remote set-url origin {gitremote}
 							git fetch {gitargs}--prune --prune-tags --force --recurse-submodules=off origin
 							git checkout {gitargs}--force {gitrev}
-							[ $(git tag -l {gitrev}) ] || git reset {gitargs}--hard origin/{gitrev}
+							git show-ref -q --heads {gitrev} && git reset {gitargs}--hard origin/{gitrev}
 							git submodule {gitargs}sync --recursive
 							git submodule {gitargs}update --init --checkout --recursive --force
 							'''.strip()
