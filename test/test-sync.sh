@@ -155,7 +155,7 @@ TESTS   Tag and branch update
 {
     pushd $T/repo1
     echo -n "repo 1 commit 2" > README
-    git commit -a -m "commit 1"
+    git commit -a -m "commit 2"
     git tag v0.1
     popd
 } >> $LOG
@@ -240,7 +240,7 @@ TESTS   Tag and branch udpates with --force-sync
 {
     pushd $T/repo1
     echo -n "repo 1 commit 3" > README
-    git commit -a -m "commit 1"
+    git commit -a -m "commit 3"
     git tag v0.2
     popd
 } >> $LOG
