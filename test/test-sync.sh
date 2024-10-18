@@ -21,6 +21,19 @@ trap "rm -rf $T" EXIT
 export SHRINKWRAP_BUILD=$T/build
 export SHRINKWRAP_PACKAGE=$T/package
 
+cat << EOF > $T/gitconfig
+# Needed when not configured in config (e.g. on ci)
+[user]
+    name = Mr T. Ester
+    email = mr.t.ester@test-sync.sh
+
+# Needed so we can use local repo paths for submodules
+[protocol.file]
+    allow = always
+EOF
+
+export GIT_CONFIG_GLOBAL=$T/gitconfig
+
 # Test $1 must succeed
 OK () {
     local name="$1"
@@ -75,7 +88,7 @@ TESTS () {
     git add README
     git commit -m "commit 0"
 
-    git submodule add ssh://localhost:$T/module1 module
+    git submodule add file://$T/module1 module
     git commit -a -m "Add module 1"
     popd
 } >> $LOG
@@ -406,7 +419,7 @@ TESTS   Override branch
     git add README
     git commit -a -m "commit 0"
 
-    git submodule add ssh://localhost:$T/module2 module
+    git submodule add file://$T/module2 module
     git commit -a -m "Add module 2"
     popd
 } >> $LOG
@@ -455,7 +468,7 @@ TESTS   Update module URL
 {
     pushd $T/repo2
     git submodule set-branch -b main module
-    git submodule set-url module ssh://localhost:$T/module1
+    git submodule set-url module file://$T/module1
     git submodule update --remote
     git commit -a -m "Update module URL"
     popd

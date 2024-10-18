@@ -20,7 +20,9 @@ IMAGE = None
 FVPJOBS = None
 
 
-ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets')
+SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
+SYNCTEST = os.path.join(SCRIPTDIR, 'test-sync.sh')
+ASSETS = os.path.join(SCRIPTDIR, 'assets')
 KERNEL = os.path.join(ASSETS, 'Image')
 BOOTWRAPPER = os.path.join(ASSETS, 'linux-system.axf')
 ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
@@ -371,6 +373,14 @@ def do_main(args):
 	if len(configs) > 0:
 		build_configs(configs, btvarss=btvarss)
 		run_configs(configs, rtvarss=rtvarss)
+
+	# Run repo sync tests.
+	ret = subprocess.run(SYNCTEST).returncode
+	results.append({
+		'type': 'repo-sync-behaviours',
+		'status': 'pass' if ret == 0 else 'fail',
+		'error': None,
+	})
 
 	success = print_results(args.junit)
 	exit(not success)
