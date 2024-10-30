@@ -111,7 +111,6 @@ if [ "${ARCH}" = "x86_64" ]; then
 	FVP_PKG_URL=https://developer.arm.com/-/cdn-downloads/permalink/Fixed-Virtual-Platforms/FM-11.27
 	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.27_19_Linux64.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
-	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_GCC-9.3
 # ARCH is "aarch64" on Ubuntu, or "arm64" on Mac OS
 elif [ "${ARCH}" = "aarch64" ] || [ "${ARCH}" = "arm64" ]; then
 	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
@@ -126,7 +125,6 @@ elif [ "${ARCH}" = "aarch64" ] || [ "${ARCH}" = "arm64" ]; then
 	FVP_PKG_URL=https://developer.arm.com/-/cdn-downloads/permalink/Fixed-Virtual-Platforms/FM-11.27
 	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.27_19_Linux64_armv8l.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_armv8l_GCC-9.3
-	FVP_PLUGIN_DIR=Base_RevC_AEMvA_pkg/plugins/Linux64_armv8l_GCC-9.3
 else
 	echo "Host architecture ${ARCH} not supported"
 	usage
@@ -174,7 +172,6 @@ if [ "${DRIVER}" = "docker" ]; then
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--build-arg=FVP_PLUGIN_DIR=${FVP_PLUGIN_DIR} \
 		--file=Dockerfile.fvp \
 		--tag=${REGISTRY}/base-slim:${VERSION}-${ARCH} \
 		.
@@ -191,7 +188,6 @@ if [ "${DRIVER}" = "docker" ]; then
 		--build-arg=BASE=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--build-arg=FVP_PLUGIN_DIR=${FVP_PLUGIN_DIR} \
 		--file=Dockerfile.fvp \
 		--tag=${REGISTRY}/base-full:${VERSION}-${ARCH} \
 		.
@@ -220,7 +216,6 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--build-arg=FVP_PLUGIN_DIR=${FVP_PLUGIN_DIR} \
 		--dockerfile=Dockerfile.fvp \
 		--destination=${REGISTRY}/base-slim:${VERSION}-${ARCH} \
 		--context=.
@@ -241,7 +236,6 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--build-arg=FVP_PLUGIN_DIR=${FVP_PLUGIN_DIR} \
 		--dockerfile=Dockerfile.fvp \
 		--destination=${REGISTRY}/base-full:${VERSION}-${ARCH} \
 		--context=.

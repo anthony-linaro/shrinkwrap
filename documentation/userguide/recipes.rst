@@ -170,16 +170,15 @@ version though. In this case, the simplest approach is to install the FVP on
 your system, ensuring that the required directories are in your PATH, and invoke
 ``shrinkwrap run`` with the ``null`` runtime.
 
-Shrinkwrap expects both the FVP binary (e.g. FVP_Base_RevC-2xAEMvA) and its
-plugins (e.g. GenericTrace.so) to be on your path. The example below shows
-downloading and untaring the FVP and adding the required directories to the
-PATH.
+Shrinkwrap expects the FVP binary (e.g. FVP_Base_RevC-2xAEMvA) to be on your
+path. The example below shows downloading and untaring the FVP and adding the
+required directory to the PATH.
 
 .. code-block:: shell
 
   wget -q -O FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz https://developer.arm.com/-/media/Files/downloads/ecosystem-models/FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz
   tar xf FVP_Base_RevC-2xAEMvA_11.18_16_Linux64.tgz
-  export PATH=$PWD/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3:$PWD/Base_RevC_AEMvA_pkg/plugins/Linux64_GCC-9.3:$PATH
+  export PATH=$PWD/Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3:$PATH
   shrinkwrap build ns-edk2.yaml
   shrinkwrap --runtime=null run ns-edk2.yaml --rtvar=KERNEL=path/to/Image
 
