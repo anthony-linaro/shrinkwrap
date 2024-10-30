@@ -709,22 +709,17 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
   function finish { rm -rf $SEMIHOSTDIR; }
   trap finish EXIT
   cp ./path/to/Image ${SEMIHOSTDIR}/Image
-  cp <root>/package/ns-edk2/fvp-base-revc_args.dtb ${SEMIHOSTDIR}/fdt.dtb
+  cp <root>/package/ns-edk2/dt_bootargs.dtb ${SEMIHOSTDIR}/fdt.dtb
   cat <<EOF > ${SEMIHOSTDIR}/startup.nsh
   Image dtb=fdt.dtb console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
   EOF
 
   # Run the model.
   FVP_Base_RevC-2xAEMvA \
-      --plugin=$(which ScalableVectorExtension.so) \
       --stat \
-      -C SVE.ScalableVectorExtension.has_sme2=1 \
-      -C SVE.ScalableVectorExtension.has_sme=1 \
-      -C SVE.ScalableVectorExtension.has_sve2=1 \
-      -C bp.dram_metadata.is_enabled=1 \
       -C bp.dram_size=4 \
       -C bp.flashloader0.fname=<root>/package/ns-edk2/fip.bin \
-      -C bp.flashloader1.fname=<root>/package/ns-edk2/edk2-flash.img \
+      -C bp.flashloader1.fname= \
       -C bp.hostbridge.userNetPorts=8022=22 \
       -C bp.hostbridge.userNetworking=1 \
       -C bp.refcounter.non_arch_start_at_default=1 \
@@ -741,7 +736,9 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
       -C bp.terminal_3.mode=raw \
       -C bp.terminal_3.start_telnet=0 \
       -C bp.ve_sysregs.exit_on_shutdown=1 \
+      -C bp.virtio_rng.enabled=1 \
       -C bp.virtioblockdevice.image_path=./path/to/rootfs.img \
+      -C bp.virtiop9device.root_path= \
       -C bp.vis.disable_visualisation=1 \
       -C cache_state_modelled=0 \
       -C cluster0.NUM_CORES=4 \
@@ -776,10 +773,13 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
       -C cluster0.has_large_system_ext=1 \
       -C cluster0.has_large_va=1 \
       -C cluster0.has_rndr=1 \
+      -C cluster0.has_sve=1 \
       -C cluster0.max_32bit_el=0 \
-      -C cluster0.memory_tagging_support_level=3 \
       -C cluster0.pmb_idr_external_abort=1 \
       -C cluster0.stage12_tlb_size=1024 \
+      -C cluster0.sve.has_sme2=1 \
+      -C cluster0.sve.has_sme=1 \
+      -C cluster0.sve.has_sve2=1 \
       -C cluster1.NUM_CORES=4 \
       -C cluster1.PA_SIZE=48 \
       -C cluster1.check_memory_attributes=0 \
@@ -811,21 +811,22 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
       -C cluster1.has_large_system_ext=1 \
       -C cluster1.has_large_va=1 \
       -C cluster1.has_rndr=1 \
+      -C cluster1.has_sve=1 \
       -C cluster1.max_32bit_el=0 \
-      -C cluster1.memory_tagging_support_level=3 \
       -C cluster1.pmb_idr_external_abort=1 \
       -C cluster1.stage12_tlb_size=1024 \
+      -C cluster1.sve.has_sme2=1 \
+      -C cluster1.sve.has_sme=1 \
+      -C cluster1.sve.has_sve2=1 \
+      -C gic_distributor.has_nmi=1 \
       -C pci.pci_smmuv3.mmu.SMMU_AIDR=2 \
-      -C pci.pci_smmuv3.mmu.SMMU_IDR0=4592187 \
-      -C pci.pci_smmuv3.mmu.SMMU_IDR1=6291458 \
+      -C pci.pci_smmuv3.mmu.SMMU_IDR0=135263935 \
+      -C pci.pci_smmuv3.mmu.SMMU_IDR1=216481056 \
       -C pci.pci_smmuv3.mmu.SMMU_IDR3=5908 \
       -C pci.pci_smmuv3.mmu.SMMU_IDR5=4294902901 \
-      -C pci.pci_smmuv3.mmu.SMMU_ROOT_IDR0=3 \
-      -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR=1083 \
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR1=2684354562 \
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR2=0 \
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR3=0 \
-      -C pci.pci_smmuv3.mmu.root_register_page_offset=131072 \
       -C pctl.startup=0.0.0.0
 
 .. raw:: html
@@ -872,41 +873,62 @@ command:
   ---
   name: ns-edk2
   fullname: ns-edk2.yaml
-  description: 'Best choice for: I want to run Linux on FVP, booting with ACPI/DT, and
-    have easy control over its command line.
-
-    Brings together TF-A and EDK2 to provide a simple non-secure world environment running
-    on FVP. Allows easy specification of the kernel image and command line, and rootfs
-    at runtime (see rtvars). ACPI is provided by UEFI.
-
-    An extra rtvar is added (DTB) which allows specification of a custom device tree.
-    By default (if not overriding the rtvar), the upstream kernel device tree is used.
-    DT is enabled by default. Use ''acpi=force'' to enable ACPI boot.
-
-    By default (if not overriding the rtvars) a sensible command line is used that will
-    set up the console for logging and attempt to mount the rootfs image from the FVP''s
-    virtio block device. However the default rootfs image is empty, so the kernel will
-    panic when attempting to mount; the user must supply a rootfs if it is required
-    that the kernel completes its boot. No default kernel image is supplied and the
-    config will refuse to run unless it is explicitly specified.
-
-    Note that by default, UEFI variables are build time configured directing EDK2
-    to boot to the shell. This will cause startup.nsh to be executed and will
-    start the kernel boot. This way everything is automatic. By default, all EDK2
-    output is muxed to stdout. If you prefer booting UEFI to its UI, override the
-    the build pcd parameter `PcdUefiShellDefaultBootEnable` using the overlay
-    and override terminals 'bp.terminal_0'.type to 'telnet'.
+  description: "Best choice for: I want to run Linux on FVP, booting with ACPI/DT, and\
+    \ have easy control over its command line.\nBrings together TF-A and EDK2 to provide\
+    \ a simple non-secure world environment running on FVP. Allows easy specification\
+    \ of the kernel image and command line, and rootfs at runtime (see rtvars). ACPI\
+    \ is provided by UEFI.\nAn extra rtvar is added (DTB) which allows specification\
+    \ of a custom device tree. By default (if not overriding the rtvar), the upstream\
+    \ kernel device tree is used. DT is enabled by default. Use 'acpi=force' to enable\
+    \ ACPI boot.\nBy default (if not overriding the rtvars) a sensible command line\
+    \ is used that will set up the console for logging and attempt to mount the rootfs\
+    \ image from the FVP's virtio block device. However the default rootfs image is\
+    \ empty, so the kernel will panic when attempting to mount; the user must supply\
+    \ a rootfs if it is required that the kernel completes its boot. No default kernel\
+    \ image is supplied and the config will refuse to run unless it is explicitly specified.\n\
+    Note that by default, UEFI variables are build time configured directing EDK2 to\
+    \ boot to the shell. This will cause startup.nsh to be executed and will start the\
+    \ kernel boot. This way everything is automatic. By default, all EDK2 output is\
+    \ muxed to stdout. If you prefer booting UEFI to its UI, override the the build\
+    \ pcd parameter `PcdUefiShellDefaultBootEnable` using the overlay and override terminals\
+    \ 'bp.terminal_0'.type to 'telnet'.\nWhen booting with device tree, a directory\
+    \ can optionally be shared from the host system into the Linux environment running\
+    \ in the FVP. To do so, set the SHARE rtvar to the desired directory, then mount\
+    \ the share inside the FVP with the following (or automate it in fstab):\n.. code-block::\
+    \ shell\n  # mkdir /share\n  # mount -t 9p -o trans=virtio,version=9p2000.L FM /share"
+  image: null
   concrete: true
   graph: {}
   build:
+    acpica:
+      repo:
+        .:
+          remote: https://github.com/acpica/acpica.git
+          revision: R06_28_23
+      sync: null
+      sourcedir: null
+      builddir: null
+      toolchain: null
+      stderrfilt: null
+      params: {}
+      prebuild: []
+      build:
+      - rm -rf ${param:sourcedir}/generate/unix/acpica
+      - make -j${param:jobs}
+      - mv ${param:sourcedir}/generate/unix/bin ${param:sourcedir}/generate/unix/acpica
+      postbuild: []
+      artifacts:
+        ACPICA: ${param:sourcedir}/generate/unix/acpica
     dt:
       repo:
         .:
-          remote: git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git
-          revision: v6.1-dts
+          remote: https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git
+          revision: v6.6-dts
+      sync: null
       sourcedir: null
       builddir: null
       toolchain: aarch64-none-elf-
+      stderrfilt: null
       params: {}
       prebuild:
       - DTS=fvp-base-revc.dts
@@ -958,16 +980,15 @@ command:
       repo:
         edk2:
           remote: https://github.com/tianocore/edk2.git
-          revision: edk2-stable202211
+          revision: edk2-stable202311
         edk2-platforms:
           remote: https://github.com/tianocore/edk2-platforms.git
-          revision: 20e07099d8f11889d101dd710ca85001be20e179
-        acpica:
-          remote: https://github.com/acpica/acpica.git
-          revision: R10_20_22
+          revision: 4b07df2e6f3813c6e955197dacb2cdfbe3471caa
+      sync: null
       sourcedir: null
       builddir: null
       toolchain: aarch64-none-elf-
+      stderrfilt: true
       params:
         -a: AARCH64
         -t: GCC5
@@ -979,11 +1000,10 @@ command:
       - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
       - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
-      - export IASL_PREFIX=$$WORKSPACE/acpica/generate/unix/bin/
+      - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
       build:
-      - make -j${param:jobs} -C acpica
-      - source edk2/edksetup.sh
+      - source edk2/edksetup.sh --reconfig
       - make -j${param:jobs} -C edk2/BaseTools
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
       postbuild: []
@@ -993,165 +1013,171 @@ command:
       repo:
         .:
           remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
-          revision: v2.8.0
+          revision: v2.11
+      sync: null
       sourcedir: null
       builddir: null
       toolchain: aarch64-none-elf-
+      stderrfilt: null
       params:
         PLAT: fvp
-        DEBUG: 0
+        BL33: ${artifact:EDK2}
+        ARM_ARCH_MAJOR: 9
+        CTX_INCLUDE_AARCH32_REGS: 0
+        ARM_ARCH_MINOR: 2
+        BRANCH_PROTECTION: 1
+        FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
         LOG_LEVEL: 40
         ARM_DISABLE_TRUSTED_WDOG: 1
-        FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
-        BL33: ${artifact:EDK2}
-        ARM_ARCH_MINOR: 5
-        ENABLE_SVE_FOR_NS: 1
-        ENABLE_SVE_FOR_SWD: 1
-        CTX_INCLUDE_PAUTH_REGS: 1
-        BRANCH_PROTECTION: 1
-        CTX_INCLUDE_MTE_REGS: 1
-        ENABLE_FEAT_HCX: 1
-        CTX_INCLUDE_AARCH32_REGS: 0
-        ENABLE_SME_FOR_NS: 1
-        ENABLE_SME_FOR_SWD: 1
+        DEBUG: 0
       prebuild: []
       build:
-      - make BUILD_BASE=${param:builddir} ${param:join_equal} all fip
+      - 'make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs}
+        < 8 ? ${param:jobs} : 8 )) all fip'
       postbuild: []
       artifacts:
-        BL1: ${param:builddir}/fvp/release/bl1.bin
-        BL2: ${param:builddir}/fvp/release/bl2.bin
-        BL31: ${param:builddir}/fvp/release/bl31.bin
         FIP: ${param:builddir}/fvp/release/fip.bin
+        BL1: ${param:builddir}/fvp/release/bl1.bin
+        BL31: ${param:builddir}/fvp/release/bl31.bin
+        BL2: ${param:builddir}/fvp/release/bl2.bin
+  buildex:
+    btvars: {}
   artifacts: {}
   run:
     name: FVP_Base_RevC-2xAEMvA
     rtvars:
-      LOCAL_NET_PORT:
-        type: string
-        value: 8022
-      BL1:
-        type: path
-        value: ${artifact:BL1}
-      FIP:
-        type: path
-        value: ${artifact:FIP}
-      DTB:
-        type: path
-        value: ${artifact:DTB}
       CMDLINE:
         type: string
         value: console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
+      BL1:
+        type: path
+        value: ${artifact:BL1}
+      DTB:
+        type: path
+        value: ${artifact:DTB}
       KERNEL:
         type: path
         value: null
-      ROOTFS:
+      FIP:
         type: path
-        value: ''
+        value: ${artifact:FIP}
       EDK2FLASH:
         type: path
         value: ''
+      ROOTFS:
+        type: path
+        value: ''
+      SHARE:
+        type: path
+        value: ''
+      LOCAL_NET_PORT:
+        type: string
+        value: 8022
     params:
+      -C cluster1.stage12_tlb_size: 1024
+      -C cluster1.check_memory_attributes: 0
+      -C cluster0.gicv4.mask-virtual-interrupt: 1
+      -C bp.hostbridge.userNetworking: 1
+      -C bp.flashloader0.fname: ${rtvar:FIP}
+      -C pci.pci_smmuv3.mmu.SMMU_IDR1: 216481056
+      -C cluster0.gicv3.without-DS-support: 1
+      -C cluster1.has_arm_v8-3: 1
+      -C cluster0.has_sve: 1
+      -C cluster1.has_arm_v8-4: 1
+      -C cluster0.sve.has_sme: 1
+      -C cluster0.gicv3.cpuintf-mmap-access-level: 2
+      -C cluster0.has_amu: 1
+      -C cluster1.has_arm_v8-8: 1
+      -C cluster1.has_brbe: 1
       -C bp.dram_size: 4
-      -C cluster0.NUM_CORES: 4
+      -C cluster1.pmb_idr_external_abort: 1
+      -C cluster1.has_arm_v9-0: 1
+      -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+      -C cluster1.has_arm_v8-5: 1
+      -C cluster0.has_arm_v8-3: 1
+      -C cluster1.has_arm_v8-6: 1
+      -C cluster1.has_hpmn0: 1
+      -C bp.virtiop9device.root_path: ${rtvar:SHARE}
+      -C cluster0.has_hpmn0: 1
+      -C pci.pci_smmuv3.mmu.SMMU_IDR0: 135263935
       -C cluster1.NUM_CORES: 4
-      -C cluster0.PA_SIZE: 48
-      -C cluster1.PA_SIZE: 48
-      --stat: null
-      -C bp.vis.disable_visualisation: 1
-      -C bp.dram_metadata.is_enabled: 1
-      -C bp.refcounter.non_arch_start_at_default: 1
+      -C cluster1.gicv3.cpuintf-mmap-access-level: 2
+      -C cluster0.has_arm_v8-6: 1
+      -C cluster1.has_amu: 1
+      -C cluster1.enhanced_pac2_level: 3
+      -C cache_state_modelled: 0
+      -C cluster0.sve.has_sve2: 1
+      -C cluster0.cpu0.semihosting-cwd: $${SEMIHOSTDIR}
+      -C bp.virtio_rng.enabled: 1
+      -C cluster0.has_arm_v9-0: 1
+      -C cluster0.has_arm_v9-3: 1
+      -C cluster1.sve.has_sve2: 1
+      -C cluster0.has_rndr: 1
+      -C cluster1.has_arm_v9-2: 1
+      -C gic_distributor.has_nmi: 1
+      -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
+      -C cluster0.has_brbe_v1p1: 1
+      -C cluster0.has_branch_target_exception: 1
       -C bp.refcounter.use_real_time: 0
+      -C cluster0.PA_SIZE: 48
+      -C pci.pci_smmuv3.mmu.SMMU_S_IDR1: 2684354562
+      -C cluster1.max_32bit_el: 0
+      -C cluster0.has_arm_v9-2: 1
+      -C cluster0.has_arm_v8-8: 1
+      -C cluster1.PA_SIZE: 48
+      -C cluster1.gicv3.without-DS-support: 1
+      -C cluster0.has_arm_v9-1: 1
+      -C cluster1.has_large_system_ext: 1
+      -C cluster0.sve.has_sme2: 1
+      -C cluster0.NUM_CORES: 4
       -C bp.secure_memory: 1
+      -C bp.hostbridge.userNetPorts: ${rtvar:LOCAL_NET_PORT}=22
+      -C cluster0.ecv_support_level: 2
+      -C bp.flashloader1.fname: ${rtvar:EDK2FLASH}
+      -C cluster1.sve.has_sme: 1
+      -C cluster0.has_16k_granule: 1
+      -C cluster0.has_large_system_ext: 1
+      -C cluster1.has_rndr: 1
+      -C cluster1.gicv4.mask-virtual-interrupt: 1
+      -C bp.refcounter.non_arch_start_at_default: 1
+      -C cluster0.pmb_idr_external_abort: 1
+      -C pci.pci_smmuv3.mmu.SMMU_IDR5: 4294902901
+      -C pci.pci_smmuv3.mmu.SMMU_S_IDR2: 0
+      -C cluster1.has_arm_v8-1: 1
+      -C cluster1.has_arm_v8-2: 1
+      -C cluster1.has_branch_target_exception: 1
+      --stat: null
+      -C cluster0.has_arm_v8-4: 1
+      -C cluster0.max_32bit_el: 0
+      -C cluster1.has_16k_granule: 1
+      -C cluster1.has_brbe_v1p1: 1
+      -C cluster0.has_arm_v8-2: 1
+      -C cluster1.has_const_pac: 1
+      -C cluster0.enhanced_pac2_level: 3
+      -C cluster1.clear_reg_top_eret: 2
+      -C bp.vis.disable_visualisation: 1
+      -C cluster0.has_arm_v8-1: 1
       -C bp.ve_sysregs.exit_on_shutdown: 1
       -C pctl.startup: 0.0.0.0
-      -C cluster0.clear_reg_top_eret: 2
-      -C cluster1.clear_reg_top_eret: 2
-      -C bp.smsc_91c111.enabled: 1
-      -C bp.hostbridge.userNetworking: 1
-      -C bp.hostbridge.userNetPorts: ${rtvar:LOCAL_NET_PORT}=22
-      -C cache_state_modelled: 0
-      -C cluster0.stage12_tlb_size: 1024
-      -C cluster1.stage12_tlb_size: 1024
-      -C cluster0.check_memory_attributes: 0
-      -C cluster1.check_memory_attributes: 0
-      -C cluster0.gicv3.cpuintf-mmap-access-level: 2
-      -C cluster1.gicv3.cpuintf-mmap-access-level: 2
-      -C cluster0.gicv3.without-DS-support: 1
-      -C cluster1.gicv3.without-DS-support: 1
-      -C cluster0.gicv4.mask-virtual-interrupt: 1
-      -C cluster1.gicv4.mask-virtual-interrupt: 1
-      -C pci.pci_smmuv3.mmu.SMMU_AIDR: 2
-      -C pci.pci_smmuv3.mmu.SMMU_IDR0: 4592187
-      -C pci.pci_smmuv3.mmu.SMMU_IDR1: 6291458
-      -C pci.pci_smmuv3.mmu.SMMU_IDR3: 5908
-      -C pci.pci_smmuv3.mmu.SMMU_IDR5: 4294902901
-      -C pci.pci_smmuv3.mmu.SMMU_S_IDR1: 2684354562
-      -C pci.pci_smmuv3.mmu.SMMU_S_IDR2: 0
-      -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
-      -C bp.virtio_rng.enabled: 1
-      -C bp.secureflashloader.fname: ${rtvar:BL1}
-      -C bp.flashloader0.fname: ${rtvar:FIP}
-      -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
-      -C cluster0.cpu0.semihosting-cwd: $${SEMIHOSTDIR}
-      -C bp.flashloader1.fname: ${rtvar:EDK2FLASH}
-      -C cluster0.has_16k_granule: 1
-      -C cluster1.has_16k_granule: 1
-      -C cluster0.has_arm_v8-1: 1
-      -C cluster1.has_arm_v8-1: 1
-      -C cluster0.has_large_system_ext: 1
-      -C cluster1.has_large_system_ext: 1
-      -C cluster0.has_arm_v8-2: 1
-      -C cluster1.has_arm_v8-2: 1
-      -C cluster0.has_large_va: 1
-      -C cluster1.has_large_va: 1
-      --plugin: $$(which ScalableVectorExtension.so)
-      -C cluster0.has_arm_v8-3: 1
-      -C cluster1.has_arm_v8-3: 1
-      -C cluster0.has_arm_v8-4: 1
-      -C cluster1.has_arm_v8-4: 1
-      -C cluster0.has_amu: 1
-      -C cluster1.has_amu: 1
-      -C cluster0.has_arm_v8-5: 1
-      -C cluster1.has_arm_v8-5: 1
-      -C cluster0.has_branch_target_exception: 1
-      -C cluster1.has_branch_target_exception: 1
-      -C cluster0.has_rndr: 1
-      -C cluster1.has_rndr: 1
-      -C cluster0.memory_tagging_support_level: 3
-      -C cluster1.memory_tagging_support_level: 3
-      -C cluster0.has_arm_v8-6: 1
-      -C cluster1.has_arm_v8-6: 1
-      -C cluster0.ecv_support_level: 2
-      -C cluster1.ecv_support_level: 2
-      -C cluster0.enhanced_pac2_level: 3
-      -C cluster1.enhanced_pac2_level: 3
-      -C cluster0.has_arm_v8-7: 1
       -C cluster1.has_arm_v8-7: 1
-      -C cluster0.has_arm_v8-8: 1
-      -C cluster1.has_arm_v8-8: 1
-      -C cluster0.has_const_pac: 1
-      -C cluster1.has_const_pac: 1
-      -C cluster0.has_hpmn0: 1
-      -C cluster1.has_hpmn0: 1
-      -C cluster0.pmb_idr_external_abort: 1
-      -C cluster1.pmb_idr_external_abort: 1
-      -C cluster0.has_arm_v9-0: 1
-      -C cluster1.has_arm_v9-0: 1
-      -C cluster0.max_32bit_el: 0
-      -C cluster1.max_32bit_el: 0
-      -C SVE.ScalableVectorExtension.has_sve2: 1
-      -C cluster0.has_arm_v9-1: 1
+      -C bp.smsc_91c111.enabled: 1
+      -C cluster1.ecv_support_level: 2
+      -C bp.secureflashloader.fname: ${rtvar:BL1}
+      -C cluster0.has_arm_v8-5: 1
       -C cluster1.has_arm_v9-1: 1
-      -C cluster0.has_arm_v9-2: 1
-      -C cluster1.has_arm_v9-2: 1
-      -C cluster0.has_brbe: 1
-      -C cluster1.has_brbe: 1
-      -C SVE.ScalableVectorExtension.has_sme: 1
-      -C cluster0.has_arm_v9-3: 1
+      -C cluster1.has_sve: 1
+      -C pci.pci_smmuv3.mmu.SMMU_AIDR: 2
+      -C cluster1.has_large_va: 1
+      -C cluster0.has_const_pac: 1
+      -C cluster0.clear_reg_top_eret: 2
+      -C pci.pci_smmuv3.mmu.SMMU_IDR3: 5908
+      -C cluster0.check_memory_attributes: 0
       -C cluster1.has_arm_v9-3: 1
-      -C cluster0.has_brbe_v1p1: 1
-      -C cluster1.has_brbe_v1p1: 1
+      -C cluster1.sve.has_sme2: 1
+      -C cluster0.stage12_tlb_size: 1024
+      -C cluster0.has_arm_v8-7: 1
+      -C cluster0.has_brbe: 1
+      -C cluster0.has_large_va: 1
     prerun:
     - SEMIHOSTDIR=`mktemp -d`
     - function finish { rm -rf $$SEMIHOSTDIR; }
@@ -1163,15 +1189,9 @@ command:
     - EOF
     run: []
     terminals:
-      bp.terminal_0:
-        friendly: ''
-        port_regex: 'terminal_0: Listening for serial connection on port (\d+)'
-        type: stdinout
-        no_color: true
-        no_escapes: 'EFI stub: Booting Linux Kernel...'
       bp.terminal_1:
-        friendly: edk2
         port_regex: 'terminal_1: Listening for serial connection on port (\d+)'
+        friendly: edk2
         type: stdout
       bp.terminal_2:
         friendly: term2
@@ -1181,6 +1201,12 @@ command:
         friendly: term3
         port_regex: 'terminal_3: Listening for serial connection on port (\d+)'
         type: stdout
+      bp.terminal_0:
+        friendly: ''
+        type: stdinout
+        no_escapes: 'EFI stub: Booting Linux Kernel...'
+        port_regex: 'terminal_0: Listening for serial connection on port (\d+)'
+        no_color: true
 
 .. raw:: html
 

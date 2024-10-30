@@ -171,9 +171,9 @@ your system, ensuring that the required directories are in your PATH, and invoke
 ``shrinkwrap run`` with the ``null`` runtime.
 
 Shrinkwrap expects both the FVP binary (e.g. FVP_Base_RevC-2xAEMvA) and its
-plugins (e.g. ScalableVectorExtension.so) to be on your path. The example below
-shows downloading and untaring the FVP and adding the required directories to
-the PATH.
+plugins (e.g. GenericTrace.so) to be on your path. The example below shows
+downloading and untaring the FVP and adding the required directories to the
+PATH.
 
 .. code-block:: shell
 
