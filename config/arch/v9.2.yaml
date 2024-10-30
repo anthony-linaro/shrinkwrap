@@ -25,4 +25,5 @@ run:
     -C cluster1.has_arm_v9-2: 1
     -C cluster0.has_brbe: 1                                           # If true, implements branch record buffer extension (FEAT_BRBE).
     -C cluster1.has_brbe: 1
-    -C SVE.ScalableVectorExtension.has_sme: 1                         # Whether SME is implemented
+    -C cluster0.sve.has_sme: 1                                        # Whether SME is implemented
+    -C cluster1.sve.has_sme: 1

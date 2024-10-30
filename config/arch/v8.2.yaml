@@ -24,4 +24,5 @@ run:
     -C cluster1.has_arm_v8-2: 1
     -C cluster0.has_large_va: 1                                       # Implement support for the extended 52-bit virtual addresses from ARMv8.2 (FEAT_LVA). 2:feature is implemented.
     -C cluster1.has_large_va: 1
-    --plugin: $$(which ScalableVectorExtension.so)
+    -C cluster0.has_sve: 1                                            # Whether SVE is implemented (FEAT_SVE).
+    -C cluster1.has_sve: 1

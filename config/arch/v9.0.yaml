@@ -25,4 +25,5 @@ run:
     -C cluster1.has_arm_v9-0: 1
     -C cluster0.max_32bit_el: 0                                       # Maximum exception level supporting AArch32 modes. -1: No Support for A32 at any EL, x:[0:3] - All the levels below supplied ELx supports A32
     -C cluster1.max_32bit_el: 0
-    -C SVE.ScalableVectorExtension.has_sve2: 1                        # Whether SVE2 is implemented (FEAT_SVE2).
+    -C cluster0.sve.has_sve2: 1                                       # Whether SVE2 is implemented (FEAT_SVE2).
+    -C cluster1.sve.has_sve2: 1
