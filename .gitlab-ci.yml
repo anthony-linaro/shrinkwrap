@@ -43,13 +43,17 @@ prep-docker-assets:
 build-docker-image:
   stage: build
   image:
-    name: gcr.io/kaniko-project/executor:debug
+    # amd64 pinned to workaround https://github.com/GoogleContainerTools/kaniko/issues/2452
+    # With newer versions, issue is triggered when wgetting FVP from arm.com (see docker/build.sh).
+    # arm64 works with tip but is broken in a different way when pinned to 1.9.1.
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
     entrypoint: [""]
   parallel:
     matrix:
-      - TAG:
-        - amd64
-        - arm64
+      - TAG: amd64
+        KANIKO_VERSION: v1.9.1-debug
+      - TAG: arm64
+        KANIKO_VERSION: debug
   tags:
     - ${TAG}
   cache:
