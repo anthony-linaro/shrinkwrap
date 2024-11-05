@@ -116,7 +116,7 @@ build:
     repo:
       edk2:
         remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
-        revision: 2802_arm_cca_rmm-v1.0-eac5
+        revision: 2802_arm_cca_rmm-v1.0-eac5-patch1
 
     toolchain: aarch64-none-elf-
 
