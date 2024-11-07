@@ -15,12 +15,12 @@ build:
       revision: R09_27_24
 
     build:
-      - rm -rf ${param:sourcedir}/generate/unix/acpica
       - make -j${param:jobs}
-      - mv ${param:sourcedir}/generate/unix/bin ${param:sourcedir}/generate/unix/acpica
 
     artifacts:
-      ACPICA: ${param:sourcedir}/generate/unix/acpica
+      ACPICA:
+        path: ${param:sourcedir}/generate/unix/bin
+        export: false
 
   edk2:
     repo:
