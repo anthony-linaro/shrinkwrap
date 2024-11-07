@@ -157,7 +157,7 @@ description string     A human-readable description of what the config contains 
 image       string     An optional field to require a specific runtime image to build / run this config. If not defined, the default image used by ``shrinkwrap`` will be used. This can be overriden with the ``--image`` command line option to ``shrinkwrap``.
 concrete    boolean    true if the config is intended to be directly built and run, or false if it is intended as a fragment to be included in other configs.
 build       dictionary Contains all the components to be built. The key is the component name and the value is a dictionary.
-run         dictionary Contains all the information about how to run the built artifacts on the FVP.
+run         dictionary Contains all the information about how to run the exported artifacts on the FVP.
 =========== ========== ===========
 
 -------------
@@ -200,7 +200,7 @@ params      dictionary  Optional set of key:value pairs. When building most comp
 prebuild    list        List of shell commands to be executed during component build before the ``build`` list.
 build       list        List of shell commands to be executed during component build.
 postbuild   list        List of shell commands to be executed during component build after the ``build`` list.
-artifacts   dictionary  Set of artifacts (files and/or directories) that the component exports. Key is artifact name and value is path to built artifact. Other components can reference them with the ``${artifact:<name>}`` macros. Used to determine build dependencies.
+artifacts   dictionary  Set of artifacts (files and/or directories) that the component exports. Key is artifact name. Value is a dictionary where the key ``path`` points to the built artifact, ``export`` is a boolean determining whether it will be copied to the package directory, and ``rename`` is an optional string to which the artifact will be renamed during export; for brevity, value can instead be the path itself, in which case ``export`` is implied. Other components can reference them with the ``${artifact:<name>}`` macros. Used to determine build dependencies. Note that an artifact can only be used by the ``run`` section if it was exported by the ``build`` section.
 sync        enum-string Specifies how shrinkwrap should synchronize the repository. See below for options.
 =========== =========== ===========
 

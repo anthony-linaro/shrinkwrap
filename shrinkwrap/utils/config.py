@@ -57,12 +57,17 @@ def _component_normalize(component, name):
 	component.setdefault('build', [])
 	component.setdefault('postbuild', [])
 	component.setdefault('params', {})
-	component.setdefault('artifacts', {})
 	component.setdefault('sync', None)
 	if component['sync'] == False:
 		component['sync'] = 'false'
 	elif component['sync'] == True:
 		component['sync'] = 'true'
+
+	component['artifacts'] = { key:
+		{ 'path': val, 'base': None, 'export': True } if type(val) == str else
+		{ 'path': val['path'], 'base': val.get('rename'),
+		  'export': val.get('export', True) } if type(val) == dict else
+		val for key, val in component.get('artifacts', {}).items() }
 
 	return component
 
@@ -288,6 +293,10 @@ def _string_substitute(string, lut, final=True):
 	value in the lut will cause an exception. Final also controls unescaping
 	on $. If False, $$ is left as is, otherwise they are replaced with $.
 	"""
+	# Skip substitution if not a string or is empty
+	if type(string) != str or not string:
+		return string
+
 	calls = []
 	frags = []
 	frag = ''
@@ -415,6 +424,19 @@ def dump(config, fileobj):
 			      version=(1, 2))
 
 
+def _string_extract_artifacts(artifacts, strings):
+	for s in strings:
+		for t in _string_tokenize(str(s)):
+			if t['type'] != 'macro':
+				continue
+			m = t['value']
+			if m['type'] != 'artifact':
+				continue
+			if m['name'] is None:
+				raise KeyError('name')
+			artifacts.add(m['name'])
+
+
 def resolveb(config, btvars={}, clivars={}):
 	"""
 	Resolves the build-time macros (params, artifacts, etc) and fixes up the
@@ -440,16 +462,11 @@ def resolveb(config, btvars={}, clivars={}):
 			artifacts = set()
 
 			def _find_artifacts(strings):
-				for s in strings:
-					for t in _string_tokenize(str(s)):
-						if t['type'] != 'macro':
-							continue
-						m = t['value']
-						if m['type'] != 'artifact':
-							continue
-						if m['name'] is None:
-							raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
-						artifacts.add(m['name'])
+				try:
+					return _string_extract_artifacts(artifacts, strings)
+				except KeyError as e:
+					if e.args[0] != 'name': raise
+					raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
 
 			_find_artifacts(component['params'].values())
 			_find_artifacts(component['prebuild'])
@@ -484,12 +501,16 @@ def resolveb(config, btvars={}, clivars={}):
 				artifact_map.update(desc['artifacts'].items())
 			return {'artifact': artifact_map}
 
+		def _normalize_basename(path):
+			return os.path.basename(os.path.normpath(path))
+
 		def _combine_full(config):
 			artifact_map = {}
 			for name, desc in config['build'].items():
 				locs = {key: {
-					'src': val,
-					'dst': os.path.join(config['name'], os.path.basename(val)),
+					'src': os.path.normpath(val['path']),
+					'dst': os.path.join(config['name'], _normalize_basename(val['base'] or val['path']))
+						if val['export'] == True else None,
 					'component': name,
 				} for key, val in desc['artifacts'].items()}
 				artifact_map.update(locs)
@@ -507,7 +528,8 @@ def resolveb(config, btvars={}, clivars={}):
 
 			for desc in config['build'].values():
 				for k, v in desc['artifacts'].items():
-					desc['artifacts'][k] = _string_substitute(v, artifact_lut, False)
+					v['path'] = _string_substitute(v['path'], artifact_lut, False)
+					v['base'] = _string_substitute(v['base'], artifact_lut, False)
 
 			if artifact_nr > 0:
 				artifact_lut = _combine(config)
@@ -523,20 +545,16 @@ def resolveb(config, btvars={}, clivars={}):
 			lut['param']['builddir'] = desc['builddir']
 
 			for k, v in desc['params'].items():
-				if v:
-					desc['params'][k] = _string_substitute(str(v), lut, final)
+				desc['params'][k] = _string_substitute(v, lut, final)
 
 			lut['param']['join_equal'] = _mk_params(desc['params'], '=')
 			lut['param']['join_space'] = _mk_params(desc['params'], ' ')
 
 			for r in desc['repo'].values():
-				if r['remote']:
-					r['remote'] = _string_substitute(r['remote'], lut, final)
-				if r['revision']:
-					r['revision'] = _string_substitute(r['revision'], lut, final)
+				r['remote'] = _string_substitute(r['remote'], lut, final)
+				r['revision'] = _string_substitute(r['revision'], lut, final)
 
-			if desc['toolchain']:
-				desc['toolchain'] = _string_substitute(desc['toolchain'], lut, final)
+			desc['toolchain'] = _string_substitute(desc['toolchain'], lut, final)
 
 			for i, s in enumerate(desc['prebuild']):
 				desc['prebuild'][i] = _string_substitute(s, lut, final)
@@ -545,11 +563,11 @@ def resolveb(config, btvars={}, clivars={}):
 			for i, s in enumerate(desc['postbuild']):
 				desc['postbuild'][i] = _string_substitute(s, lut, final)
 			for k, v in desc['artifacts'].items():
-				desc['artifacts'][k] = _string_substitute(v, lut, final)
+				v['path'] = _string_substitute(v['path'], lut, False)
+				v['base'] = _string_substitute(v['base'], lut, False)
 
 		for k, v in config['buildex']['btvars'].items():
-			if v['value'] is not None:
-				v['value'] = _string_substitute(str(v['value']), lut, final)
+			v['value'] = _string_substitute(v['value'], lut, final)
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply
@@ -631,6 +649,13 @@ def resolver(config, rtvars={}, clivars={}):
 	clivars = uclivars.get(**clivars)
 	run = config['run']
 
+	# Find the list of imported artifacts before any processing passes
+	artifacts_imp = set()
+	_string_extract_artifacts(artifacts_imp, run['params'].values())
+	_string_extract_artifacts(artifacts_imp, run['prerun'])
+	_string_extract_artifacts(artifacts_imp, run['run'])
+	_string_extract_artifacts(artifacts_imp, run['rtvars'].values())
+
 	#Override the rtvars with any values supplied by the user and check that
 	#all rtvars are defined.
 	for k in run['rtvars']:
@@ -647,6 +672,10 @@ def resolver(config, rtvars={}, clivars={}):
 	# will be located at run-time.
 	for k in config['artifacts']:
 		v = config['artifacts'][k]
+		if v['dst'] is None:
+			if k not in artifacts_imp:
+				continue
+			raise Exception(f"Artifact '{k}' is required at run-time but not exported by any component")
 		v['dst'] = os.path.join(workspace.package, v['dst'])
 
 	# Create a lookup table with all the artifacts in their package
@@ -676,8 +705,7 @@ def resolver(config, rtvars={}, clivars={}):
 
 	for k in run['params']:
 		v = run['params'][k]
-		if v:
-			run['params'][k] = _string_substitute(str(v), lut)
+		run['params'][k] = _string_substitute(v, lut)
 
 	# Assemble the final runtime command and stuff it into the config.
 	params = _mk_params(run['params'], '=')
@@ -876,6 +904,8 @@ def build_graph(configs, echo, nosync, force_sync):
 		gl2.append(f'mkdir -p {dir}')
 		dirs.add(dir)
 		for artifact in config['artifacts'].values():
+			if artifact['dst'] is None:
+				continue
 			dst = os.path.join(workspace.package, artifact['dst'])
 			dir = os.path.dirname(dst)
 			if dir not in dirs:
@@ -995,6 +1025,8 @@ def build_graph(configs, echo, nosync, force_sync):
 				if len(artifacts) > 0:
 					a.append(f'# Copy artifacts for config={config["name"]} component={name}.')
 					for artifact in artifacts.values():
+						if artifact['dst'] is None:
+							continue
 						src = artifact['src']
 						dst = os.path.join(workspace.package, artifact['dst'])
 						a.append(f'cp -r {src} {dst}')
