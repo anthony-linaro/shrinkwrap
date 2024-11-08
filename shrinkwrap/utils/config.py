@@ -527,7 +527,7 @@ def resolveb(config, btvars={}, clivars={}):
 			artifact_nr -= 1
 
 			for desc in config['build'].values():
-				for k, v in desc['artifacts'].items():
+				for v in desc['artifacts'].values():
 					v['path'] = _string_substitute(v['path'], artifact_lut, False)
 					v['base'] = _string_substitute(v['base'], artifact_lut, False)
 
@@ -544,8 +544,7 @@ def resolveb(config, btvars={}, clivars={}):
 			lut['param']['sourcedir'] = desc['sourcedir']
 			lut['param']['builddir'] = desc['builddir']
 
-			for k, v in desc['params'].items():
-				desc['params'][k] = _string_substitute(v, lut, final)
+			desc['params'] = { k: _string_substitute(v, lut, final) for k, v in desc['params'].items() }
 
 			lut['param']['join_equal'] = _mk_params(desc['params'], '=')
 			lut['param']['join_space'] = _mk_params(desc['params'], ' ')
@@ -556,17 +555,14 @@ def resolveb(config, btvars={}, clivars={}):
 
 			desc['toolchain'] = _string_substitute(desc['toolchain'], lut, final)
 
-			for i, s in enumerate(desc['prebuild']):
-				desc['prebuild'][i] = _string_substitute(s, lut, final)
-			for i, s in enumerate(desc['build']):
-				desc['build'][i] = _string_substitute(s, lut, final)
-			for i, s in enumerate(desc['postbuild']):
-				desc['postbuild'][i] = _string_substitute(s, lut, final)
-			for k, v in desc['artifacts'].items():
+			for k in ( 'prebuild', 'build', 'postbuild', ):
+				desc[k] = [ _string_substitute(s, lut, final) for s in desc[k] ]
+
+			for v in desc['artifacts'].values():
 				v['path'] = _string_substitute(v['path'], lut, False)
 				v['base'] = _string_substitute(v['base'], lut, False)
 
-		for k, v in config['buildex']['btvars'].items():
+		for v in config['buildex']['btvars'].values():
 			v['value'] = _string_substitute(v['value'], lut, final)
 
 	# Compute the source and build directories for each component. If they
@@ -658,10 +654,9 @@ def resolver(config, rtvars={}, clivars={}):
 
 	#Override the rtvars with any values supplied by the user and check that
 	#all rtvars are defined.
-	for k in run['rtvars']:
-		if k in rtvars:
-			run['rtvars'][k]['value'] = rtvars[k]
 	for k, v in run['rtvars'].items():
+		if k in rtvars:
+			v['value'] = rtvars[k]
 		if v['value'] is None:
 			raise Exception(f'{k} run-time variable not ' \
 					'set by user and no default available.')
@@ -670,8 +665,7 @@ def resolver(config, rtvars={}, clivars={}):
 	# path rather than one that is implictly relative to SHRINKWRAP_PACKAGE.
 	# We can't do this at build-time because we don't know where the package
 	# will be located at run-time.
-	for k in config['artifacts']:
-		v = config['artifacts'][k]
+	for k, v in config['artifacts'].items():
 		if v['dst'] is None:
 			if k not in artifacts_imp:
 				continue
@@ -691,8 +685,7 @@ def resolver(config, rtvars={}, clivars={}):
 		'btvar': {k: v['value']
 				for k, v in config['buildex']['btvars'].items()},
 	}
-	for k in run['rtvars']:
-		v = run['rtvars'][k]
+	for v in run['rtvars'].values():
 		v['value'] = _string_substitute(str(v['value']), lut)
 		if v['type'] == 'path' and v['value']:
 			v['value'] = os.path.expanduser(v['value'])
@@ -703,9 +696,7 @@ def resolver(config, rtvars={}, clivars={}):
 	# we don't have values for.
 	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
 
-	for k in run['params']:
-		v = run['params'][k]
-		run['params'][k] = _string_substitute(v, lut)
+	run['params'] = { k: _string_substitute(v, lut) for k, v in run['params'].items() }
 
 	# Assemble the final runtime command and stuff it into the config.
 	params = _mk_params(run['params'], '=')
