@@ -28,9 +28,6 @@ build:
       CFG_CORE_WORKAROUND_NSITR_CACHE_PRIME: n
 
   tfa:
-    repo:
-      # Temporary until we move tfa-base.yaml to release version with this
-      revision: a169b8fbc2b184f2a38e7c6ee29371407b15c634
     prebuild:
     - cat <<EOF > ${param:builddir}/sp_layout.json
     - "{"

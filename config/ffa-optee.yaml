@@ -22,9 +22,6 @@ build:
       CFG_CORE_ASYNC_NOTIF: y
 
   tfa:
-    repo:
-      # Temporary until we move tfa-base.yaml to release version with this
-      revision: a169b8fbc2b184f2a38e7c6ee29371407b15c634
     params:
       ARM_SPMC_MANIFEST_DTS: ${param:sourcedir}/plat/arm/board/fvp/fdts/fvp_spmc_el1_optee_manifest.dts
       BL32: ${artifact:OPTEE_PAGER_BIN}
