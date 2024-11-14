@@ -8,6 +8,7 @@ set -e
 SOURCE_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 export SHRINKWRAP_BUILD=${SOURCE_DIR}/build
 export SHRINKWRAP_PACKAGE=${SOURCE_DIR}
+export SHRINKWRAP_CONFIG=${SOURCE_DIR}/config
 export PATH=${PATH}:${SOURCE_DIR}/../shrinkwrap
 
 USAGE="$(basename "$0") - A build script to generate test assets/builds
