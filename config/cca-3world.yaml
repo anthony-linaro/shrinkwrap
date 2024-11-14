@@ -32,11 +32,9 @@ description: >-
 
   .. code-block:: shell
     $ cd ~/.shrinkwrap/package/cca-3world
-    $ ORIGINAL_PATH=$PATH
-    $ export PATH=$PATH:~/.shrinkwrap/build/build/cca-3world/buildroot/host/bin/
-    $ e2fsck -fp rootfs.ext2
-    $ resize2fs rootfs.ext2 256M
-    $ export PATH=$ORIGINAL_PATH
+    $ TOOLS_PATH=~/.shrinkwrap/build/build/cca-3world/buildroot/host/sbin
+    $ $TOOLS_PATH/e2fsck -fp rootfs.ext2
+    $ $TOOLS_PATH/resize2fs rootfs.ext2 256M
     $ sudo su
     # mkdir mnt
     # mount rootfs.ext2 mnt
@@ -61,7 +59,7 @@ description: >-
 
   .. code-block:: shell
     # cd /cca
-    # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256
+    # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256 --restricted_mem
 
   Be patient while this boots to the UEFI shell. Navigate to "Boot Manager",
   then "UEFI Shell" and wait for the startup.nsh script to execute, which will
