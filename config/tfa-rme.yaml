@@ -27,3 +27,12 @@ run:
     bp.terminal_3:
       friendly: rmm
 
+  params:
+    # With FM 11.27 FVP, Armv9.2 FEAT_BRBE implies a significant performance drop while
+    # normal/realm world switches happen. Temporarily disable it on the FVP command line
+    # to help the developer experience.
+    -C cluster0.has_brbe: 0
+    -C cluster1.has_brbe: 0
+    -C cluster0.has_brbe_v1p1: 0
+    -C cluster1.has_brbe_v1p1: 0
+
