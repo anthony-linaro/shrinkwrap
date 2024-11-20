@@ -22,23 +22,33 @@ build:
         path: ${param:sourcedir}/generate/unix/bin
         export: false
 
+  edk2-platforms:
+    repo:
+      remote: https://github.com/tianocore/edk2-platforms.git
+      revision: 8cc9da9dc8431d1f0dfab28d92b3941e2c19aeb8
+
+    artifacts:
+      # Share the source directory with EDK2
+      EDK2_PLATFORMS:
+        path: ${param:sourcedir}
+        export: false
+
   edk2:
     repo:
-      edk2:
-        remote: https://github.com/tianocore/edk2.git
-        revision: edk2-stable202508.01
-      edk2-platforms:
-        remote: https://github.com/tianocore/edk2-platforms.git
-        revision: 8cc9da9dc8431d1f0dfab28d92b3941e2c19aeb8
+      remote: https://github.com/tianocore/edk2.git
+      revision: edk2-stable202508.01
 
     toolchain: aarch64-none-elf-
 
     stderrfilt: true
 
     prebuild:
-      - export WORKSPACE=${param:sourcedir}
+      # Change working directory to reduce build artifacts in repo
+      - export WORKSPACE=${param:builddir}
+      - export CONF_PATH=${param:builddir}/Conf
+      - export EDK_TOOLS_PATH=${param:sourcedir}/BaseTools
       - export GCC_AARCH64_PREFIX=$$CROSS_COMPILE
-      - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
+      - export PACKAGES_PATH=${param:sourcedir}:${artifact:EDK2_PLATFORMS}
       - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
 
@@ -51,8 +61,10 @@ build:
       ' --pcd': PcdUefiShellDefaultBootEnable=1
 
     build:
-      - source edk2/edksetup.sh --reconfig
-      - make -j${param:jobs} -C edk2/BaseTools
+      # Pre-build steps: create configuration + compile tools
+      - mkdir -p $$CONF_PATH
+      - source ${param:sourcedir}/edksetup.sh --reconfig
+      - make -j${param:jobs} -C $$EDK_TOOLS_PATH
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:

@@ -50,9 +50,9 @@ layers:
 build:
   edk2:
     repo:
-      edk2:
-        remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
-        revision: 3223_arm_cca_v4
-      edk2-platforms:
-        remote: https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git
-        revision: 3223_arm_cca_v4
+      remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
+      revision: 3223_arm_cca_v4
+  edk2-platforms:
+    repo:
+      remote: https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git
+      revision: 3223_arm_cca_v4
