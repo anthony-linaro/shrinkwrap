@@ -496,10 +496,9 @@ def resolveb(config, btvars={}, clivars={}):
 
 	def _resolve_artifact_map(config):
 		def _combine(config):
-			artifact_map = {}
-			for desc in config['build'].values():
-				artifact_map.update(desc['artifacts'].items())
-			return {'artifact': artifact_map}
+			return { 'artifact': { k: v['path']
+				for desc in config['build'].values()
+				for k, v in desc['artifacts'].items() } }
 
 		def _normalize_basename(path):
 			return os.path.basename(os.path.normpath(path))
@@ -529,7 +528,6 @@ def resolveb(config, btvars={}, clivars={}):
 			for desc in config['build'].values():
 				for v in desc['artifacts'].values():
 					v['path'] = _string_substitute(v['path'], artifact_lut, False)
-					v['base'] = _string_substitute(v['base'], artifact_lut, False)
 
 			if artifact_nr > 0:
 				artifact_lut = _combine(config)
