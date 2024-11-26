@@ -152,7 +152,7 @@ build:
       - STARTUP="${param:builddir}/startup.nsh"
 
       # Automatically boot the kernel when starting the EFI shell.
-      - echo "bootaa64.efi acpi=force earlycon root=/dev/vda2 ip=on" > $${STARTUP}
+      - echo "bootaa64.efi acpi=force root=/dev/vda2 ip=on" > $${STARTUP}
 
       # 64MB fat16 boot partition containing kernel as efi bootloader.
       - dd if=/dev/zero of=$${BOOTIMG} bs=1M count=64 status=none
