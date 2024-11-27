@@ -44,7 +44,6 @@ description: >-
 concrete: true
 
 layers:
-  - FVP_Base_RevC-2xAEMvA-rme.yaml
   - tfa-rme.yaml
   - ns-edk2-base.yaml
 
