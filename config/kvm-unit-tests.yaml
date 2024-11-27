@@ -10,7 +10,7 @@ build:
   kvm-unit-tests:
     repo:
         remote: https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca
-        revision: cca/rmm-v1.0-eac5
+        revision: cca/rmm-v1.0-rel0
 
     toolchain: aarch64-linux-gnu-
 
@@ -22,7 +22,11 @@ build:
     build:
       - ./configure ${param:join_equal}
       - make -j${param:jobs}
-      - tar -caf ${param:builddir}/kvm-unit-tests.tgz -C ${param:sourcedir} .
+      - sed -i -e "/PRETTY_PRINT_STACKS/s/yes/no/"
+               -e "/ERRATATXT/s/=.*/=errata.txt/"
+               -e "/HOST/s/=.*/=aarch64/"
+               -e "/ARCH/s/=.*/=arm64/"
+               ${param:sourcedir}/config.mak
 
     artifacts:
-       KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz
+       KVM_UNIT_TESTS: ${param:sourcedir}

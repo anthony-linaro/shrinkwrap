@@ -90,7 +90,12 @@ description: >-
     # ./lkvm run --realm --disable-sve --irqchip=gicv3-its -c 1 -m 512 --no-pvtime --force-pci --console virtio --kernel Image --disk guest-disk.img -p "console=hvc0 root=/dev/vda2" --measurement-algo=sha256 --restricted_mem
 
   This config also builds kvm-unit-tests, which can be run in the realm instead
-  of Linux.
+  of Linux:
+
+  .. code-block:: shell
+    # cd /cca/kvm-unit-tests/arm
+    # export PATH=/cca:$PATH
+    # ./run-realm-tests
 
 concrete: true
 
