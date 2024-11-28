@@ -14,7 +14,6 @@ out-of-the-box:
    :titlesonly:
    :maxdepth: 1
 
-   assets.rst
    bootwrapper.rst
    buildroot.rst
    cca-3world.rst

@@ -19,6 +19,8 @@ If the user provides an ext2/4 filesystem image via the GUEST_ROOTFS btvar, a gu
   $ shrinkwrap build cca-3world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
 
 
+The user can also control the guest kernel command line parameters used on the guest disk image via the GUEST_CMDLINE btvar.
+
 Once built, the user must get some of the generated artifacts into the FVP environment. This can either be done by copying them to the host's rootfs or by sharing them into the FVP using 9p.
 
 For the time being, there is an issue in the linux kernel's handling of 9p which does not share correctly the guest image to the guest EFI, preventing the guest to boot. Copying the artifacts into the host's rootfs is the way to go. Something like the following example should work. For simplicity, this example reuses the guest filesystem generated with buildroot as the host's rootfs, after resizing it so that there is room for the guest's rootfs:
@@ -26,11 +28,9 @@ For the time being, there is an issue in the linux kernel's handling of 9p which
 .. code-block:: shell
 
   $ cd ~/.shrinkwrap/package/cca-3world
-  $ ORIGINAL_PATH=$PATH
-  $ export PATH=$PATH:~/.shrinkwrap/build/build/cca-3world/buildroot/host/bin/
-  $ e2fsck -fp rootfs.ext2
-  $ resize2fs rootfs.ext2 256M
-  $ export PATH=$ORIGINAL_PATH
+  $ TOOLS_PATH=~/.shrinkwrap/build/build/cca-3world/buildroot/host/sbin
+  $ $TOOLS_PATH/e2fsck -fp rootfs.ext2
+  $ $TOOLS_PATH/resize2fs rootfs.ext2 256M
   $ sudo su
   # mkdir mnt
   # mount rootfs.ext2 mnt
@@ -60,7 +60,7 @@ Finally, once the host has booted, log in as "root" (no password), and launch a 
 .. code-block:: shell
 
   # cd /cca
-  # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256
+  # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256 --restricted_mem
 
 
 Be patient while this boots to the UEFI shell. Navigate to "Boot Manager", then "UEFI Shell" and wait for the startup.nsh script to execute, which will launch the kernel. Continue to be patient, and eventually you will land at a login prompt. Login as "root" (no password).
@@ -92,11 +92,12 @@ True
 Build-Time Variables
 ####################
 
-============ =======
-btvar        default
-============ =======
-GUEST_ROOTFS <empty>
-============ =======
+============= ===============================
+btvar         default
+============= ===============================
+GUEST_CMDLINE root=/dev/vda2 acpi=force ip=on
+GUEST_ROOTFS  <empty>
+============= ===============================
 
 Run-Time Variables
 ##################

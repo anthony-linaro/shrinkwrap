@@ -19,6 +19,9 @@ description: >-
   .. code-block:: shell
     $ shrinkwrap build cca-3world.yaml --overlay buildroot.yaml --btvar GUEST_ROOTFS='${artifact:BUILDROOT}'
 
+  The user can also control the guest kernel command line parameters used on
+  the guest disk image via the GUEST_CMDLINE btvar.
+
   Once built, the user must get some of the generated artifacts into the FVP
   environment. This can either be done by copying them to the host's rootfs or
   by sharing them into the FVP using 9p.
@@ -161,7 +164,7 @@ build:
       - STARTUP="${param:builddir}/startup.nsh"
 
       # Automatically boot the kernel when starting the EFI shell.
-      - echo "bootaa64.efi acpi=force root=/dev/vda2 ip=on" > $${STARTUP}
+      - echo "bootaa64.efi ${btvar:GUEST_CMDLINE}" > $${STARTUP}
 
       # 64MB fat16 boot partition containing kernel as efi bootloader.
       - dd if=/dev/zero of=$${BOOTIMG} bs=1M count=64 status=none
@@ -194,6 +197,10 @@ buildex:
     GUEST_ROOTFS:
       type: path
       value: ''
+
+    GUEST_CMDLINE:
+      type: string
+      value: root=/dev/vda2 acpi=force ip=on
 
 run:
   rtvars:

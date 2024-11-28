@@ -48,11 +48,12 @@ True
 Build-Time Variables
 ####################
 
-============ =======
-btvar        default
-============ =======
-GUEST_ROOTFS <empty>
-============ =======
+============= ===============================
+btvar         default
+============= ===============================
+GUEST_CMDLINE root=/dev/vda2 acpi=force ip=on
+GUEST_ROOTFS  <empty>
+============= ===============================
 
 Run-Time Variables
 ##################
