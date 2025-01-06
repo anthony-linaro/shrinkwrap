@@ -65,8 +65,6 @@ Finally, once the host has booted, log in as "root" (no password), and launch a 
 
 Be patient while this boots to the UEFI shell. Navigate to "Boot Manager", then "UEFI Shell" and wait for the startup.nsh script to execute, which will launch the kernel. Continue to be patient, and eventually you will land at a login prompt. Login as "root" (no password).
 
-This config also builds kvm-unit-tests, which can be run in the realm instead of Linux. It is also possible to launch Linux without using EDK2 as the guest FW.
-
 When the linux kernel 9p issue will be fixed, the shared directory approach can be used. Simply boot the host with the SHARE rtvar. This only works for DT-based environments though:
 
 .. code-block:: shell
@@ -75,14 +73,30 @@ When the linux kernel 9p issue will be fixed, the shared directory approach can 
   $ shrinkwrap run cca-3world.yaml --rtvar ROOTFS=rootfs.ext2 --rtvar SHARE=.
 
 
-Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realmn guest can then be launched as previously:
+Then, once the host has booted, log in as "root" (no password) and mount the shared folder to "/cca" and change dir to it. The realm guest can then be launched as previously:
 
 .. code-block:: shell
 
   # mkdir /cca
   # mount -t 9p -o trans=virtio,version=9p2000.L FM /cca
   # cd /cca
-  # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256
+  # ./lkvm run --realm --disable-sve --irqchip=gicv3-its --firmware KVMTOOL_EFI.fd -c 1 -m 512 --no-pvtime --force-pci --disk guest-disk.img --measurement-algo=sha256 --restricted_mem
+
+
+It is also possible to launch Linux without using EDK2 as the guest FW:
+
+.. code-block:: shell
+
+  # ./lkvm run --realm --disable-sve --irqchip=gicv3-its -c 1 -m 512 --no-pvtime --force-pci --console virtio --kernel Image --disk guest-disk.img -p "console=hvc0 root=/dev/vda2" --measurement-algo=sha256 --restricted_mem
+
+
+This config also builds kvm-unit-tests, which can be run in the realm instead of Linux:
+
+.. code-block:: shell
+
+  # cd /cca/kvm-unit-tests/arm
+  # export PATH=/cca:$PATH
+  # ./run-realm-tests
 
 Concrete
 ########
