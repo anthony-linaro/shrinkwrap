@@ -159,6 +159,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		build-essential \
 		fakeroot \
+		kmod \
 		rsync
 
 # TODO: Install any packages required by U-Boot, OP-TEE, Trusty, etc.
