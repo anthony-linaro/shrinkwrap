@@ -212,6 +212,17 @@ Sync mode:
 - **false**: do not synchronize the source directory.
 - **force**: synchronize the source directory. Overwrite any user modification and download branch updates.
 
+------------
+repo section
+------------
+
+=========== =========== ===========
+key         type        description
+=========== =========== ===========
+remote      string      Address of the remote repository
+revision    string      A git revision (branch name, tag, hash...)
+project     string      Optional. Name of the project corresponding to this repository, used to retrieve a cached repository in SHRINKWRAP_PROJECT_CACHE. By default, the project name is the base name contained in the remote address.
+
 -----------
 run section
 -----------

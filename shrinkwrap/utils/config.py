@@ -860,6 +860,40 @@ def script_preamble(echo):
 	else:
 		pre.append(f'# Exit on error.')
 		pre.append(f'set -e')
+
+	gitargs = '"--quiet "' if not echo else '""'
+	pre.append(f'gitargs={gitargs}')
+	pre.append_multiline('''
+	# Function to update submodules without recursion
+	update_submodules() {
+		local repo_path="$1"
+		local reference_path="$2"
+
+		local cwd=$(pwd)
+		cd $repo_path
+		# Check if .gitmodules file exists
+		local gitmodules_file=".gitmodules"
+		if [ -f "$gitmodules_file" ]; then
+			# Extract submodule paths from .gitmodules
+			git config --file "$gitmodules_file" --get-regexp path | while read -r path_key submodule_path; do
+				local git_submodule_reference=""
+				local submodule_reference="$reference_path/$submodule_path"
+
+				# Check if the submodule exists in the project cache
+				if [[ -n "$reference_path" && -e "$submodule_reference/.git" ]]; then
+					git_submodule_reference="--reference $submodule_reference"
+				fi
+
+				if [ -d "$submodule_path" ]; then
+					# Manually update nested submodules
+					git submodule $gitargs update --init --checkout --force $git_submodule_reference $submodule_path
+					# Recursively process the submodule
+					update_submodules "$submodule_path" "$submodule_reference"
+				fi
+			done
+		fi
+		cd $cwd
+	}''')
 	return pre.commands(False)
 
 
@@ -999,7 +1033,8 @@ def build_graph(configs, echo, nosync, force_sync):
 							git clone {gitargs}{git_local_reference}{gitremote} {gitlocal}
 							pushd {gitlocal}
 							git checkout {gitargs}--force {gitrev}
-							git submodule {gitargs}update --init --checkout --recursive --force
+							# run with --reference
+							update_submodules "$(pwd)" "{git_project_cache}"
 							popd
 							rm {sync}
 						else
