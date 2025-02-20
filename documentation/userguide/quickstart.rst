@@ -72,13 +72,14 @@ Optional Environment Variables
 
 Shrinkwrap consumes the following set of optional environment variables:
 
-================== ===================== ====
-name               default               description
-================== ===================== ====
-SHRINKWRAP_CONFIG  <None>                Colon-separated list of paths to config stores. Configs are searched for relative to the current directory as well as relative to these paths.
-SHRINKWRAP_BUILD   ~/.shrinkwrap/build   Location where config builds are performed. Each config has its own subdirectory, with further subdirectories for each of its components.
-SHRINKWRAP_PACKAGE ~/.shrinkwrap/package Location where config builds are packaged to. When running a config, it is done from the package location.
-================== ===================== ====
+========================= ===================== ====
+name                     default               description
+========================= ===================== ====
+SHRINKWRAP_CONFIG        <None>                Colon-separated list of paths to config stores. Configs are searched for relative to the current directory as well as relative to these paths.
+SHRINKWRAP_BUILD         ~/.shrinkwrap/build   Location where config builds are performed. Each config has its own subdirectory, with further subdirectories for each of its components.
+SHRINKWRAP_PACKAGE       ~/.shrinkwrap/package Location where config builds are packaged to. When running a config, it is done from the package location.
+SHRINKWRAP_PROJECT_CACHE <None>                Location where cache repositories are stored. This directory contains git trees used as reference when downloading components, allowing to reduce network usage and local storage if the same project is used multiple times. Cache directories ending in ".git" are bare repositories, and ones without the suffix are full repositories. By default no cache is used.
+======================== ===================== ====
 
 ***************************************************
 Guided Tour: Configure a platform and boot a kernel

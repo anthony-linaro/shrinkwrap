@@ -6,14 +6,17 @@ import os
 _code_root = os.path.dirname(os.path.dirname(__file__))
 _data_root = os.path.expanduser('~/.shrinkwrap')
 
-def _get_loc(var, default):
+def _get_loc(var, default=None):
 	path = os.environ.get(var, default)
+	if not path:
+		return None
 	path = os.path.abspath(path)
 	os.makedirs(path, exist_ok=True)
 	return path
 
 build = _get_loc('SHRINKWRAP_BUILD', os.path.join(_data_root, 'build'))
 package = _get_loc('SHRINKWRAP_PACKAGE', os.path.join(_data_root, 'package'))
+project_cache = _get_loc("SHRINKWRAP_PROJECT_CACHE")
 
 _configs = None
 
@@ -44,6 +47,8 @@ def config(path, join=True):
 	return None
 
 def dump():
+	print(f'workspace.project_cache:')
+	print(f'  {project_cache}')
 	print(f'workspace.build:')
 	print(f'  {build}')
 	print(f'workspace.package:')

@@ -10,6 +10,7 @@ import textwrap
 import yaml
 import shrinkwrap.utils.clivars as uclivars
 import shrinkwrap.utils.workspace as workspace
+from urllib.parse import urlparse
 
 default_image = 'docker.io/shrinkwraptool/base-slim:latest'
 
@@ -48,6 +49,7 @@ def _component_normalize(component, name):
 	for repo in component['repo'].values():
 		repo.setdefault('remote', None)
 		repo.setdefault('revision', None)
+		repo.setdefault('project', None)
 
 	component.setdefault('sourcedir', None)
 	component.setdefault('builddir', None)
@@ -939,8 +941,29 @@ def build_graph(configs, echo, nosync, force_sync):
 						gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
 						gitremote = repo['remote']
 						gitrev = repo['revision']
+						git_project_cache = repo['project']
 						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
 						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+
+						project_cache_dir = workspace.project_cache
+						git_local_reference=" "
+						if project_cache_dir:
+							if not git_project_cache:
+								parsed_url  = urlparse(gitremote)
+								git_project_cache = os.path.basename(parsed_url.path)
+
+							# Lets start searching for non bare repo first
+							git_project_cache = os.path.join(project_cache_dir, git_project_cache.removesuffix('.git'))
+							# Search for non bare repo
+							if os.path.isdir(os.path.join(git_project_cache, '.git')):
+								git_local_reference = f"--reference-if-able {os.path.join(git_project_cache, '.git')} "
+							# Search for a bare repo
+							elif os.path.isdir(f"{git_project_cache}.git"):
+								git_local_reference=f"--reference-if-able {git_project_cache}.git "
+							else:
+								git_project_cache = ""
+						else:
+							git_project_cache = ""
 
 						if name in force_sync:
 							# We don't update any submodule before `git submodule sync`,
@@ -973,7 +996,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							rm -rf {gitlocal} > /dev/null 2>&1 || true
 							mkdir -p {basedir}
 							touch {sync}
-							git clone {gitargs}{gitremote} {gitlocal}
+							git clone {gitargs}{git_local_reference}{gitremote} {gitlocal}
 							pushd {gitlocal}
 							git checkout {gitargs}--force {gitrev}
 							git submodule {gitargs}update --init --checkout --recursive --force

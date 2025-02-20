@@ -153,6 +153,9 @@ def build(configs, btvarss, nosync, force_sync, args):
 					if btvar['type'] == 'path':
 						rt.add_volume(btvar['value'])
 
+			if workspace.project_cache:
+				add_volume(workspace.project_cache)
+
 			rt.start()
 
 			ugraph.execute(graph,
