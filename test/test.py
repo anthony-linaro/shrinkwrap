@@ -354,6 +354,10 @@ def run_configs(configs, overlay=None, rtvarss=None):
 
 
 def run_repo_sync_test(args):
+	# Cannot select synctest with `-c`, but it's easy to run manually
+	if args.config is not None:
+		return
+
 	if DRY_RUN:
 		ret = 0
 		print(f"+ {SYNCTEST}")
@@ -367,8 +371,14 @@ def run_repo_sync_test(args):
 
 
 def do_main(args):
-	arch_configs = [c for c in CONFIGS if 'arch' in c]
-	noarch_configs = [c for c in CONFIGS if 'arch' not in c]
+	selected_configs = [c for c in CONFIGS
+			            if args.config is None or args.config == c['config']]
+	if not selected_configs:
+		print(f"Unknown config {args.config}")
+		exit(1)
+
+	arch_configs = [c for c in selected_configs if 'arch' in c]
+	noarch_configs = [c for c in selected_configs if 'arch' not in c]
 
 	if args.smoke_test:
 		arches = set([c['arch']['end'] for c in arch_configs])
@@ -419,6 +429,10 @@ def main():
 		default='docker.io/shrinkwraptool/base-full:latest',
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
+
+	parser.add_argument('-c', '--config',
+		metavar='name', required=False, default=None,
+		help="""Only test the given config.""")
 
 	parser.add_argument('-j', '--junit',
 		metavar='file', required=False, default=None,
