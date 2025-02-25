@@ -18,6 +18,7 @@ import yaml
 RUNTIME = None
 IMAGE = None
 FVPJOBS = None
+DRY_RUN = False
 
 
 SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
@@ -233,13 +234,17 @@ def print_results(junit=None):
 		if r['status'] == 'pass':
 			nr_pass += 1
 
-	print(f'pass: {nr_pass}, fail: {len(results) - nr_pass}')
+	dry_run = "(dry run) " if DRY_RUN else ""
+	print(f'{dry_run}pass: {nr_pass}, fail: {len(results) - nr_pass}')
 
 	return nr_pass == len(results)
 
 
 def run(cmd, timeout=None, expect=0, capture=False):
 	print(f'+ {cmd}')
+	if DRY_RUN:
+		return ""
+
 	ret = subprocess.run(cmd, timeout=timeout, shell=True,
 		stdout=subprocess.PIPE if capture else None,
 		stderr=subprocess.STDOUT if capture else None)
@@ -348,6 +353,19 @@ def run_configs(configs, overlay=None, rtvarss=None):
 				sys.stdout.write(stdout.decode())
 
 
+def run_repo_sync_test(args):
+	if DRY_RUN:
+		ret = 0
+		print(f"+ {SYNCTEST}")
+	else:
+		ret = subprocess.run(SYNCTEST).returncode
+	results.append({
+		'type': 'repo-sync-behaviours',
+		'status': 'pass' if ret == 0 else 'fail',
+		'error': None,
+	})
+
+
 def do_main(args):
 	arch_configs = [c for c in CONFIGS if 'arch' in c]
 	noarch_configs = [c for c in CONFIGS if 'arch' not in c]
@@ -374,13 +392,7 @@ def do_main(args):
 		build_configs(configs, btvarss=btvarss)
 		run_configs(configs, rtvarss=rtvarss)
 
-	# Run repo sync tests.
-	ret = subprocess.run(SYNCTEST).returncode
-	results.append({
-		'type': 'repo-sync-behaviours',
-		'status': 'pass' if ret == 0 else 'fail',
-		'error': None,
-	})
+	run_repo_sync_test(args)
 
 	success = print_results(args.junit)
 	exit(not success)
@@ -416,6 +428,10 @@ def main():
 		metavar='count', required=False, default=1, type=int,
 		help="""Maximum number of FVPs to run in parallel.""")
 
+	parser.add_argument('-n', '--dry-run',
+		required=False, default=False, action='store_true',
+		help="""Do not build or run anything, only print what would be done.""")
+
 	parser.add_argument('-s', '--smoke-test',
 		required=False, default=False, action='store_true',
 		help="""If specified, run a smaller selection of tests.""")
@@ -425,9 +441,11 @@ def main():
 	global RUNTIME
 	global IMAGE
 	global FVPJOBS
+	global DRY_RUN
 	RUNTIME = args.runtime
 	IMAGE = args.image
 	FVPJOBS = args.fvpjobs
+	DRY_RUN = args.dry_run
 
 	do_main(args)
 
