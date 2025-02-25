@@ -254,22 +254,19 @@ def run(cmd, timeout=None, expect=0, capture=False):
 	return ret.stdout
 
 
-def build_configs(configs, overlay=None, btvarss=None):
+def build_configs(configs, overlays):
 
 	status = 'pass'
 	error = None
 
 	rt = f'-R {RUNTIME} -I {IMAGE}'
-	cleanargs = f'{" ".join(configs)} {f"-o {overlay}" if overlay else ""}'
-
-	if btvarss is None:
-		btvarss = [{}] * len(configs)
-
-	assert(len(configs) == len(btvarss))
+	cfg_files = [c['config'] for c in configs]
+	overlay_args = ' '.join(f'-o {o}' for o in overlays)
+	cleanargs = f'{" ".join(cfg_files)} {overlay_args}'
 
 	cfgs = []
-	for c, b in zip(configs, btvarss):
-		cfgs.append({'config': c, 'btvars': b})
+	for c in configs:
+		cfgs.append({'config': c['config'], 'btvars': c['btvars']})
 
 	with tempfile.TemporaryDirectory() as tmpdir:
 		tmpfilename = os.path.join(tmpdir, 'configs.yaml')
@@ -281,7 +278,7 @@ def build_configs(configs, overlay=None, btvarss=None):
 					version=(1, 2))
 		with open(tmpfilename, 'r') as tmpfile:
 			print(tmpfile.read())
-		buildargs = f'{tmpfilename} {f"-o {overlay}" if overlay else ""}'
+		buildargs = f'{tmpfilename} {overlay_args}'
 
 		try:
 			run(f'shrinkwrap {rt} clean {cleanargs}', None)
@@ -295,10 +292,10 @@ def build_configs(configs, overlay=None, btvarss=None):
 		'type': 'build',
 		'status': status,
 		'error': error,
-		'config': config,
-		'overlay': overlay,
-		'btvars': btvars,
-	} for config, btvars in zip(configs, btvarss)]
+		'config': c['config'],
+		'overlays': ",".join(overlays),
+		'btvars': c['btvars'],
+	} for c in configs]
 
 
 def run_config(config, overlay, rtvars, tag, capture):
@@ -313,14 +310,14 @@ def run_config(config, overlay, rtvars, tag, capture):
 		'status': 'fail',
 		'error': None,
 		'config': config,
-		'overlay': overlay,
+		'overlays': ','.join(overlays),
 		'rtvars': rtvars,
 		'tag': tag,
 	}
 
 	rt = f'-R {RUNTIME} -I {IMAGE}'
-	overlay = f'-o {overlay}' if overlay else ''
-	args = f'{config} {overlay} {runargs}'
+	overlay_args = ' '.join(f"-o {o}" for o in overlays)
+	args = f'{config} {overlay_args} {runargs}'
 
 	try:
 		stdout = run(f'shrinkwrap {rt} run {args}',
@@ -336,15 +333,11 @@ def run_config(config, overlay, rtvars, tag, capture):
 	return result, stdout
 
 
-def run_configs(configs, overlay=None, rtvarss=None):
-
-	if rtvarss is None:
-		rtvarss = [{'default': {}}] * len(configs)
-
+def run_configs(configs, overlays):
 	params = []
-	for config, _rtvars in zip(configs, rtvarss):
-		for tag, rtvars in _rtvars.items():
-			params.append((config, overlay, rtvars, tag, FVPJOBS > 1))
+	for c in configs:
+		for tag, rtvars in c['rtvars'].items():
+			params.append((c['config'], overlays, rtvars, tag, FVPJOBS > 1))
 
 	with mp.Pool(processes=FVPJOBS) as pool:
 		for result, stdout in pool.starmap(run_config, params):
@@ -385,22 +378,27 @@ def do_main(args):
 	else:
 		arches = list(arch_range('v8.0', ARCH_LATEST))
 
+	# Gather configs that have the same overlays, and can be built together
+	test_batches = {}
+
 	# Configs that support an arch override.
 	for arch in arches:
-		configs = [c['config'] for c in arch_configs if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
-		btvarss = [c['btvars'] for c in arch_configs if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
-		rtvarss = [c['rtvars'] for c in arch_configs if arch_in_range(arch, c['arch']['end'] if args.smoke_test else c['arch']['start'], c['arch']['end'])]
-		if len(configs) > 0:
-			build_configs(configs, f'arch/{arch}.yaml', btvarss=btvarss)
-			run_configs(configs, f'arch/{arch}.yaml', rtvarss=rtvarss)
+		for c in arch_configs:
+			first_arch = c['arch']['end'] if args.smoke_test else c['arch']['start']
+			if not arch_in_range(arch, first_arch, c['arch']['end']):
+				continue
+
+			overlays = (f'arch/{arch}.yaml',) + tuple(c.get('overlays', ()))
+			test_batches.setdefault(overlays, []).append(c)
 
 	# Configs that don't support an arch override.
-	configs = [c['config'] for c in noarch_configs]
-	btvarss = [c['btvars'] for c in noarch_configs]
-	rtvarss = [c['rtvars'] for c in noarch_configs]
-	if len(configs) > 0:
-		build_configs(configs, btvarss=btvarss)
-		run_configs(configs, rtvarss=rtvarss)
+	for c in noarch_configs:
+		overlays = tuple(c.get('overlays', ()))
+		test_batches.setdefault(overlays, []).append(c)
+
+	for overlays, configs in test_batches.items():
+		build_configs(configs, overlays)
+		run_configs(configs, overlays)
 
 	run_repo_sync_test(args)
 
