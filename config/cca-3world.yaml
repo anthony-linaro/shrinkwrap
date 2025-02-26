@@ -112,7 +112,7 @@ build:
   linux:
     repo:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
-      revision: cca-full/v5+v7
+      revision: cca-host/v7
 
   kvmtool:
     repo:
@@ -120,7 +120,7 @@ build:
         revision: v1.6.1
       kvmtool:
         remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
-        revision: cca/v3
+        revision: cca/v5
 
   edk2-cca-guest:
     repo:
