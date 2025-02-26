@@ -298,7 +298,7 @@ def build_configs(configs, overlays):
 	} for c in configs]
 
 
-def run_config(config, overlay, rtvars, tag, capture):
+def run_config(config, overlays, rtvars, tag, capture, timeout):
 
 	def make_rtcmds(rtvars):
 		return ' '.join([f'-r {k}={v}' for k, v in rtvars.items()])
@@ -321,7 +321,7 @@ def run_config(config, overlay, rtvars, tag, capture):
 
 	try:
 		stdout = run(f'shrinkwrap {rt} run {args}',
-	       			timeout=600, capture=capture)
+				timeout=timeout, capture=capture)
 		result['status'] = 'pass'
 	except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
 		stdout = e.stdout
@@ -337,7 +337,8 @@ def run_configs(configs, overlays):
 	params = []
 	for c in configs:
 		for tag, rtvars in c['rtvars'].items():
-			params.append((c['config'], overlays, rtvars, tag, FVPJOBS > 1))
+			timeout = c.get('timeout', 600)
+			params.append((c['config'], overlays, rtvars, tag, FVPJOBS > 1, timeout))
 
 	with mp.Pool(processes=FVPJOBS) as pool:
 		for result, stdout in pool.starmap(run_config, params):
@@ -369,6 +370,10 @@ def do_main(args):
 	if not selected_configs:
 		print(f"Unknown config {args.config}")
 		exit(1)
+
+	if args.smoke_test:
+		# Assume tests with a special timeout are long-running ones
+		selected_configs = [c for c in selected_configs if not 'timeout' in c]
 
 	arch_configs = [c for c in selected_configs if 'arch' in c]
 	noarch_configs = [c for c in selected_configs if 'arch' not in c]
