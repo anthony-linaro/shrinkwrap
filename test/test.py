@@ -113,6 +113,15 @@ CONFIGS = [
 		'rtvars': {'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},
 	},
 	{
+		'config': 'cca-3world.yaml',
+		'btvars': {},
+		'rtvars': {'realm': {}},
+		'overlays': ['buildroot-cca.yaml', 'test/cca.yaml'],
+		# Building the whole userspace and booting multiple guests takes a while!
+		# 30min timeout should be enough.
+		'timeout': 1800,
+	},
+	{
 		'config': 'cca-4world.yaml',
 		'btvars': {'GUEST_ROOTFS': ROOTFS},
 		'rtvars': {'default': {'KERNEL': KERNEL, 'ROOTFS': ROOTFS}},

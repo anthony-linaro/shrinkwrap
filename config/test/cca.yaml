@@ -1,0 +1,34 @@
+# Copyright (c) 2025, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Add an initscript to buildroot to automatically execute tests.
+  The test launches a guest and checks that it is running in a Realm.
+
+build:
+  buildroot:
+    prebuild:
+      - mkdir -p ${param:builddir}/overlay/etc/init.d
+      - |
+        echo -e "#!/bin/sh
+        case \$$1 in
+            start|stop|restart|reload)
+                if [ -e /dev/kvm ]; then
+                    # Host
+                    # On failure, exit this script and wait for the test timeout
+                    gen-run-vmm.sh --kvmtool || exit 1
+                else
+                    # Guest
+                    cca-workload-attestation report | grep cca-realm-initial-measurement || exit 1
+                fi
+                poweroff -f
+                ;;
+            *)
+                echo Usage \$$0 {start|stop|restart|reload}
+                exit 1
+                ;;
+        esac" > ${param:builddir}/overlay/etc/init.d/S50test
+      - chmod +x ${param:builddir}/overlay/etc/init.d/S50test
+      - ${param:sourcedir}/utils/config --file ${param:builddir}/.config --set-val BR2_ROOTFS_OVERLAY \"${param:builddir}/overlay\"
