@@ -85,6 +85,15 @@ build-documentation:
   tags:
     - amd64
   script:
+    - export PATH=$PWD/shrinkwrap:$PATH
+    - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
+    - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
+    - ./documentation/_scripts/genconfigstore.py
+    - |
+      if ! git diff --quiet; then
+        echo "Config store documentation not up-to-date; run genconfigstore.py and commit changes."
+        exit 1
+      fi
     - pip3 install requests
     - |
       if [ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]; then
