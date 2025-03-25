@@ -52,7 +52,7 @@ build:
     repo:
       edk2:
         remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
-        revision: 3223_arm_cca_rmm_v1.0_rel0_v3
+        revision: 3223_arm_cca_rmm_v1.0_rel0_v3_patch1
       edk2-platforms:
         remote: https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git
         revision: 3223_arm_cca_rmm_v1.0_rel0_v3
