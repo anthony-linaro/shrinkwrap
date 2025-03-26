@@ -11,7 +11,7 @@ build:
   tfa:
     repo:
       remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
-      revision: v2.12.0
+      revision: v2.13.0
 
     toolchain: aarch64-none-elf-
 
