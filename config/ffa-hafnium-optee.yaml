@@ -10,8 +10,6 @@ description: >-
   (Secure Partition Manager Core) and OPTEE as a secure partition/VM
   in secure EL1 and Linux in Normal world.
 
-image: shrinkwraptool/base-full
-
 concrete: true
 
 layers:

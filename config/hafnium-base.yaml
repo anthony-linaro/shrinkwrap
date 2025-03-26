@@ -6,6 +6,8 @@
 description: >-
   Hafnium is the Secure Partition Manager that runs at SEL2.
 
+image: shrinkwraptool/base-full
+
 build:
   hafnium:
     repo:
