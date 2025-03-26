@@ -72,3 +72,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		libasound-dev:arm64 \
 		liburing-dev:arm64 \
 		libz-dev:arm64
+
+ENV POETRY_HOME="/tools/poetry"
+ENV PATH="${POETRY_HOME}/bin:${PATH}"
+RUN curl -sSL https://install.python-poetry.org | python3 -
