@@ -723,7 +723,6 @@ Alternatively, you could have passed ``--dry-run`` to see the FVP invocation scr
       -C bp.hostbridge.userNetPorts=8022=22 \
       -C bp.hostbridge.userNetworking=1 \
       -C bp.refcounter.non_arch_start_at_default=1 \
-      -C bp.refcounter.use_real_time=0 \
       -C bp.secure_memory=1 \
       -C bp.secureflashloader.fname=<root>/package/ns-edk2/bl1.bin \
       -C bp.smsc_91c111.enabled=1 \
@@ -1118,7 +1117,6 @@ command:
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR3: 0
       -C cluster0.has_brbe_v1p1: 1
       -C cluster0.has_branch_target_exception: 1
-      -C bp.refcounter.use_real_time: 0
       -C cluster0.PA_SIZE: 48
       -C pci.pci_smmuv3.mmu.SMMU_S_IDR1: 2684354562
       -C cluster1.max_32bit_el: 0

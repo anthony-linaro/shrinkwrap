@@ -29,7 +29,6 @@ run:
     --stat: null
     -C bp.vis.disable_visualisation: 1
     -C bp.refcounter.non_arch_start_at_default: 1                     # Firmware is expected to enable the timer at boot time. However, turning this parameter on is a model-specific way of enabling the counter module out of reset.
-    -C bp.refcounter.use_real_time: 0                                 # Update the Generic Timer counter at a real-time base frequency instead of simulator time
     -C bp.secure_memory: 1                                            # enable security checking by TZC-400
     -C bp.ve_sysregs.exit_on_shutdown: 1                              # SYS_CFG_SHUTDOWN exits simulation
     -C pctl.startup: 0.0.0.0                                          # Comma-separated list of cores (wildcards allowed) to be powered up at startup or system reset
