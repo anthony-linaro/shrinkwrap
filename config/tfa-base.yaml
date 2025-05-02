@@ -22,6 +22,17 @@ build:
       ARM_DISABLE_TRUSTED_WDOG: 1
       FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
 
+    prebuild:
+      # tfa does not notice when parameters are changed and can therefore end up
+      # with stale compilation units. Let's work around that by saving the
+      # parameters and comparing to the last run. If they have changed, force a
+      # clean. Also works for the case where shrinkwrap.params doesn't exist.
+      - 'echo "${param:join_equal}" > ${param:builddir}/shrinkwrap.params.new'
+      - if ! cmp -s "${param:builddir}/shrinkwrap.params.new" "${param:builddir}/shrinkwrap.params"; then
+      -     make BUILD_BASE=${param:builddir} clean
+      - fi
+      - mv ${param:builddir}/shrinkwrap.params.new ${param:builddir}/shrinkwrap.params
+
     build:
       # tfa has makefile dependency bug that makes parallel make for more than
       # ~8 jobs unreliable, so limit it to 8.

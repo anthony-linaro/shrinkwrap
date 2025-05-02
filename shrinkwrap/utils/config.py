@@ -344,7 +344,7 @@ def _string_has_macros(string):
 def _mk_params(params, separator):
 	pairs = [f'{k}' if v is None else f'{k}{separator}{v}'
 						for k, v in params.items()]
-	return ' '.join(pairs)
+	return ' '.join(sorted(pairs))
 
 
 def filename(name, rel=os.getcwd()):
