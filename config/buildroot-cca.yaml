@@ -68,7 +68,7 @@ build:
   buildroot-external-cca:
     repo:
       remote: https://git.codelinaro.org/linaro/dcap/buildroot-external-cca.git
-      revision: main
+      revision: cca/v8
 
     artifacts:
       BUILDROOT_EXTERNAL_CCA:
