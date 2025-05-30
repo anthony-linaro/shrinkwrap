@@ -35,6 +35,7 @@ class Runtime:
 
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
+		self._rt.network = "host"
 
 		is_mac = sys.platform.startswith('darwin')
 		is_docker = name.startswith('docker')
