@@ -116,6 +116,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 	log = logger.Logger(27)
 	ts = graphlib.TopologicalSorter(graph)
 	lognum = {}
+	exec_error = None
 
 	def _pump(pm):
 		nonlocal queue
@@ -165,6 +166,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		nonlocal queue
 		nonlocal active
 		nonlocal ts
+		nonlocal exec_error
 
 		data = proc.data[0]
 		err = proc.data[1]
@@ -179,14 +181,19 @@ def execute(graph, tasks, verbose=False, colorize=True):
 			# to do anything further.
 			return
 
-		if retcode:
-			if not verbose:
-				print('\n== error start ' + ('=' * 65))
-				print(''.join(err))
-				print('== error end ' + ('=' * 67) + '\n')
-			raise Exception(f"Failed to execute '{frag}'")
 
-		state = 'Done' if frag.final else 'Waiting...'
+		if retcode:
+			# Fatal error. Do not execute any new fragment, only wait for those
+			# that are currently running.
+			exec_error = {
+				"exception": Exception(f"Failed to execute '{frag}'"),
+				"error": ''.join(err),
+			}
+			queue = []
+			state = 'Error'
+		else:
+			state = 'Done' if frag.final else 'Waiting...'
+
 		_update_labels(labels,
 			       mask,
 			       frag.config,
@@ -195,9 +202,10 @@ def execute(graph, tasks, verbose=False, colorize=True):
 		if frag.final:
 			mask[frag.config][frag.component] = False
 
-		ts.done(frag)
 		active -= 1
-		queue.extend(ts.get_ready())
+		if not exec_error:
+			ts.done(frag)
+			queue.extend(ts.get_ready())
 		_pump(pm)
 
 		lc.update()
@@ -221,6 +229,13 @@ def execute(graph, tasks, verbose=False, colorize=True):
 	_pump(pm)
 	lc.update()
 	pm.run()
+
+	if exec_error:
+		if not verbose:
+			print('\n== error start ' + ('=' * 65))
+			print(exec_error['error'])
+			print('== error end ' + ('=' * 67) + '\n')
+		raise exec_error['exception']
 
 	# Mark all components as done. This should be a nop since the script
 	# should have indicated if it was the last step for a given
