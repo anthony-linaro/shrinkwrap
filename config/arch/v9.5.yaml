@@ -16,3 +16,5 @@ run:
   params:
     -C cluster0.has_arm_v9-5: 1
     -C cluster1.has_arm_v9-5: 1
+    -C cluster0.has_lsfe: 1
+    -C cluster1.has_lsfe: 1
