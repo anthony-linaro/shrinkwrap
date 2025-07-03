@@ -1,0 +1,17 @@
+# Copyright (c) 2025, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Overlay for TFTF to build debug configuration.
+
+build:
+  tftf:
+    params:
+      DEBUG: 1
+
+    artifacts:
+      TFTF_BIN: ${param:builddir}/fvp/debug/tftf.bin
+      SP_LAYOUT: ${param:builddir}/fvp/debug/sp_layout.json
+

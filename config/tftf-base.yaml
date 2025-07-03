@@ -18,6 +18,7 @@ build:
 
     params:
       PLAT: fvp
+      DEBUG: 0
       ENABLE_REALM_PAYLOAD_TESTS: 1
 
     build:
@@ -26,5 +27,6 @@ build:
       - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all"
 
     artifacts:
+      TFTF_BIN: ${param:builddir}/fvp/release/tftf.bin
       SP_LAYOUT: ${param:builddir}/fvp/release/sp_layout.json
 
