@@ -30,21 +30,25 @@ RUN cd /tools \
 ENV TCH_PATH_AARCH32="/tools/${TCH_PATH_AARCH32}"
 ENV PATH="${TCH_PATH_AARCH32}:${PATH}"
 
-# Install aarch64 llvm toolchain and dependencies.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
-		libncurses5
+# LLVM/Clang Installation.
+# Set the LLVM version (keep in sync with Hafnium Project master requirements)
+ENV LLVM_VERSION=20
 
-ARG TCH_LLVM_PKG_NAME
-ARG TCH_LLVM_PATH
-COPY assets/${TCH_LLVM_PKG_NAME} /tools/.
-RUN cd /tools \
-       && if [ "${TCH_LLVM_PKG_NAME}" != "none" ]; then \
-           tar xf ${TCH_LLVM_PKG_NAME}; \
-       fi \
-       && rm ${TCH_LLVM_PKG_NAME} \
-       && cd -
-ENV TCH_LLVM_PATH="/tools/${TCH_LLVM_PATH}"
-ENV PATH="${TCH_LLVM_PATH}:${PATH}"
+RUN mkdir -p /etc/apt/keyrings && \
+    wget https://apt.llvm.org/llvm-snapshot.gpg.key -O /etc/apt/keyrings/llvm-snapshot.key && \
+    echo "deb [signed-by=/etc/apt/keyrings/llvm-snapshot.key] http://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-${LLVM_VERSION} main" > /etc/apt/sources.list.d/llvm.list && \
+    echo "deb-src [signed-by=/etc/apt/keyrings/llvm-snapshot.key] http://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-${LLVM_VERSION} main" >> /etc/apt/sources.list.d/llvm.list && \
+    apt-get update && \
+    apt-get install -y \
+        clang-${LLVM_VERSION} \
+        clangd-${LLVM_VERSION} \
+        clang-tidy-${LLVM_VERSION} \
+        clang-format-${LLVM_VERSION} \
+        llvm-${LLVM_VERSION} \
+        lld-${LLVM_VERSION} \
+        libc++-${LLVM_VERSION}-dev && \
+    for f in /usr/lib/llvm-${LLVM_VERSION}/bin/*; do ln -s "$f" /usr/local/bin/$(basename $f); done && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install packages required to compile Linux kselftests. We install the target
 # versions for cross-compiling, and the native versions for good measure.

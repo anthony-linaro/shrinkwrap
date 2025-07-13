@@ -102,9 +102,6 @@ if [ "${ARCH}" = "x86_64" ]; then
 	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
 	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
 	TCH_PATH_AARCH64=arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin
-	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6
-	TCH_LLVM_PKG_NAME=clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-	TCH_LLVM_PATH=clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04/bin
 	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
 	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
 	TCH_PATH_AARCH32=arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin
@@ -116,9 +113,6 @@ elif [ "${ARCH}" = "aarch64" ] || [ "${ARCH}" = "arm64" ]; then
 	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
 	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-13.2.rel1-aarch64-aarch64-none-elf.tar.xz
 	TCH_PATH_AARCH64=arm-gnu-toolchain-13.2.Rel1-aarch64-aarch64-none-elf/bin
-	TCH_LLVM_PKG_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6
-	TCH_LLVM_PKG_NAME=clang+llvm-15.0.6-aarch64-linux-gnu.tar.xz
-	TCH_LLVM_PATH=clang+llvm-15.0.6-aarch64-linux-gnu/bin
 	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
 	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-13.2.rel1-aarch64-arm-none-eabi.tar.xz
 	TCH_PATH_AARCH32=arm-gnu-toolchain-13.2.Rel1-aarch64-arm-none-eabi/bin
@@ -150,7 +144,6 @@ cd ${ROOT}
 # Grab the pre-built packages.
 mkdir -p assets
 wget_or_cache assets/${TCH_PKG_NAME_AARCH64} ${TCH_PKG_URL_AARCH64}/${TCH_PKG_NAME_AARCH64}
-wget_or_cache assets/${TCH_LLVM_PKG_NAME} ${TCH_LLVM_PKG_URL}/${TCH_LLVM_PKG_NAME}
 wget_or_cache assets/${TCH_PKG_NAME_AARCH32} ${TCH_PKG_URL_AARCH32}/${TCH_PKG_NAME_AARCH32}
 wget_or_cache assets/${FVP_PKG_NAME} ${FVP_PKG_URL}/${FVP_PKG_NAME}
 
@@ -179,8 +172,6 @@ if [ "${DRIVER}" = "docker" ]; then
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=TCH_PKG_NAME_AARCH32=${TCH_PKG_NAME_AARCH32} \
 		--build-arg=TCH_PATH_AARCH32=${TCH_PATH_AARCH32} \
-		--build-arg=TCH_LLVM_PKG_NAME=${TCH_LLVM_PKG_NAME} \
-		--build-arg=TCH_LLVM_PATH=${TCH_LLVM_PATH} \
 		--file=Dockerfile.full \
 		--tag=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		.
@@ -225,8 +216,6 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=TCH_PKG_NAME_AARCH32=${TCH_PKG_NAME_AARCH32} \
 		--build-arg=TCH_PATH_AARCH32=${TCH_PATH_AARCH32} \
-		--build-arg=TCH_LLVM_PKG_NAME=${TCH_LLVM_PKG_NAME} \
-		--build-arg=TCH_LLVM_PATH=${TCH_LLVM_PATH} \
 		--dockerfile=Dockerfile.full \
 		--destination=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--context=.
