@@ -129,12 +129,11 @@ macro                   scope                                                   
 ``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, artifacts}                                                     Directory in which the component should be built, if the component's build system supports separation of source and build trees.
 ``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, artifacts}                                                     Directory containing the config store. This MUST only be used for resolving files that already exist in the store.
 ``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild, artifacts}                                                     Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
-``${btvar:<name>}``	build.<component>.{sourcedir, builddir, repo, toolchain, params, prebuild, build, postbuild, artifacts}, run.rtvars   Build-time variables. The variable names, along with default values are declared in buildex.btvars, and the user may override the value on the command line.
+``${btvar:<name>}``     build.<component>.{sourcedir, builddir, repo, toolchain, params, prebuild, build, postbuild, artifacts}, run.rtvars   Build-time variables. The variable names, along with default values are declared in buildex.btvars, and the user may override the value on the command line.
 ``${param:join_equal}`` build.<component>.{prebuild, build, postbuild}                                                                        String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
 ``${param:join_space}`` build.<component>.{prebuild, build, postbuild}                                                                        String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
 ``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, artifacts}, build.btvars                                       Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph.
-``${param:packagedir}`` run.rtvars
-               Root directory containing all component artifacts.
+``${param:packagedir}`` run.rtvars                                                                                                            Root directory containing all component artifacts.
 ``${artifact:<name>}``  run.rtvars                                                                                                            Package path of an artifact.
 ``${rtvar:<name>}``     run.params                                                                                                            Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
 ======================= ===================================================================================================================== ====
@@ -222,6 +221,7 @@ key         type        description
 remote      string      Address of the remote repository
 revision    string      A git revision (branch name, tag, hash...)
 project     string      Optional. Name of the project corresponding to this repository, used to retrieve a cached repository in SHRINKWRAP_PROJECT_CACHE. By default, the project name is the base name contained in the remote address.
+=========== =========== ===========
 
 -----------
 run section
