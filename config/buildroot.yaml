@@ -20,6 +20,10 @@ build:
     stderrfilt: true
 
     prebuild:
+      # Building with the Docker runtime on macOS will fail while configuring
+      # host-tar unless this variable is set.
+      - export FORCE_UNSAFE_CONFIGURE=1
+
       # Start from default config, but allow higher level layers to modify it.
       - make BR2_JLEVEL=${param:jobs} O=${param:builddir} BR2_DEFCONFIG=${param:configdir}/buildroot.config defconfig
       # Uncomment the below line if you want to regenerate the defconfig and
