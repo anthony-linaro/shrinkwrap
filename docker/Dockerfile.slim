@@ -26,15 +26,6 @@ ENV PATH="/root/.local/bin:${PATH}"
 RUN uv venv "/root/.venv"
 ENV PATH="/root/.venv/bin:${PATH}"
 
-# Explicitly install Python and create a venv for pip packages, since Debian
-# does not allow us to install pip packages system-wide.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
-		python3 \
-		python3-pip \
-		python3-venv
-RUN python3 -m venv /pyvenv
-ENV PATH="/pyvenv/bin:${PATH}"
-
 # We now install packages required by all the FW components that Shrinkwrap
 # supports building. Often there are overlapping components, but we (re)specify
 # them for each component in order to keep track of who needs what.
@@ -43,14 +34,8 @@ ENV PATH="/pyvenv/bin:${PATH}"
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		netcat-openbsd \
 		openssh-client \
-		python3 \
-		python3-pip \
 		telnet \
 		wget
-RUN pip3 install \
-		termcolor \
-		tuxmake \
-		pyyaml
 
 # Install packages requried by TF-A.
 # From https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/prerequisites.html.
@@ -77,12 +62,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		cpio \
 		flex \
 		libssl-dev \
-		make \
-		python3 \
-		python3-pip \
-		python3-serial
-RUN pip3 install \
-		fdt
+		make
 
 # Install packages requried by OPTEE.
 # From https://optee.readthedocs.io/en/latest/building/prerequisites.html
@@ -122,9 +102,6 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		mtools \
 		netcat-openbsd \
 		ninja-build \
-		python3-pip \
-		python3-serial \
-		python-is-python3 \
 		rsync \
 		swig \
 		unzip \
@@ -133,9 +110,6 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		xterm \
 		xz-utils \
 		zlib1g-dev
-RUN pip3 install \
-		cryptography \
-		pyelftools
 
 
 # Install packages requried by EDK2.
@@ -144,8 +118,6 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		bison \
 		build-essential \
 		flex \
-		python3 \
-		python3-distutils \
 		uuid-dev \
 		dosfstools \
 		mtools \
@@ -157,11 +129,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		build-essential \
 		git \
 		make \
-		ninja-build \
-		python3 \
-		python3-pip
-RUN pip3 install \
-		cmake==3.31.6
+		ninja-build
 
 # Install packages requried by kvmtool.
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
@@ -201,6 +169,11 @@ RUN cd /tools \
 	&& cd -
 ENV TCH_PATH_AARCH64="/tools/${TCH_PATH_AARCH64}"
 ENV PATH="${TCH_PATH_AARCH64}:${PATH}"
+
+# Install runtime dependencies into the global environment
+COPY pyproject.toml uv.lock /shrinkwrap/
+RUN uv sync --project /shrinkwrap --extra runtime --active --locked --no-install-project --no-default-groups
+RUN rm -rf /shrinkwrap
 
 # Set ssh options used by git.
 ENV GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"

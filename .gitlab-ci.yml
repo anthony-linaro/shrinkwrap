@@ -85,7 +85,6 @@ build-documentation:
   tags:
     - amd64
   script:
-    - export PATH=$PWD/shrinkwrap:$PATH
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
     - uv export --only-group docs -o documentation/requirements.txt
@@ -95,19 +94,18 @@ build-documentation:
         exit 1
       fi
     - rm -rf ./documentation/userguide/configstore/*
-    - ./documentation/_scripts/genconfigstore.py
+    - uv run --locked ./documentation/_scripts/genconfigstore.py
     - |
       if ! git diff --quiet; then
         echo "Config store documentation not up-to-date; run genconfigstore.py and commit changes."
         exit 1
       fi
-    - pip3 install requests
     - |
       if [ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]; then
-        ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch latest --state active
+        uv run --locked ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch latest --state active
       else
-        ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch main --state inactive
-        ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch ${CI_COMMIT_BRANCH} --state inactive
+        uv run --locked ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch main --state inactive
+        uv run --locked ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch ${CI_COMMIT_BRANCH} --state inactive
       fi
 
 prep-test-assets:
@@ -125,7 +123,7 @@ prep-test-assets:
       if [ -f ./test/assets/.cache_exists ] && [ "$FORCE_PREP_TEST_ASSETS" == "false" ]; then
         echo "Cache already exists and prep not forced: skipping."
       else
-        ./test/genassets.sh -R null
+        uv run --locked ./test/genassets.sh -R null
         echo > ./test/assets/.cache_exists
       fi
 
@@ -145,10 +143,10 @@ test-self:
     paths:
       - test/assets/
   script:
-    - export PATH=$PWD/shrinkwrap:$PATH
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
-    - ./test/test.py --runtime null --smoke-test --fvpjobs 4 --junit selftest-${TAG}.xml
+    - uv sync --extra runtime # Install Shrinkwrap runtime dependencies (for `--runtime null`)
+    - uv run --locked ./test/test.py --runtime null --smoke-test --fvpjobs 4 --junit selftest-${TAG}.xml
   artifacts:
     name: selftest-${TAG}
     paths:
