@@ -81,9 +81,11 @@ build-docker-manifest:
 
 build-documentation:
   stage: build
-  image: shrinkwraptool/base-slim:latest
+  image: registry.gitlab.arm.com/tooling/shrinkwrap/base-slim:${CI_PIPELINE_IID}
   tags:
     - amd64
+  needs:
+    - build-docker-manifest
   script:
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
