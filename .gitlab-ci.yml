@@ -88,6 +88,7 @@ build-documentation:
     - export PATH=$PWD/shrinkwrap:$PATH
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
+    - rm -rf ./documentation/userguide/configstore/*
     - ./documentation/_scripts/genconfigstore.py
     - |
       if ! git diff --quiet; then
