@@ -20,7 +20,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 # even omit it by providing the special name "none".
 ARG TCH_PKG_NAME_AARCH32
 ARG TCH_PATH_AARCH32
-COPY assets/${TCH_PKG_NAME_AARCH32} /tools/.
+COPY docker/assets/${TCH_PKG_NAME_AARCH32} /tools/.
 RUN cd /tools \
 	&& if [ "${TCH_PKG_NAME_AARCH32}" != "none" ]; then \
 	    tar xf ${TCH_PKG_NAME_AARCH32}; \

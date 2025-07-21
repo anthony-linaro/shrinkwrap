@@ -137,15 +137,15 @@ wget_or_cache()
 	fi
 }
 
-# Do everything relative to this script's directory.
+# Do everything relative to the project workspace.
 ROOT=$( dirname $( readlink -f "$0" ) )
-cd ${ROOT}
+cd ${ROOT}/..
 
 # Grab the pre-built packages.
-mkdir -p assets
-wget_or_cache assets/${TCH_PKG_NAME_AARCH64} ${TCH_PKG_URL_AARCH64}/${TCH_PKG_NAME_AARCH64}
-wget_or_cache assets/${TCH_PKG_NAME_AARCH32} ${TCH_PKG_URL_AARCH32}/${TCH_PKG_NAME_AARCH32}
-wget_or_cache assets/${FVP_PKG_NAME} ${FVP_PKG_URL}/${FVP_PKG_NAME}
+mkdir -p docker/assets
+wget_or_cache docker/assets/${TCH_PKG_NAME_AARCH64} ${TCH_PKG_URL_AARCH64}/${TCH_PKG_NAME_AARCH64}
+wget_or_cache docker/assets/${TCH_PKG_NAME_AARCH32} ${TCH_PKG_URL_AARCH32}/${TCH_PKG_NAME_AARCH32}
+wget_or_cache docker/assets/${FVP_PKG_NAME} ${FVP_PKG_URL}/${FVP_PKG_NAME}
 
 # Short circuit building the images if requested.
 if [ "${VERSION}" = "none" ]; then
@@ -158,28 +158,28 @@ if [ "${DRIVER}" = "docker" ]; then
 		--build-arg=BASE=registry.gitlab.arm.com/tooling/shrinkwrap/bookworm-slim \
 		--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 		--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
-		--file=Dockerfile.slim \
+		--file=docker/Dockerfile.slim \
 		--tag=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		.
 	docker build \
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--file=Dockerfile.fvp \
+		--file=docker/Dockerfile.fvp \
 		--tag=${REGISTRY}/base-slim:${VERSION}-${ARCH} \
 		.
 	docker build \
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=TCH_PKG_NAME_AARCH32=${TCH_PKG_NAME_AARCH32} \
 		--build-arg=TCH_PATH_AARCH32=${TCH_PATH_AARCH32} \
-		--file=Dockerfile.full \
+		--file=docker/Dockerfile.full \
 		--tag=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		.
 	docker build \
 		--build-arg=BASE=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--file=Dockerfile.fvp \
+		--file=docker/Dockerfile.fvp \
 		--tag=${REGISTRY}/base-full:${VERSION}-${ARCH} \
 		.
 
@@ -198,7 +198,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=registry.gitlab.arm.com/tooling/shrinkwrap/bookworm-slim \
 		--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 		--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
-		--dockerfile=Dockerfile.slim \
+		--dockerfile=docker/Dockerfile.slim \
 		--destination=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--context=.
 	/kaniko/executor \
@@ -207,7 +207,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--dockerfile=Dockerfile.fvp \
+		--dockerfile=docker/Dockerfile.fvp \
 		--destination=${REGISTRY}/base-slim:${VERSION}-${ARCH} \
 		--context=.
 	/kaniko/executor \
@@ -216,7 +216,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 		--build-arg=TCH_PKG_NAME_AARCH32=${TCH_PKG_NAME_AARCH32} \
 		--build-arg=TCH_PATH_AARCH32=${TCH_PATH_AARCH32} \
-		--dockerfile=Dockerfile.full \
+		--dockerfile=docker/Dockerfile.full \
 		--destination=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--context=.
 	/kaniko/executor \
@@ -225,7 +225,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 		--build-arg=BASE=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 		--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 		--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
-		--dockerfile=Dockerfile.fvp \
+		--dockerfile=docker/Dockerfile.fvp \
 		--destination=${REGISTRY}/base-full:${VERSION}-${ARCH} \
 		--context=.
 else
