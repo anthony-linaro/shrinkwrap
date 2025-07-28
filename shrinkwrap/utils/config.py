@@ -1077,7 +1077,9 @@ def build_graph(configs, echo, nosync, force_sync):
 							continue
 						src = artifact['src']
 						dst = os.path.join(workspace.package, artifact['dst'])
-						a.append(f'cp -r {src} {dst}')
+						# Disallow sparse copies to prevent possible file corruption when the host
+						# volume is mounted into a docker container, particularly on macOS.
+						a.append(f'cp -r --sparse=never {src} {dst}')
 				a.seal()
 				graph[a] = [b]
 
