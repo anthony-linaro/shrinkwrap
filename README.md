@@ -14,26 +14,14 @@ The documentation (linked above) contains a
 section, which details how to install and use the tool. However, if you are in a
 hurry, here are the minimal steps:
 
-> **NOTE:** This assumes you have Docker installed. If this is not the case,
-> please refer to the documentation.
+> **NOTE:** This assumes you have Python >=3.9.0 and docker installed. If this
+> is not the case, please refer to the documentation.
 
-```shell
-# On Debian derivatives (e.g. Ubuntu) [with uv, recommended]
-curl -LsSf https://astral.sh/uv/install.sh | sh # Install uv first
-sudo apt-get update && sudo apt-get install curl git netcat-openbsd telnet
-uv tool install git+https://git.gitlab.arm.com/tooling/shrinkwrap.git
-
-# On Debian derivatives (e.g. Ubuntu) [with pipx]
-sudo apt-get update && sudo apt-get install curl git netcat-openbsd pipx python3-venv telnet
-pipx install git+https://git.gitlab.arm.com/tooling/shrinkwrap.git
-
-# On macOS (with Homebrew) [with uv, recommended]
-brew install git telnet uv
-uv tool install git+https://git.gitlab.arm.com/tooling/shrinkwrap.git
-
-# On macOS (with Homebrew) [with pipx]
-brew install git telnet pipx
-pipx install git+https://git.gitlab.arm.com/tooling/shrinkwrap.git
+```
+  sudo apt-get install git netcat-openbsd python3 python3-pip telnet
+  sudo pip3 install pyyaml termcolor tuxmake
+  git clone https://git.gitlab.arm.com/tooling/shrinkwrap.git
+  export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
 ```
 
 ```
