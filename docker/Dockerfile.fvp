@@ -14,7 +14,7 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 # providing the special name "none".
 ARG FVP_PKG_NAME
 ARG FVP_MODEL_DIR
-COPY docker/assets/${FVP_PKG_NAME} /tools/.
+COPY assets/${FVP_PKG_NAME} /tools/.
 RUN cd /tools \
 	&& if [ "${FVP_PKG_NAME}" != "none" ]; then \
 	    tar xf ${FVP_PKG_NAME}; \

@@ -192,7 +192,7 @@ RUN mkdir /tools
 # even omit it by providing the special name "none".
 ARG TCH_PKG_NAME_AARCH64
 ARG TCH_PATH_AARCH64
-COPY docker/assets/${TCH_PKG_NAME_AARCH64} /tools/.
+COPY assets/${TCH_PKG_NAME_AARCH64} /tools/.
 RUN cd /tools \
 	&& if [ "${TCH_PKG_NAME_AARCH64}" != "none" ]; then \
 	    tar xf ${TCH_PKG_NAME_AARCH64}; \
