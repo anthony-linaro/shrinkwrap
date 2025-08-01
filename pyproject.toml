@@ -10,21 +10,6 @@ dependencies = [
     "tuxmake~=1.29.3",
 ]
 
-[project.optional-dependencies]
-runtime = [
-    "shrinkwrap[runtime-edk2,runtime-op-tee,runtime-tf-a]",
-]
-runtime-edk2 = [
-    "cmake~=3.31.6",
-]
-runtime-op-tee = [
-    "cryptography~=45.0.5",
-    "pyelftools~=0.32",
-]
-runtime-tf-a = [
-    "fdt~=0.3.3",
-]
-
 [dependency-groups]
 dev = [
     {include-group = "docs"},
