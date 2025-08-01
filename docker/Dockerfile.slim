@@ -13,19 +13,6 @@ RUN apt-get update \
 	&& (timeout --signal=KILL 10s auto-apt-proxy \
 		|| apt-get purge --quiet --assume-yes auto-apt-proxy)
 
-# Install packages required to install uv
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
-		ca-certificates \
-		curl
-
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:${PATH}"
-
-# Set up a global Python virtual environment
-RUN uv venv "/root/.venv"
-ENV PATH="/root/.venv/bin:${PATH}"
-
 # Explicitly install Python and create a venv for pip packages, since Debian
 # does not allow us to install pip packages system-wide.
 RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
