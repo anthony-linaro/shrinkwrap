@@ -1,0 +1,47 @@
+# Copyright (c) 2025, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Rusted-Firmware-A. This configuration runs RF-A with the default
+  features along with its normal-world and secure-world tests.
+
+concrete: true
+
+layers:
+  - FVP_Base_RevC-2xAEMvA-base.yaml
+  - arch/v9.0.yaml
+  - rfa-base.yaml
+
+build:
+  tfa:
+    params:
+      SPD: spmd
+      SPMD_SPM_AT_SEL2: 0
+      LOG_LEVEL: 50
+      BL32: ${artifact:BL32}
+      BL33: ${artifact:BL33}
+
+  rfa:
+    build:
+      - make -j${param:jobs} ${param:join_equal} target/bl32.bin target/bl33.bin
+    artifacts:
+      BL32: ${param:builddir}/target/bl32.bin
+      BL33: ${param:builddir}/target/bl33.bin
+
+run:
+  rtvars:
+    BL1:
+      type: path
+      value: ${artifact:BL1}
+
+    FIP:
+      type: path
+      value: ${artifact:FIP}
+
+  params:
+    -C cluster0.cpu0.semihosting-cwd: target
+    -C cluster1.cpu0.semihosting-cwd: target
+    -C bp.secureflashloader.fname: ${rtvar:BL1}
+    -C bp.flashloader0.fname: ${rtvar:FIP}

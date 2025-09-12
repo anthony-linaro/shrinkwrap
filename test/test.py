@@ -142,6 +142,11 @@ CONFIGS = [
 			},
 		},
 	},
+	{
+		'config': 'rfa.yaml',
+		'btvars': {},
+		'rtvars': {'default': {}},
+	},
 ]
 
 

@@ -1,0 +1,31 @@
+# Copyright (c) 2025, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Install Rust in the shrinkwrap build directory.
+
+  The reasons for installing the Rust toolchain in the build directory rather
+  than adding it to the Docker image are:
+  - Many Rust projects use a file name `rust-toolchain.toml` to specify a
+    specific version or channel that are likely to diverge from any version
+    installed in the Docker image.
+  - Cargo caches crate downloads inside $CARGO_HOME which will be lost across
+    shrinkwrap builds if the toolchain is in the Docker image.
+
+build:
+  rust:
+    build:
+      - export CARGO_HOME=${param:sourcedir}/cargo
+      - export RUSTUP_HOME=${param:sourcedir}/rustup
+      - if ! [ -f $${CARGO_HOME}/bin/cargo ] ; then
+      -   mkdir -p $${CARGO_HOME}/bin $${RUSTUP_HOME}/bin ;
+      -   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
+      -     sh -s -- --profile minimal --default-toolchain none -y --no-modify-path ;
+      - fi
+      - echo "export CARGO_HOME=$${CARGO_HOME}" > ${param:builddir}/rust.env
+      - echo "export RUSTUP_HOME=$${RUSTUP_HOME}" >> ${param:builddir}/rust.env
+      - echo "export PATH=$${CARGO_HOME}/bin:$${RUSTUP_HOME}/bin:"'$$'"{PATH}" >> ${param:builddir}/rust.env
+    artifacts:
+      RUST_ENV: ${param:builddir}/rust.env
