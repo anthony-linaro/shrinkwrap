@@ -16,7 +16,8 @@ description: >-
   A higher level layer can optionally request kselftests to be built by
   specifying `export BUILD_KSELFTESTS=true` in the prebuild section. If
   specified, the kselftests package is exported in a tgz archive as the
-  KSELFTESTS artifact.
+  KSELFTESTS artifact. A subset of targets can be specified with (e.g.)
+  `export BUILD_KSELFTESTS="mm arm64"`
 
 build:
   linux:
@@ -58,10 +59,14 @@ build:
       -   touch ${param:builddir}/modules.tgz
       - fi
 
-      - if [ "$$BUILD_KSELFTESTS" = "true" ]; then
+      - if [ "$$BUILD_KSELFTESTS" != "false" ]; then
           # Make kselftests and package into tgz archive.
       -   make -j${param:jobs} O=${param:builddir} headers_install
-      -   make -j${param:jobs} O=${param:builddir} -C tools/testing/selftests install INSTALL_PATH=${param:builddir}/kselftests
+      -   if [ "$$BUILD_KSELFTESTS" = "true" ]; then
+      -     make -j${param:jobs} O=${param:builddir} -C tools/testing/selftests install INSTALL_PATH=${param:builddir}/kselftests
+      -   else
+      -     make -j${param:jobs} O=${param:builddir} -C tools/testing/selftests install INSTALL_PATH=${param:builddir}/kselftests TARGETS="$$BUILD_KSELFTESTS"
+      -   fi
       -   tar -caf ${param:builddir}/kselftests.tgz -C ${param:builddir}/kselftests .
       -   rm -rf ${param:builddir}/kselftests
       - else
