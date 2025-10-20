@@ -158,7 +158,7 @@ fi
 # Build the images.
 if [ "${DRIVER}" = "docker" ]; then
 	docker build \
-		--build-arg=BASE=registry.gitlab.arm.com/tooling/shrinkwrap/bookworm-slim \
+		--build-arg=BASE=registry.gitlab.arm.com/tooling/shrinkwrap/trixie-slim:latest \
 		--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 		--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
 		--file=Dockerfile.slim \
@@ -198,7 +198,7 @@ elif [ "${DRIVER}" = "kaniko" ]; then
 	/kaniko/executor \
 		--cleanup \
 		--cache=true --cache-copy-layers --cache-run-layers \
-		--build-arg=BASE=registry.gitlab.arm.com/tooling/shrinkwrap/bookworm-slim \
+		--build-arg=BASE=registry.gitlab.arm.com/tooling/shrinkwrap/trixie-slim:latest \
 		--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 		--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
 		--dockerfile=Dockerfile.slim \
