@@ -99,23 +99,23 @@ fi
 
 # Configure the arch-specific variables which are passed to the Dockerfile.
 if [ "${ARCH}" = "x86_64" ]; then
-	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
-	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
-	TCH_PATH_AARCH64=arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin
-	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
-	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
-	TCH_PATH_AARCH32=arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin
+	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel
+	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf.tar.xz
+	TCH_PATH_AARCH64=arm-gnu-toolchain-14.3.rel1-x86_64-aarch64-none-elf/bin
+	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel
+	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi.tar.xz
+	TCH_PATH_AARCH32=arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi/bin
 	FVP_PKG_URL=https://developer.arm.com/-/cdn-downloads/permalink/FVPs-Architecture/FM-11.29-42
 	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.29_42_Linux64.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3
 # ARCH is "aarch64" on Ubuntu, or "arm64" on Mac OS
 elif [ "${ARCH}" = "aarch64" ] || [ "${ARCH}" = "arm64" ]; then
-	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
-	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-13.2.rel1-aarch64-aarch64-none-elf.tar.xz
-	TCH_PATH_AARCH64=arm-gnu-toolchain-13.2.Rel1-aarch64-aarch64-none-elf/bin
-	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel
-	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-13.2.rel1-aarch64-arm-none-eabi.tar.xz
-	TCH_PATH_AARCH32=arm-gnu-toolchain-13.2.Rel1-aarch64-arm-none-eabi/bin
+	TCH_PKG_URL_AARCH64=https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel
+	TCH_PKG_NAME_AARCH64=arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-elf.tar.xz
+	TCH_PATH_AARCH64=arm-gnu-toolchain-14.3.rel1-aarch64-aarch64-none-elf/bin
+	TCH_PKG_URL_AARCH32=https://developer.arm.com/-/media/Files/downloads/gnu/14.3.rel1/binrel
+	TCH_PKG_NAME_AARCH32=arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi.tar.xz
+	TCH_PATH_AARCH32=arm-gnu-toolchain-14.3.rel1-aarch64-arm-none-eabi/bin
 	FVP_PKG_URL=https://developer.arm.com/-/cdn-downloads/permalink/FVPs-Architecture/FM-11.29-42
 	FVP_PKG_NAME=FVP_Base_RevC-2xAEMvA_11.29_42_Linux64_armv8l.tgz
 	FVP_MODEL_DIR=Base_RevC_AEMvA_pkg/models/Linux64_armv8l_GCC-9.3
