@@ -12,7 +12,7 @@ build:
   acpica:
     repo:
       remote: https://github.com/acpica/acpica.git
-      revision: R09_27_24
+      revision: R2025_04_04
 
     build:
       - make -j${param:jobs}
@@ -26,10 +26,10 @@ build:
     repo:
       edk2:
         remote: https://github.com/tianocore/edk2.git
-        revision: 95d8a1c255cfb8e063d679930d08ca6426eb5701
+        revision: edk2-stable202508.01
       edk2-platforms:
         remote: https://github.com/tianocore/edk2-platforms.git
-        revision: 5b5885ef3e30a2896f23afd6df3d2dae8d5e51b3
+        revision: 8cc9da9dc8431d1f0dfab28d92b3941e2c19aeb8
 
     toolchain: aarch64-none-elf-
 
@@ -46,7 +46,7 @@ build:
       -a: AARCH64
       -t: GCC5
       -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
-      -b: DEBUG
+      -b: RELEASE
       --pcd: PcdShellDefaultDelay=0
       ' --pcd': PcdUefiShellDefaultBootEnable=1
 
@@ -56,4 +56,4 @@ build:
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:
-      EDK2: ${param:builddir}/DEBUG_GCC5/FV/FVP_AARCH64_EFI.fd
+      EDK2: ${param:builddir}/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
