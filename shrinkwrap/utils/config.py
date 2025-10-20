@@ -872,12 +872,15 @@ def script_preamble(echo):
 	else:
 		pre.append(f'# Exit on error.')
 		pre.append(f'set -e')
+	return pre.commands(False)
 
-	gitargs = '"--quiet "' if not echo else '""'
-	pre.append(f'gitargs={gitargs}')
-	pre.append_multiline('''
+
+def script_build_preamble(echo):
+	pre = Script(None)
+	gitargs = '' if echo else '--quiet '
+	pre.append_multiline(f'''
 	# Function to update submodules without recursion
-	update_submodules() {
+	update_submodules() {{
 		local repo_path="$1"
 		local reference_path="$2"
 
@@ -898,14 +901,14 @@ def script_preamble(echo):
 
 				if [ -d "$submodule_path" ]; then
 					# Manually update nested submodules
-					git submodule $gitargs update --init --checkout --force $git_submodule_reference $submodule_path
+					git submodule {gitargs} update --init --checkout --force $git_submodule_reference $submodule_path
 					# Recursively process the submodule
 					update_submodules "$submodule_path" "$submodule_reference"
 				fi
 			done
 		fi
 		cd $cwd
-	}''')
+	}}''')
 	return pre.commands(False)
 
 
@@ -919,6 +922,7 @@ def build_graph(configs, echo, nosync, force_sync):
 	gitargs = '' if echo else '--quiet '
 
 	pre = script_preamble(echo)
+	pre += script_build_preamble(echo)
 
 	gl1 = Script('Removing old package', preamble=pre)
 	gl1.append(f'# Remove old package.')
