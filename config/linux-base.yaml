@@ -23,7 +23,7 @@ build:
   linux:
     repo:
       remote: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-      revision: v6.6
+      revision: v6.17
 
     toolchain: aarch64-linux-gnu-
 
