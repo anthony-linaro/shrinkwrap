@@ -27,11 +27,6 @@ When booting with device tree, a directory can optionally be shared from the hos
   # mkdir /share
   # mount -t 9p -o trans=virtio,version=9p2000.L FM /share
 
-Concrete
-########
-
-True
-
 Build-Time Variables
 ####################
 
@@ -56,4 +51,17 @@ LOCAL_NET_PORT 8022
 ROOTFS         <empty>
 SHARE          <empty>
 ============== ===============================================================
+
+Components
+##########
+
+===================== ================================================================================== ========================================
+component             repository                                                                         revision
+===================== ================================================================================== ========================================
+acpica                https://github.com/acpica/acpica.git                                               R09_27_24
+dt                    https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.14-dts
+edk2 (edk2)           https://github.com/tianocore/edk2.git                                              95d8a1c255cfb8e063d679930d08ca6426eb5701
+edk2 (edk2-platforms) https://github.com/tianocore/edk2-platforms.git                                    5b5885ef3e30a2896f23afd6df3d2dae8d5e51b3
+tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.13.0
+===================== ================================================================================== ========================================
 

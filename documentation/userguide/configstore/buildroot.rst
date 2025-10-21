@@ -12,11 +12,6 @@ Description
 
 Generates a very simple rootfs as an ext2/4 image. Higher layers can modify the buildroot config by adding commands to prebuild.
 
-Concrete
-########
-
-True
-
 Build-Time Variables
 ####################
 
@@ -32,4 +27,13 @@ Run-Time Variables
 rtvar default
 ===== =======
 ===== =======
+
+Components
+##########
+
+========= ========================================== =========
+component repository                                 revision
+========= ========================================== =========
+buildroot https://github.com/buildroot/buildroot.git 2024.05.2
+========= ========================================== =========
 
