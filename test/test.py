@@ -105,7 +105,11 @@ CONFIGS = [
 		'rtvars': {
 			'default': {'BOOTWRAPPER': BOOTWRAPPER, 'ROOTFS': ROOTFS},
 		},
-		'arch': {'start': 'v8.0', 'end': ARCH_LATEST},
+		# Temporary workaround: bootwrapper doesn't disable the GCS EL3
+		# traps so the kernel traps to EL3 when trying to configure it.
+		# GCS is enabled at arch/v9.4.yaml so stop testing at v9.3 as
+		# temporary workaround. (See PDSWLINUX-4668).
+		'arch': {'start': 'v8.0', 'end': 'v9.3'},
 	},
 	{
 		'config': 'cca-3world.yaml',
