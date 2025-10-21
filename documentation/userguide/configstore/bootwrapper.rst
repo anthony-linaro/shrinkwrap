@@ -12,32 +12,39 @@ Description
 
 Best choice for: I have a linux-system.axf boot-wrapper and want to run it.
 
-This config does not build any components (although shrinkwrap still requires you to build it before running). Instead the user is expected to provide a boot-wrapper executable (usually called linux-system.axf) as the BOOTWRAPPER rtvar, which will be executed in the FVP. A ROOTFS can be optionally provided. If present it is loaded into the virtio block device (/dev/vda).
+Build to wrap a provided kernel with boot-wrapper EL3 FW into linux-system.axf. Provide the kernel image via the KERNEL btvar, and optionally override the kernel command line by providing the CMDLINE btvar.
+
+Then run the boot-wrapper (or pass a separately created one as the BOOTWRAPPER rtvar) in the FVP. A ROOTFS can be optionally provided. If present it is loaded into the virtio block device (/dev/vda).
 
 Build-Time Variables
 ####################
 
-===== =======
-btvar default
-===== =======
-===== =======
+======= ===============================================================
+btvar   default
+======= ===============================================================
+CMDLINE console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
+DTB     ${artifact:DTB}
+KERNEL  <null>
+======= ===============================================================
 
 Run-Time Variables
 ##################
 
-============== =======
+============== =======================
 rtvar          default
-============== =======
-BOOTWRAPPER    <null>
+============== =======================
+BOOTWRAPPER    ${artifact:BOOTWRAPPER}
 LOCAL_NET_PORT 8022
 ROOTFS         <empty>
-============== =======
+============== =======================
 
 Components
 ##########
 
-========= ========== ========
-component repository revision
-========= ========== ========
-========= ========== ========
+=========== ================================================================================== =========
+component   repository                                                                         revision
+=========== ================================================================================== =========
+bootwrapper https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git      master
+dt          https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.14-dts
+=========== ================================================================================== =========
 

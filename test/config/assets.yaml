@@ -17,32 +17,6 @@ layers:
   - linux-base.yaml
 
 build:
-  linux:
-    build:
-      - make -j${param:jobs} O=${param:builddir} arm/fvp-base-revc.dtb
-
-    postbuild:
-      - echo -e "${param:builddir}" > ${param:builddir}/kernel_dir.txt
-
-    artifacts:
-      KERNEL_DIR: ${param:builddir}/kernel_dir.txt
-
-  bootwrapper:
-    repo:
-      remote: https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git
-      revision: master
-
-    prebuild:
-      - autoreconf -i
-      - ./configure --host=aarch64-linux-gnu --enable-gicv3 --with-cmdline="console=ttyAMA0 earlycon root=/dev/vda ip=dhcp" --with-kernel-dir=`cat ${artifact:KERNEL_DIR}`
-
-    build:
-      # Finalize the config.
-      - make -j${param:jobs}
-
-    artifacts:
-      BOOTWRAPPER_SYS_IMG: ${param:sourcedir}/linux-system.axf
-
   buildroot:
     prebuild:
       - mkdir -p ${param:builddir}/overlay/etc/init.d

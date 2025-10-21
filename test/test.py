@@ -25,7 +25,6 @@ SCRIPTDIR = os.path.dirname(os.path.abspath(__file__))
 SYNCTEST = os.path.join(SCRIPTDIR, 'test-sync.sh')
 ASSETS = os.path.join(SCRIPTDIR, 'assets')
 KERNEL = os.path.join(ASSETS, 'Image')
-BOOTWRAPPER = os.path.join(ASSETS, 'linux-system.axf')
 ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
 
 
@@ -101,9 +100,9 @@ CONFIGS = [
 	},
 	{
 		'config': 'bootwrapper.yaml',
-		'btvars': {},
+		'btvars': {'KERNEL': KERNEL},
 		'rtvars': {
-			'default': {'BOOTWRAPPER': BOOTWRAPPER, 'ROOTFS': ROOTFS},
+			'default': {'ROOTFS': ROOTFS},
 		},
 		# Temporary workaround: bootwrapper doesn't disable the GCS EL3
 		# traps so the kernel traps to EL3 when trying to configure it.
