@@ -4,6 +4,7 @@
 import json
 import io
 import os
+import re
 import textwrap
 import shrinkwrap.utils.config as config
 
@@ -76,6 +77,7 @@ def dispatch(args):
 				k: _var_value(v['value'])
 				for k,v in c['run']['rtvars'].items()
 			},
+			'components': _comp_revisions(c['build']),
 		})
 
 	if args.json:
@@ -125,6 +127,12 @@ def dispatch(args):
 				     width=width,
 				     kindent=indent,
 				     vindent=vindent))
+		buf.write('\n')
+		buf.write(_repo_wrap('components',
+				     c['components'],
+				     width=width,
+				     kindent=indent,
+				     vindent=vindent))
 
 		descs.append(buf.getvalue())
 
@@ -132,12 +140,28 @@ def dispatch(args):
 	all = separator.join(descs)
 	print(all)
 
+
 def _var_value(value):
 	if value is None:
 		return '<null>'
 	if value == '':
 		return '<empty>'
 	return str(value)
+
+
+def _comp_revisions(components):
+	revs = {}
+	for comp in sorted(components.keys()):
+		for repo in sorted(components[comp]['repo'].keys()):
+			name = comp if repo == '.' else f"{comp} ({repo})"
+			revision = components[comp]['repo'][repo]['revision']
+			remote = components[comp]['repo'][repo]['remote']
+			revs[name] = {
+				'repository': remote,
+				'revision': revision,
+			}
+	return revs
+
 
 def _text_wrap(tag, text, width=80, indent=0, paraspace=1, end='\n'):
 	text = str(text)
@@ -185,3 +209,27 @@ def _dict_wrap(tag, dictionary, width=80, kindent=0, vindent=0, end='\n'):
 			  indent=kindent,
 			  paraspace=0,
 			  end=end)
+
+
+def _repo_wrap(tag, components, width=80, kindent=0, vindent=0, end='\n'):
+	def is_git_sha(s):
+		return bool(re.fullmatch(r"[0-9a-f]{40}", s))
+
+	repo_indent = 0
+	for info in components.values():
+		rev = info['revision']
+		if is_git_sha(rev):
+			rev = rev[:12]
+		repo_indent = max(repo_indent, len(rev))
+	repo_indent += 2
+
+	dictionary = {}
+	for comp, info in components.items():
+		repo = info['repository']
+		rev = info['revision']
+		if is_git_sha(rev):
+			rev = rev[:12]
+		value = f"{rev}{' ' * (repo_indent - len(rev))}{repo}"
+		dictionary[comp] = value
+
+	return _dict_wrap(tag, dictionary, 10000, kindent, vindent, end)
