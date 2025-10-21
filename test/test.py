@@ -4,7 +4,7 @@
 
 
 import argparse
-import json
+import io
 import multiprocessing as mp
 import os
 import re
@@ -250,17 +250,38 @@ def print_results(junit=None):
 
 
 def run(cmd, timeout=None, expect=0, capture=False):
-	print(f'+ {cmd}')
-	if DRY_RUN:
-		return ""
+	output = io.StringIO() if capture else sys.stdout
+	print(">> " + "-" * 77, file=output)
+	print(f"+ {cmd}", file=output)
 
-	ret = subprocess.run(cmd, timeout=timeout, shell=True,
-		stdout=subprocess.PIPE if capture else None,
-		stderr=subprocess.STDOUT if capture else None)
-	if ret.returncode != expect:
-		raise subprocess.CalledProcessError(ret.returncode, ret.args,
-					output=ret.stdout, stderr=ret.stderr)
-	return ret.stdout
+	def finalize():
+		print("<< " + "-" * 77, file=output)
+		return output.getvalue() if capture else None
+
+	if DRY_RUN:
+		print(f"+ DRY_RUN={DRY_RUN}", file=output)
+		return finalize()
+
+	try:
+		# Ensure subprocess's output is ordered after ours.
+		output.flush()
+		ret = subprocess.run(cmd, timeout=timeout, shell=True,
+			stdout=subprocess.PIPE if capture else None,
+			stderr=subprocess.STDOUT if capture else None)
+		if ret.stdout:
+			output.write(ret.stdout.decode())
+		print(f"+ returncode={ret.returncode}, expect={expect}", file=output)
+		if ret.returncode != expect:
+			raise subprocess.CalledProcessError(ret.returncode, ret.args,
+						output=finalize(), stderr=None)
+	except subprocess.TimeoutExpired as e:
+		if e.stdout:
+			output.write(e.stdout.decode())
+		print(f"+ timeout={timeout}", file=output)
+		e.stdout = finalize()
+		raise
+
+	return finalize()
 
 
 def build_configs(configs, overlays):
@@ -290,8 +311,8 @@ def build_configs(configs, overlays):
 		buildargs = f'{tmpfilename} {overlay_args}'
 
 		try:
-			run(f'shrinkwrap {rt} clean {cleanargs}', None)
-			run(f'shrinkwrap {rt} buildall {buildargs}', None)
+			run(f'shrinkwrap {rt} clean {cleanargs}')
+			run(f'shrinkwrap {rt} buildall {buildargs}')
 		except Exception as e:
 			status = 'fail'
 			error = str(e)
@@ -353,7 +374,7 @@ def run_configs(configs, overlays):
 		for result, stdout in pool.starmap(run_config, params):
 			results.append(result)
 			if stdout:
-				sys.stdout.write(stdout.decode())
+				sys.stdout.write(stdout)
 
 
 def run_repo_sync_test(args):
