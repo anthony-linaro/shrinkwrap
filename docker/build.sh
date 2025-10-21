@@ -133,7 +133,10 @@ wget_or_cache()
 	URL=$2
 
 	if [ ! -f ${FILE} ]; then
+		echo "Downloading ${FILE}"
 		wget -q -O ${FILE} ${URL}
+	else
+		echo "Already have ${FILE}"
 	fi
 }
 

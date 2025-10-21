@@ -7,18 +7,18 @@ variables:
       - "true"
       - "false"
     description: "If true, runs a subset of tests to speed up pipeline execution time."
-  FORCE_PREP_TEST_ASSETS:
+  INVALIDATE_TEST_ASSETS:
     value: "false"
     options:
       - "true"
       - "false"
-    description: "If true, forces test assets to be prepped even if cached from a previous run."
-  FORCE_PREP_DOCKER_ASSETS:
+    description: "If true, forces any cached test assets to be invalidated prior to repopulation."
+  INVALIDATE_DOCKER_ASSETS:
     value: "false"
     options:
       - "true"
       - "false"
-    description: "If true, forces docker assets to be prepped even if cached from a previous run."
+    description: "If true, forces any cached docker assets to be invalidated prior to repopulation."
 
 workflow:
   rules:
@@ -46,13 +46,14 @@ prep-docker-assets:
       - docker/assets/
   script:
     - |
-      if [ -f ./docker/assets/.cache_exists ] && [ "$FORCE_PREP_DOCKER_ASSETS" == "false" ]; then
-        echo "Cache already exists and prep not forced: skipping."
-      else
-        ./docker/build.sh --version none --arch x86_64
-        ./docker/build.sh --version none --arch aarch64
-        echo > ./docker/assets/.cache_exists
+      if [ "$INVALIDATE_DOCKER_ASSETS" == "true" ]; then
+        echo "Invalidating docker assets cache..."
+        rm -rf docker/assets/*
       fi
+      echo "Populating docker assets cache for x86_64..."
+      ./docker/build.sh --version none --arch x86_64
+      echo "Populating docker assets cache for aarch64..."
+      ./docker/build.sh --version none --arch aarch64
 
 build-docker-image:
   stage: build
@@ -132,9 +133,12 @@ prep-test-assets:
       - test/assets/
   script:
     - |
-      if [ -f ./test/assets/.cache_exists ] && [ "$FORCE_PREP_TEST_ASSETS" == "false" ]; then
-        echo "Cache already exists and prep not forced: skipping."
-      else
+      if [ "$INVALIDATE_TEST_ASSETS" == "true" ]; then
+        echo "Invalidating test assets cache..."
+        rm -rf test/assets/*
+      fi
+      if [ ! -f ./test/assets/.cache_exists ]; then
+        echo "Generating test assets..."
         ./test/genassets.sh -R null
         echo > ./test/assets/.cache_exists
       fi
