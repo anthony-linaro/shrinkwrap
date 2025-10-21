@@ -32,7 +32,7 @@ run:
     -C bp.secure_memory: 0
     -a cluster*.cpu*: ${rtvar:BOOTWRAPPER}
     -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
-    -C bp.pl011_uart0.shutdown_tag: '"reboot: System halted"'
+    -C bp.pl011_uart0.shutdown_tag: '"System halted"'
 
   terminals:
     bp.terminal_0:
