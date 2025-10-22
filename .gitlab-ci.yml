@@ -160,11 +160,24 @@ deploy-docker-image:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
+    # Grab the current shrinkwrap version.
+    - export PATH=$PWD/shrinkwrap:$PATH
+    - VERSION=$(shrinkwrap --version | cut -d' ' -f3)
+
+    # Install regctl.
     - mkdir bin
     - export PATH=${PWD}/bin:${PATH}
     - curl -LsS https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 > bin/regctl
     - chmod 755 bin/regctl
     - regctl registry login -u ${DOCKERHUB_USER} -p ${DOCKERHUB_PASSWORD} docker.io
+
+    # Tag with current shrinkwrap version.
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-slim-nofvp:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-slim-nofvp:${VERSION}
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-slim:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-slim:${VERSION}
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-full-nofvp:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-full-nofvp:${VERSION}
+    - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-full:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-full:${VERSION}
+
+    # Tag as latest too.
     - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-slim-nofvp:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-slim-nofvp:latest
     - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-slim:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-slim:latest
     - regctl image copy registry.gitlab.arm.com/tooling/shrinkwrap/base-full-nofvp:${CI_PIPELINE_IID} docker.io/shrinkwraptool/base-full-nofvp:latest

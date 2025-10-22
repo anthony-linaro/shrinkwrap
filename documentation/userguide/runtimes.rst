@@ -47,14 +47,33 @@ platform. Images are automatically downloaded by shrinkwrap when the ``docker``
 or ``podman`` runtime is selected. Images are available on Docker Hub and can be
 freely downloaded without the need for an account.
 
-=============================================== ====
+======================================== ====
 image name                                      description
-=============================================== ====
-docker.io/shrinkwraptool/base-slim-nofvp:latest Contains all toolchains and other dependencies required to build all standard configs. Can be used as a base to create an image with a custom FVP.
-docker.io/shrinkwraptool/base-slim:latest       (default). As per ``shrinkwraptool/base-slim-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP. This is sufficient for most use cases and is much smaller than the ``full`` variant.
-docker.io/shrinkwraptool/base-full-nofvp:latest Builds upon ``shrinkwraptool/base-slim:latest``, adding aarch32 toolchains (both arm-none-eabi and arm-linux-gnueabihf). These are not needed for standard configs, but will be required if creating a custom config that includes (e.g.) SCP FW. Separated out due to big size increase.
-docker.io/shrinkwraptool/base-full:latest       As per ``shrinkwraptool/base-full-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP.
-=============================================== ====
+======================================== ====
+docker.io/shrinkwraptool/base-slim-nofvp Contains all toolchains and other dependencies required to build all standard configs. Can be used as a base to create an image with a custom FVP.
+docker.io/shrinkwraptool/base-slim       (default). As per ``shrinkwraptool/base-slim-nofvp`` but also contains the Base_RevC-2xAEMvA FVP. This is sufficient for most use cases and is much smaller than the ``full`` variant.
+docker.io/shrinkwraptool/base-full-nofvp Builds upon ``shrinkwraptool/base-slim``, adding aarch32 toolchains (both arm-none-eabi and arm-linux-gnueabihf). These are not needed for standard configs, but will be required if creating a custom config that includes (e.g.) SCP FW. Separated out due to big size increase.
+docker.io/shrinkwraptool/base-full       As per ``shrinkwraptool/base-full-nofvp`` but also contains the Base_RevC-2xAEMvA FVP.
+======================================== ====
+
+********************
+Container Image Tags
+********************
+
+All container image variants are maintained with a tag corresponding to each
+shrinkwrap version, so tagged shrinkwrap releases always have a corresponding
+set of fixed, tagged container images (e.g.
+docker.io/shrinkwraptool/base-slim:2025.10.0). Additionally development versions
+are maintained (e.g. docker.io/shrinkwraptool/base-slim:2025.12.0.dev0), which
+are rebuilt as the development version matures until it reaches release, so the
+content of the development versions is not fixed. Finally, a ``latest`` tag is
+maintained, which corresponds to the most recent build of the current
+development version.
+
+When invoking shrinkwrap, if an image is specified (either on command line via
+``--image`` or in a config via ``image:``) with a tag, it is used as is. If an
+image is specified without a tag, shrinkwrap will use it's current version as
+the tag.
 
 ********************
 Runtime Requirements

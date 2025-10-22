@@ -8,13 +8,14 @@ import os
 import re
 import textwrap
 import yaml
+from shrinkwrap import __version__
 import shrinkwrap.utils.clivars as uclivars
 import shrinkwrap.utils.workspace as workspace
 from urllib.parse import urlparse
 
-default_image = 'docker.io/shrinkwraptool/base-slim:latest'
+_default_image = 'docker.io/shrinkwraptool/base-slim'
 
-def get_image(configs, args):
+def _get_image(configs, args):
 	"""
 	Determine the image to use
 	"""
@@ -34,7 +35,18 @@ def get_image(configs, args):
 				else:
 					raise Exception('Unsupported case of different images requested.')
 		# No image required in the configs or from the command line, use the default one
-		return image if image else default_image
+		return image if image else _default_image
+
+
+def get_image(configs, args):
+	image = _get_image(configs, args)
+	parts = image.split(":")
+	if len(parts) not in [1, 2]:
+		raise Exception('Invalid image path.')
+	image = parts[0]
+	tag = parts[1] if len(parts) == 2 else __version__
+	return f"{image}:{tag}"
+
 
 def _component_normalize(component, name):
 	"""

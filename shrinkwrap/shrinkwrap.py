@@ -62,7 +62,7 @@ def main():
 
 	parser.add_argument('--version',
 		action='version',
-		version=f'{tool_name} v{__version__}')
+		version=f'{tool_name} version {__version__}')
 
 	parser.add_argument('-R', '--runtime',
 		metavar='engine', required=False, default='docker',
