@@ -5,6 +5,7 @@
 
 import argparse
 import io
+import json
 import multiprocessing as mp
 import os
 import re
@@ -292,7 +293,8 @@ def build_configs(configs, overlays):
 	status = 'pass'
 	error = None
 
-	rt = f'-R {RUNTIME} -I {IMAGE}'
+	image = f"-I {IMAGE}" if IMAGE else ""
+	rt = f'-R {RUNTIME} {image}'
 	cfg_files = [c['config'] for c in configs]
 	overlay_args = ' '.join(f'-o {o}' for o in overlays)
 	cleanargs = f'{" ".join(cfg_files)} {overlay_args}'
@@ -348,7 +350,8 @@ def run_config(config, overlays, rtvars, tag, capture, timeout):
 		'tag': tag,
 	}
 
-	rt = f'-R {RUNTIME} -I {IMAGE}'
+	image = f"-I {IMAGE}" if IMAGE else ""
+	rt = f'-R {RUNTIME} {image}'
 	overlay_args = ' '.join(f"-o {o}" for o in overlays)
 	args = f'{config} {overlay_args} {runargs}'
 
@@ -397,6 +400,19 @@ def run_repo_sync_test(args):
 	})
 
 
+def get_image(config):
+	if IMAGE:
+		return IMAGE
+
+	ret = subprocess.run(f"shrinkwrap inspect --json {config['config']}",
+			     shell=True,
+			     capture_output=True,
+			     text=True,
+			     check=True)
+	info = json.loads(ret.stdout)
+	return info[0]['image']
+
+
 def do_main(args):
 	selected_configs = [c for c in CONFIGS
 			            if args.config is None or args.config == c['config']]
@@ -411,30 +427,28 @@ def do_main(args):
 	arch_configs = [c for c in selected_configs if 'arch' in c]
 	noarch_configs = [c for c in selected_configs if 'arch' not in c]
 
-	if args.smoke_test:
-		arches = set([c['arch']['end'] for c in arch_configs])
-	else:
-		arches = list(arch_range('v8.0', ARCH_LATEST))
-
-	# Gather configs that have the same overlays, and can be built together
+	# Gather configs with same image and overlays, and can be built together
 	test_batches = {}
 
 	# Configs that support an arch override.
-	for arch in arches:
-		for c in arch_configs:
-			first_arch = c['arch']['end'] if args.smoke_test else c['arch']['start']
-			if not arch_in_range(arch, first_arch, c['arch']['end']):
+	for c in arch_configs:
+		image = get_image(c)
+		for arch in arch_range('v8.0', ARCH_LATEST):
+			last_arch = c['arch']['end']
+			first_arch = last_arch if args.smoke_test else c['arch']['start']
+			if not arch_in_range(arch, first_arch, last_arch):
 				continue
 
 			overlays = (f'arch/{arch}.yaml',) + tuple(c.get('overlays', ()))
-			test_batches.setdefault(overlays, []).append(c)
+			test_batches.setdefault((image, overlays), []).append(c)
 
 	# Configs that don't support an arch override.
 	for c in noarch_configs:
+		image = get_image(c)
 		overlays = tuple(c.get('overlays', ()))
-		test_batches.setdefault(overlays, []).append(c)
+		test_batches.setdefault((image, overlays), []).append(c)
 
-	for overlays, configs in test_batches.items():
+	for (_, overlays), configs in test_batches.items():
 		build_configs(configs, overlays)
 		run_configs(configs, overlays)
 
@@ -462,9 +476,11 @@ def main():
 	parser.add_argument('-I', '--image',
 		metavar='name',
 		required=False,
-		default='docker.io/shrinkwraptool/base-full:latest',
+		type=str,
+		default=None,
 		help="""If using a container runtime, specifies the name of the
-		     image to use. Defaults to the official shrinkwrap image.""")
+		     image to use. Defaults to the official shrinkwrap image,
+			 unless a specific image is required in the config file.""")
 
 	parser.add_argument('-c', '--config',
 		metavar='name', required=False, default=None,
