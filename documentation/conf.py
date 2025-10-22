@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Arm Limited.
+# Copyright (c) 2022-2025, Arm Limited.
 #
 # SPDX-License-Identifier: MIT
 
@@ -15,17 +15,21 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path = [p for p in sys.path if os.path.basename(p) != 'shrinkwrap']
+sys.path = [root] + sys.path
+from shrinkwrap import __version__
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Shrinkwrap'
-copyright = '2022, Arm Limited'
+copyright = '2022-2025, Arm Limited'
 author = 'Arm Limited'
-
+version = __version__
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 
