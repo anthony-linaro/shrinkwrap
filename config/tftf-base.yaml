@@ -18,7 +18,9 @@ build:
 
     params:
       PLAT: fvp
-      DEBUG: 0
+      DEBUG: $$( test '${btvar:TFTF_BUILD}' != debug ; echo $$? )
+      LOG_LEVEL: ${btvar:TFTF_LOG_LEVEL}
+      TESTS: ${btvar:TFTF_SUITE}
       ENABLE_REALM_PAYLOAD_TESTS: 1
 
     build:
@@ -27,6 +29,23 @@ build:
       - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all"
 
     artifacts:
-      TFTF_BIN: ${param:builddir}/fvp/release/tftf.bin
-      SP_LAYOUT: ${param:builddir}/fvp/release/sp_layout.json
+      TFTF_OUT:
+        path: ${param:builddir}/fvp/${btvar:TFTF_BUILD}
+        export: false
+      TFTF_BIN: ${artifact:TFTF_OUT}/tftf.bin
+      SP_LAYOUT: ${artifact:TFTF_OUT}/sp_layout.json
 
+buildex:
+  btvars:
+    TFTF_BUILD:
+      type: string
+      options:
+        - release
+        - debug
+      value: release
+    TFTF_LOG_LEVEL:
+      type: string
+      value: 40
+    TFTF_SUITE:
+      type: string
+      value: standard

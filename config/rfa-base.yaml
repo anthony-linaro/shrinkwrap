@@ -14,9 +14,9 @@ build:
   rfa:
     params:
       PLAT: fvp
-      DEBUG: 0
+      DEBUG: $$( test '${btvar:TFA_BUILD}' != debug ; echo $$? )
       OBJCOPY: aarch64-none-elf-objcopy
-      CARGO_TARGET_DIR: ${param:builddir}/target
+      CARGO_TARGET_DIR: ${artifact:RFA_OUT}
 
     repo:
       remote: https://git.trustedfirmware.org/RF-A/rusted-firmware-a
@@ -33,4 +33,16 @@ build:
       - make -j${param:jobs} ${param:join_equal} build
 
     artifacts:
-      RFA_BL31: ${param:builddir}/target/bl31.bin
+      RFA_OUT:
+        path: ${param:builddir}/fvp/${btvar:TFA_BUILD}
+        export: false
+      RFA_BL31: ${artifact:RFA_OUT}/bl31.bin
+
+buildex:
+  btvars:
+    TFA_BUILD:
+      type: string
+      options:
+        - release
+        - debug
+      value: release

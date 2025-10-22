@@ -6,13 +6,7 @@
 description: >-
   Overlay for TFA to build debug configuration.
 
-build:
-  tfa:
-    params:
-      DEBUG: 1
-
-    artifacts:
-      BL1: ${param:builddir}/fvp/debug/bl1.bin
-      BL2: ${param:builddir}/fvp/debug/bl2.bin
-      BL31: ${param:builddir}/fvp/debug/bl31.bin
-      FIP: ${param:builddir}/fvp/debug/fip.bin
+buildex:
+  btvars:
+    TFA_BUILD:
+      value: debug

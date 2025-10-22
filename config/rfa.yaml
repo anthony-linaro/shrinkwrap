@@ -30,12 +30,12 @@ build:
 
   rfa:
     build:
-      - make -j${param:jobs} ${param:join_equal} STF_IMAGES_FLAGS="--bin bl32" ${param:builddir}/target/bl32.bin
-      - make -j${param:jobs} ${param:join_equal} STF_IMAGES_FLAGS="--bin bl33" ${param:builddir}/target/bl33.bin
+      - make -j${param:jobs} ${param:join_equal} STF_IMAGES_FLAGS="--bin bl32" ${artifact:BL32}
+      - make -j${param:jobs} ${param:join_equal} STF_IMAGES_FLAGS="--bin bl33" ${artifact:BL33}
 
     artifacts:
-      BL32: ${param:builddir}/target/bl32.bin
-      BL33: ${param:builddir}/target/bl33.bin
+      BL32: ${artifact:RFA_OUT}/bl32.bin
+      BL33: ${artifact:RFA_OUT}/bl33.bin
 
 run:
   rtvars:

@@ -6,12 +6,8 @@
 description: >-
   Overlay for TFTF to build debug configuration.
 
-build:
-  tftf:
-    params:
-      DEBUG: 1
-
-    artifacts:
-      TFTF_BIN: ${param:builddir}/fvp/debug/tftf.bin
-      SP_LAYOUT: ${param:builddir}/fvp/debug/sp_layout.json
+buildex:
+  btvars:
+    TFTF_BUILD:
+      value: debug
 

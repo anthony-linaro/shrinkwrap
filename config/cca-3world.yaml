@@ -149,7 +149,7 @@ build:
       -a: AARCH64
       -t: GCC
       -p: edk2/ArmVirtPkg/ArmVirtKvmTool.dsc
-      -b: RELEASE
+      -b: ${btvar:EDK2_BUILD}
       --pcd: PcdShellDefaultDelay=0
       ' --pcd': PcdPlatformBootTimeOut=0
       '  --pcd': PcdUefiShellDefaultBootEnable=1
@@ -160,7 +160,7 @@ build:
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:
-      EDK2_CCA_GUEST: ${param:builddir}/RELEASE_GCC/FV/KVMTOOL_EFI.fd
+      EDK2_CCA_GUEST: ${param:builddir}/${btvar:EDK2_BUILD}_GCC/FV/KVMTOOL_EFI.fd
 
   guest-disk:
     build:

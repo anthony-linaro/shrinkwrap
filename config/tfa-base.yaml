@@ -17,8 +17,8 @@ build:
 
     params:
       PLAT: fvp
-      DEBUG: 0
-      LOG_LEVEL: 40
+      DEBUG: $$( test '${btvar:TFA_BUILD}' != debug ; echo $$? )
+      LOG_LEVEL: ${btvar:TFA_LOG_LEVEL}
       ARM_DISABLE_TRUSTED_WDOG: 1
       FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
 
@@ -39,7 +39,22 @@ build:
       - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all fip"
 
     artifacts:
-      BL1: ${param:builddir}/fvp/release/bl1.bin
-      BL2: ${param:builddir}/fvp/release/bl2.bin
-      BL31: ${param:builddir}/fvp/release/bl31.bin
-      FIP: ${param:builddir}/fvp/release/fip.bin
+      TFA_OUT:
+        path: ${param:builddir}/fvp/${btvar:TFA_BUILD}
+        export: false
+      BL1:  ${artifact:TFA_OUT}/bl1.bin
+      BL2:  ${artifact:TFA_OUT}/bl2.bin
+      BL31: ${artifact:TFA_OUT}/bl31.bin
+      FIP:  ${artifact:TFA_OUT}/fip.bin
+
+buildex:
+  btvars:
+    TFA_BUILD:
+      type: string
+      options:
+        - release
+        - debug
+      value: release
+    TFA_LOG_LEVEL:
+      type: string
+      value: 40

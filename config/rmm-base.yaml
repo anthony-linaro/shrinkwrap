@@ -13,12 +13,27 @@ build:
 
     params:
       -DRMM_CONFIG: fvp_defcfg
-      -DCMAKE_BUILD_TYPE: Release
-      -DLOG_LEVEL: 40
+      -DCMAKE_BUILD_TYPE: ${btvar:RMM_BUILD}
+      -DLOG_LEVEL: ${btvar:RMM_LOG_LEVEL}
 
     build:
       - cmake ${param:join_equal} -S . -B ${param:builddir}
       - cmake --build ${param:builddir} -j ${param:jobs}
 
     artifacts:
-      RMM: ${param:builddir}/Release/rmm.img
+      RMM_OUT:
+        path: ${param:builddir}/${btvar:RMM_BUILD}
+        export: false
+      RMM: ${artifact:RMM_OUT}/rmm.img
+
+buildex:
+  btvars:
+    RMM_BUILD:
+      type: string
+      options:
+        - Release
+        - Debug
+      value: Release
+    RMM_LOG_LEVEL:
+      type: string
+      value: 40
