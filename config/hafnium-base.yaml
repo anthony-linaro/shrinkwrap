@@ -26,6 +26,14 @@ build:
 
     artifacts:
       HAFNIUM: ${param:builddir}/secure_aem_v8a_fvp_vhe_clang/hafnium.bin
+      # Debugging symbols
+      HAFNIUM_ELF:
+        path: ${param:builddir}/secure_aem_v8a_fvp_vhe_clang/hafnium.elf
+        export: false
+
+  armdbg-script:
+    build:
+      - ARMDBG_SCRIPT+="add-symbol-file ${artifact:HAFNIUM_ELF} EL2S:0x0"$$'\n'
 
   tfa:
     params:

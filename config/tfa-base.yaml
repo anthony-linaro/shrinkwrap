@@ -46,6 +46,15 @@ build:
       BL2:  ${artifact:TFA_OUT}/bl2.bin
       BL31: ${artifact:TFA_OUT}/bl31.bin
       FIP:  ${artifact:TFA_OUT}/fip.bin
+      BL31_ELF:
+        path: ${artifact:TFA_OUT}/bl31/bl31.elf
+        export: false
+
+  armdbg-script:
+    build:
+      - ARMDBG_SCRIPT+="add-symbol-file ${artifact:TFA_OUT}/bl1/bl1.elf EL3:0x0"$$'\n'
+      - ARMDBG_SCRIPT+="add-symbol-file ${artifact:TFA_OUT}/bl2/bl2.elf EL1S:0x0"$$'\n'
+      - ARMDBG_SCRIPT+="add-symbol-file ${artifact:BL31_ELF} EL3:0x0"$$'\n'
 
 buildex:
   btvars:

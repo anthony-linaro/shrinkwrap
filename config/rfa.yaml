@@ -27,6 +27,9 @@ build:
 
     artifacts:
       BL31: ${artifact:RFA_BL31}
+      BL31_ELF:
+        path: ${artifact:RFA_OUT}/bl31.elf
+        export: false
 
   rfa:
     build:

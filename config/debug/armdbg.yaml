@@ -1,0 +1,16 @@
+# Copyright (c) 2025, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Generate an Arm Debugger script which loads symbols for the output binaries.
+
+build:
+  armdbg-script:
+    prebuild:
+      - ARMDBG_SCRIPT=
+    postbuild:
+      - echo "$${ARMDBG_SCRIPT}" > ${artifact:ARMDBG_SCRIPT}
+    artifacts:
+      ARMDBG_SCRIPT: ${param:builddir}/armdbg.ds

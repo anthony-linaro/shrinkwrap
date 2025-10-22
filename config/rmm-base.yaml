@@ -26,6 +26,17 @@ build:
         export: false
       RMM: ${artifact:RMM_OUT}/rmm.img
 
+  armdbg-script:
+    build:
+      # parse load offset from app bundle info
+      - RMM_OFFSET_FILE=${artifact:RMM_OUT}/bundle_app_out.txt
+      - if test -f "$$RMM_OFFSET_FILE"; then
+      -   RMM_LOAD_OFFSET=$$( cat $$RMM_OFFSET_FILE | sed -En
+            's/.*RMM core is [0-9]+ \((0x[0-9A-Fa-f]+)\) bytes from.*/+\1/p' )
+      - fi
+      - ARMDBG_SCRIPT+="add-symbol-file ${artifact:RMM_OUT}/rmm.elf
+                        EL2RL:${btvar:RMM_BASE}$${RMM_LOAD_OFFSET}"$$'\n'
+
 buildex:
   btvars:
     RMM_BUILD:
@@ -34,6 +45,9 @@ buildex:
         - Release
         - Debug
       value: Release
+    RMM_BASE:
+      type: string
+      value: '0xFDC00000'
     RMM_LOG_LEVEL:
       type: string
       value: 40
