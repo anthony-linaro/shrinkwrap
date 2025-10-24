@@ -1,6 +1,12 @@
 variables:
   KUBERNETES_CPU_REQUEST: 32
   KUBERNETES_MEMORY_REQUEST: 16Gi
+  SMOKE_TEST:
+    value: "true"
+    options:
+      - "true"
+      - "false"
+    description: "If true, runs a subset of tests to speed up pipeline execution time."
   FORCE_PREP_TEST_ASSETS:
     value: "false"
     options:
@@ -141,10 +147,15 @@ test-self:
     paths:
       - test/assets/
   script:
+    - |
+      SMOKE=
+      if [ "$SMOKE_TEST" == "true" ]; then
+        SMOKE="--smoke-test"
+      fi
     - export PATH=$PWD/shrinkwrap:$PATH
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
-    - ./test/test.py --runtime null --smoke-test --fvpjobs 4 --junit selftest-${TAG}.xml
+    - ./test/test.py --runtime null ${SMOKE} --fvpjobs 4 --junit selftest-${TAG}.xml
   artifacts:
     name: selftest-${TAG}
     paths:
