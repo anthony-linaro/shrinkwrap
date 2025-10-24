@@ -66,7 +66,7 @@ class Logger:
 		id = self._id_next
 		self._id_next += 1
 
-		if type(no_escapes) == str:
+		if isinstance(no_escapes, str):
 			noesc = True
 			escbuf = MatchBuf(no_escapes)
 		else:

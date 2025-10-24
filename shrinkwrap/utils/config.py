@@ -55,7 +55,7 @@ def _component_normalize(component, name):
 	component.setdefault('repo', {})
 
 	if len(component['repo']) > 0 and \
-		all(type(v) != dict for v in component['repo'].values()):
+		all(not isinstance(v, dict) for v in component['repo'].values()):
 		component['repo'] = {'.': component['repo']}
 
 	for repo in component['repo'].values():
@@ -78,9 +78,9 @@ def _component_normalize(component, name):
 		component['sync'] = 'true'
 
 	component['artifacts'] = { key:
-		{ 'path': val, 'base': None, 'export': True } if type(val) == str else
+		{ 'path': val, 'base': None, 'export': True } if isinstance(val, str) else
 		{ 'path': val['path'], 'base': val.get('rename'),
-		  'export': val.get('export', True) } if type(val) == dict else
+		  'export': val.get('export', True) } if isinstance(val, dict) else
 		val for key, val in component.get('artifacts', {}).items() }
 
 	return component
@@ -216,16 +216,16 @@ def _config_merge(base, new):
 		if new is None:
 			return base
 
-		if type(base) is list and type(new) is list:
+		if isinstance(base, list) and isinstance(new, list):
 			return base + new
 
-		if type(base) is dict and type(new) is dict:
+		elif isinstance(base, dict) and isinstance(new, dict):
 			d = {}
 			for k in list(set(list(base.keys()) + list(new.keys()))):
 				d[k] = _merge(base.get(k), new.get(k), level+1)
 			return d
 
-		if type(base) is str and type(new) is str:
+		elif isinstance(base, str) and isinstance(new, str):
 			return new
 
 		return new
@@ -308,7 +308,7 @@ def _string_substitute(string, lut, final=True):
 	on $. If False, $$ is left as is, otherwise they are replaced with $.
 	"""
 	# Skip substitution if not a string or is empty
-	if type(string) != str or not string:
+	if not isinstance(string, str) or not string:
 		return string
 
 	calls = []
@@ -458,7 +458,7 @@ def resolveb(config, btvars={}, clivars={}):
 	determined and placed into the config along with the global artifact
 	map. Expects a config that was previously loaded with load().
 	btvars=None implies that it is OK not to resolve btvars whose default
-	value is None. type(btvars) == dict implies btvars values must all be
+	value is None. isinstance(btvars, dict) implies btvars values must all be
 	resolved.
 	"""
 	def _resolve_build_graph(config):
@@ -962,8 +962,8 @@ def build_graph(configs, echo, nosync, force_sync):
 	gl2.seal()
 	graph[gl2] = [gl1]
 
-	force_sync_all = type(force_sync) != list
-	sync_none = type(nosync) != list
+	force_sync_all = not isinstance(force_sync, list)
+	sync_none = not isinstance(nosync, list)
 
 	for config in configs:
 		build_scripts = {}
