@@ -618,6 +618,12 @@ def resolveb(config, btvars={}, clivars={}):
 			not _string_has_macros(v['value']):
 			v['value'] = os.path.expanduser(v['value'])
 			v['value'] = os.path.abspath(v['value'])
+		# Ensure that string btvars with non-string values are converted to strings.
+		# Note that values with non-decimal base in the yaml will get converted to
+		# a decimal string. This should not be an issue for most uses, but might be
+		# unexpected in some edge cases.
+		elif v['type'] == 'string':
+			v['value'] = str(v['value'])
 
 	macro_lut['btvar'] = {k: v['value'] for k, v in final_btvars.items()}
 
