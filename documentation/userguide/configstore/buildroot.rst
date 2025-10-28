@@ -34,6 +34,6 @@ Components
 ========= ========================================== =========
 component repository                                 revision
 ========= ========================================== =========
-buildroot https://github.com/buildroot/buildroot.git 2024.05.2
+buildroot https://github.com/buildroot/buildroot.git 2025.08.1
 ========= ========================================== =========
 

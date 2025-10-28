@@ -45,6 +45,6 @@ Components
 component   repository                                                                         revision
 =========== ================================================================================== =========
 bootwrapper https://git.kernel.org/pub/scm/linux/kernel/git/mark/boot-wrapper-aarch64.git      master
-dt          https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.14-dts
+dt          https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
 =========== ================================================================================== =========
 
