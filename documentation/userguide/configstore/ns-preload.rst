@@ -26,24 +26,26 @@ A directory can optionally be shared from the host system into the Linux environ
 Build-Time Variables
 ####################
 
-===== =======
-btvar default
-===== =======
-===== =======
+============= ======= ==============
+btvar         default options
+============= ======= ==============
+TFA_BUILD     release debug, release
+TFA_LOG_LEVEL 40      <required>
+============= ======= ==============
 
 Run-Time Variables
 ##################
 
-============== ================
-rtvar          default
-============== ================
-BL31           ${artifact:BL31}
-DTB            ${artifact:DTB}
-KERNEL         <null>
-LOCAL_NET_PORT 8022
-ROOTFS         <empty>
-SHARE          <empty>
-============== ================
+============== ================ ==========
+rtvar          default          options
+============== ================ ==========
+BL31           ${artifact:BL31} <required>
+DTB            ${artifact:DTB}  <required>
+KERNEL         <null>           <required>
+LOCAL_NET_PORT 8022             <required>
+ROOTFS         <empty>          <required>
+SHARE          <empty>          <required>
+============== ================ ==========
 
 Components
 ##########

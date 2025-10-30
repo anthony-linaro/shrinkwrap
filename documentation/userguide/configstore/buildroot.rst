@@ -15,18 +15,18 @@ Generates a very simple rootfs as an ext2/4 image. Higher layers can modify the 
 Build-Time Variables
 ####################
 
-===== =======
-btvar default
-===== =======
-===== =======
+===== ======= =======
+btvar default options
+===== ======= =======
+===== ======= =======
 
 Run-Time Variables
 ##################
 
-===== =======
-rtvar default
-===== =======
-===== =======
+===== ======= =======
+rtvar default options
+===== ======= =======
+===== ======= =======
 
 Components
 ##########

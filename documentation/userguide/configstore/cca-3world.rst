@@ -101,29 +101,35 @@ This config also builds kvm-unit-tests, which can be run in the realm instead of
 Build-Time Variables
 ####################
 
-============= ===============================
-btvar         default
-============= ===============================
-GUEST_CMDLINE root=/dev/vda2 acpi=force ip=on
-GUEST_ROOTFS  <empty>
-============= ===============================
+============= =============================== ==============
+btvar         default                         options
+============= =============================== ==============
+EDK2_BUILD    RELEASE                         DEBUG, RELEASE
+GUEST_CMDLINE root=/dev/vda2 acpi=force ip=on <required>
+GUEST_ROOTFS  <empty>                         <required>
+RMM_BASE      0xFDC00000                      <required>
+RMM_BUILD     Release                         Debug, Release
+RMM_LOG_LEVEL 40                              <required>
+TFA_BUILD     release                         debug, release
+TFA_LOG_LEVEL 40                              <required>
+============= =============================== ==============
 
 Run-Time Variables
 ##################
 
-============== ===============================================================
-rtvar          default
-============== ===============================================================
-BL1            ${artifact:BL1}
-CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
-DTB            ${artifact:DTB}
-EDK2FLASH      <empty>
-FIP            ${artifact:FIP}
-KERNEL         ${artifact:KERNEL}
-LOCAL_NET_PORT 8022
-ROOTFS         <empty>
-SHARE          <empty>
-============== ===============================================================
+============== =============================================================== ==========
+rtvar          default                                                         options
+============== =============================================================== ==========
+BL1            ${artifact:BL1}                                                 <required>
+CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp <required>
+DTB            ${artifact:DTB}                                                 <required>
+EDK2FLASH      <empty>                                                         <required>
+FIP            ${artifact:FIP}                                                 <required>
+KERNEL         ${artifact:KERNEL}                                              <required>
+LOCAL_NET_PORT 8022                                                            <required>
+ROOTFS         <empty>                                                         <required>
+SHARE          <empty>                                                         <required>
+============== =============================================================== ==========
 
 Components
 ##########

@@ -15,21 +15,23 @@ Rusted-Firmware-A. This configuration runs RF-A with the default features along 
 Build-Time Variables
 ####################
 
-===== =======
-btvar default
-===== =======
-===== =======
+============= ======= ==============
+btvar         default options
+============= ======= ==============
+TFA_BUILD     release debug, release
+TFA_LOG_LEVEL 40      <required>
+============= ======= ==============
 
 Run-Time Variables
 ##################
 
-============== ===============
-rtvar          default
-============== ===============
-BL1            ${artifact:BL1}
-FIP            ${artifact:FIP}
-LOCAL_NET_PORT 8022
-============== ===============
+============== =============== ==========
+rtvar          default         options
+============== =============== ==========
+BL1            ${artifact:BL1} <required>
+FIP            ${artifact:FIP} <required>
+LOCAL_NET_PORT 8022            <required>
+============== =============== ==========
 
 Components
 ##########

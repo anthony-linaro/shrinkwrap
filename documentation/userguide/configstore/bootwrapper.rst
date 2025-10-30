@@ -19,24 +19,24 @@ Then run the boot-wrapper (or pass a separately created one as the BOOTWRAPPER r
 Build-Time Variables
 ####################
 
-======= ===============================================================
-btvar   default
-======= ===============================================================
-CMDLINE console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
-DTB     ${artifact:DTB}
-KERNEL  <null>
-======= ===============================================================
+======= =============================================================== ==========
+btvar   default                                                         options
+======= =============================================================== ==========
+CMDLINE console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp <required>
+DTB     ${artifact:DTB}                                                 <required>
+KERNEL  <null>                                                          <required>
+======= =============================================================== ==========
 
 Run-Time Variables
 ##################
 
-============== =======================
-rtvar          default
-============== =======================
-BOOTWRAPPER    ${artifact:BOOTWRAPPER}
-LOCAL_NET_PORT 8022
-ROOTFS         <empty>
-============== =======================
+============== ======================= ==========
+rtvar          default                 options
+============== ======================= ==========
+BOOTWRAPPER    ${artifact:BOOTWRAPPER} <required>
+LOCAL_NET_PORT 8022                    <required>
+ROOTFS         <empty>                 <required>
+============== ======================= ==========
 
 Components
 ##########

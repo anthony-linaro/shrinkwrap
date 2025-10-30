@@ -36,27 +36,33 @@ When booting with device tree, a directory can optionally be shared from the hos
 Build-Time Variables
 ####################
 
-===== =======
-btvar default
-===== =======
-===== =======
+============= ========== ==============
+btvar         default    options
+============= ========== ==============
+EDK2_BUILD    RELEASE    DEBUG, RELEASE
+RMM_BASE      0xFDC00000 <required>
+RMM_BUILD     Release    Debug, Release
+RMM_LOG_LEVEL 40         <required>
+TFA_BUILD     release    debug, release
+TFA_LOG_LEVEL 40         <required>
+============= ========== ==============
 
 Run-Time Variables
 ##################
 
-============== ===============================================================
-rtvar          default
-============== ===============================================================
-BL1            ${artifact:BL1}
-CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp
-DTB            ${artifact:DTB}
-EDK2FLASH      <empty>
-FIP            ${artifact:FIP}
-KERNEL         <null>
-LOCAL_NET_PORT 8022
-ROOTFS         <empty>
-SHARE          <empty>
-============== ===============================================================
+============== =============================================================== ==========
+rtvar          default                                                         options
+============== =============================================================== ==========
+BL1            ${artifact:BL1}                                                 <required>
+CMDLINE        console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp <required>
+DTB            ${artifact:DTB}                                                 <required>
+EDK2FLASH      <empty>                                                         <required>
+FIP            ${artifact:FIP}                                                 <required>
+KERNEL         <null>                                                          <required>
+LOCAL_NET_PORT 8022                                                            <required>
+ROOTFS         <empty>                                                         <required>
+SHARE          <empty>                                                         <required>
+============== =============================================================== ==========
 
 Components
 ##########

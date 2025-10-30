@@ -43,6 +43,24 @@ def make_rst_table_from_dict(headers, data):
 	return make_rst_table(headers, sorted(data.items()))
 
 
+def var_value(value):
+	if value is None:
+		return '<null>'
+	if value == '':
+		return '<empty>'
+	return str(value)
+
+def var_options_list(_opt):
+	if len(_opt) == 0:
+		return "<required>"
+	else:
+		return ', '.join(sorted(map(var_value, _opt)))
+
+def vars_to_data(vars):
+	return [ [k, var_value(v['value']), var_options_list(v['options'])]
+			for k, v in sorted(vars.items()) ]
+
+
 def comps_to_data(comps):
 	data = []
 	for comp, info in comps.items():
@@ -133,8 +151,10 @@ with open(os.path.join(docsdir, 'index.rst'), 'w') as indexf:
 			c['name'],
 			'#' * len(c['name']),
 			fix_whitespace(c['description']),
-			make_rst_table_from_dict(('btvar', 'default'), c['btvars']),
-			make_rst_table_from_dict(('rtvar', 'default'), c['rtvars']),
+			make_rst_table(('btvar', 'default', 'options'),
+						vars_to_data(c['btvars'])),
+			make_rst_table(('rtvar', 'default', 'options'),
+						vars_to_data(c['rtvars'])),
 			make_rst_table(('component', 'repository', 'revision'),
 		  		       comps_to_data(c['components'])))
 

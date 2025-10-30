@@ -182,7 +182,7 @@ created.
 =========== =========== ===========
 key         type        description
 =========== =========== ===========
-btvars      dictionary  Build-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string') and 'value' (which takes the default value). Build-Time variables can be overridden by the user at the command line.
+btvars      dictionary  Build-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string'), 'value' (which takes the default value), and 'options' (which is the list of allowed values, and can include 'null' which makes the variable optional). Build-Time variables can be overridden by the user at the command line.
 =========== =========== ===========
 
 ~~~~~~~~~~~~~~~~~
@@ -231,7 +231,7 @@ run section
 key         type        description
 =========== =========== ===========
 name        string      Name of the FVP binary, which must be in $PATH.
-rtvars      dictionary  Run-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string') and 'value' (which takes the default value). Run-Time variables can be overridden by the user at the command line.
+rtvars      dictionary  Run-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string'), 'value' (which takes the default value), and 'options' (which is the list of allowed values, and can include 'null' which makes the variable optional). Run-Time variables can be overridden by the user at the command line.
 params      dictionary  Dictionary of parameters to be passed to the FVP. Similar to the component's params, laying these out in a dictionary makes it easy for higher layers to override and add parameters.
 prerun      list        List of shell commands to be executed before the FVP is started.
 terminals   dictionary  Describes the set of UART terminals available for the FVP. key is the terminal parameter name known to the FVP (e.g. ``bp.terminal_0``) See below for format of the value.
