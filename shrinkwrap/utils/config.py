@@ -97,11 +97,56 @@ def _build_normalize(build):
 		_component_normalize(component, name)
 
 
+def _vars_normalize(vars):
+	for k, p in vars.items():
+		assert(isinstance(p, dict))
+
+		t = p.setdefault('type', 'string')
+		v = p.setdefault('value', None)
+		if v is not None:
+			if t == 'path':
+				if not isinstance(v, str):
+					raise TypeError(f"Path variable {k} should be a string")
+			# Ensure that string btvars with non-string values are converted to strings.
+			# Note that values with non-decimal base in the yaml will get converted to
+			# a decimal string. This should not be an issue for most uses, but might be
+			# unexpected in some edge cases.
+			elif t == 'string':
+				p['value'] = str(v)
+
+		o = p.get('options')
+		if o is None:
+			o = set()
+		elif isinstance(o, list):
+			o = { v if v is None else str(v) for v in o }
+		elif isinstance(o, set):
+			pass
+		else:
+			o = { str(o) }
+
+		if None in o:
+			raise ValueError(f"Options for variable '{k}' must not include 'null'")
+		p['options'] = o
+
+def _var_validate(v):
+	return len(v['options']) == 0 or v['value'] in v['options']
+
+
+class JSONdump(json.JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, set):
+			return list(obj)
+		return super().default(obj)
+
+def _var_options(v):
+	return json.dumps(v['options'], cls=JSONdump)
+
+
 def _buildex_normalize(buildex):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
-	buildex.setdefault('btvars', {})
+	_vars_normalize(buildex.setdefault('btvars', {}))
 
 
 def _run_normalize(run):
@@ -109,7 +154,7 @@ def _run_normalize(run):
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
 	run.setdefault('name', None)
-	run.setdefault('rtvars', {})
+	_vars_normalize(run.setdefault('rtvars', {}))
 	run.setdefault('params', {})
 	run.setdefault('prerun', [])
 	run.setdefault('run', [])
@@ -218,6 +263,9 @@ def _config_merge(base, new):
 
 		if isinstance(base, list) and isinstance(new, list):
 			return base + new
+
+		if isinstance(base, set) and isinstance(new, set):
+			return base | new
 
 		elif isinstance(base, dict) and isinstance(new, dict):
 			d = {}
@@ -576,6 +624,7 @@ def resolveb(config, btvars={}, clivars={}):
 
 		for v in config['buildex']['btvars'].values():
 			v['value'] = _string_substitute(v['value'], lut, final)
+			v['options'] = { _string_substitute(o, lut, final) for o in v['options'] }
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply
@@ -610,7 +659,7 @@ def resolveb(config, btvars={}, clivars={}):
 				v['value'] = btvars[k]
 			if v['value'] is None:
 				raise Exception(f'{k} build-time variable ' \
-		    				'not set by user and no ' \
+						'not set by user and no ' \
 						'default available.')
 
 		if v['type'] == 'path' and \
@@ -618,12 +667,6 @@ def resolveb(config, btvars={}, clivars={}):
 			not _string_has_macros(v['value']):
 			v['value'] = os.path.expanduser(v['value'])
 			v['value'] = os.path.abspath(v['value'])
-		# Ensure that string btvars with non-string values are converted to strings.
-		# Note that values with non-decimal base in the yaml will get converted to
-		# a decimal string. This should not be an issue for most uses, but might be
-		# unexpected in some edge cases.
-		elif v['type'] == 'string':
-			v['value'] = str(v['value'])
 
 	macro_lut['btvar'] = {k: v['value'] for k, v in final_btvars.items()}
 
@@ -648,6 +691,11 @@ def resolveb(config, btvars={}, clivars={}):
 
 	# Final check to ensure everything is resolved and to fix escaped $.
 	_substitute_macros(config, macro_lut, True)
+
+	for k, v in ({} if btvars is None else config['buildex']['btvars']).items():
+		if not _var_validate(v):
+			raise ValueError(f"{k} build-time variable " \
+				f"must take one of the following values: { _var_options(v) }")
 
 	config['graph'] = graph
 	config['artifacts'] = artifact_map
@@ -704,11 +752,15 @@ def resolver(config, rtvars={}, clivars={}):
 		'btvar': {k: v['value']
 				for k, v in config['buildex']['btvars'].items()},
 	}
-	for v in run['rtvars'].values():
+	for k, v in run['rtvars'].items():
 		v['value'] = _string_substitute(str(v['value']), lut)
 		if v['type'] == 'path' and v['value']:
 			v['value'] = os.path.expanduser(v['value'])
 			v['value'] = os.path.abspath(v['value'])
+		v['options'] = { _string_substitute(o, lut) for o in v['options'] }
+		if not _var_validate(v):
+			raise ValueError(f"{k} run-time variable " \
+				f"must take one of the following values: { _var_options(v) }")
 
 	# Now create a lookup table with all the rtvars and resolve all the
 	# parameters. An exception will be thrown if there are any macros that

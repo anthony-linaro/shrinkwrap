@@ -69,19 +69,13 @@ def dispatch(args):
 			'description': c['description'],
 			'image': c['image'] if c['image'] is not None else '<none>',
 			'concrete': c['concrete'],
-			'btvars': {
-				k: _var_value(v['value'])
-				for k,v in c['buildex']['btvars'].items()
-			},
-			'rtvars': {
-				k: _var_value(v['value'])
-				for k,v in c['run']['rtvars'].items()
-			},
+			'btvars': c['buildex']['btvars'],
+			'rtvars': c['run']['rtvars'],
 			'components': _comp_revisions(c['build']),
 		})
 
 	if args.json:
-		print(json.dumps(cfgs, indent=4))
+		print(json.dumps(cfgs, indent=4, cls=config.JSONdump))
 		return
 
 	width = 80
@@ -116,13 +110,13 @@ def dispatch(args):
 				     indent=indent,
 				     paraspace=1))
 		buf.write('\n')
-		buf.write(_dict_wrap('build-time vars',
+		buf.write(_vars_wrap('build-time vars',
 				     c['btvars'],
 				     width=width,
 				     kindent=indent,
 				     vindent=vindent))
 		buf.write('\n')
-		buf.write(_dict_wrap('run-time vars',
+		buf.write(_vars_wrap('run-time vars',
 				     c['rtvars'],
 				     width=width,
 				     kindent=indent,
@@ -209,6 +203,27 @@ def _dict_wrap(tag, dictionary, width=80, kindent=0, vindent=0, end='\n'):
 			  indent=kindent,
 			  paraspace=0,
 			  end=end)
+
+
+def _var_options(_opt):
+	if len(_opt) == 0:
+		return "<required>"
+	else:
+		return list(map(_var_value, _opt))
+
+def _vars_wrap(tag, vars, width=80, kindent=0, vindent=0, end='\n'):
+	vars_indent = 0
+	for var in vars.values():
+		vars_indent = max(vars_indent, len(var['value']))
+	vars_indent += 2
+
+	dictionary = {
+		k:	f"{ _var_value(v['value']) }"
+			f"{ ' ' * (vars_indent - len(v['value'])) }"
+			f"{ _var_options(v['options']) }"
+		for k, v in vars.items() }
+
+	return _dict_wrap(tag, dictionary, 10000, kindent, vindent, end)
 
 
 def _repo_wrap(tag, components, width=80, kindent=0, vindent=0, end='\n'):
