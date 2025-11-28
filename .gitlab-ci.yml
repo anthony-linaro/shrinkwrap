@@ -112,7 +112,7 @@ build-documentation:
         echo "Config store documentation not up-to-date; run genconfigstore.py and commit changes."
         exit 1
       fi
-    - pip3 install requests
+    - pip3 install requests unicode-slugify
     - |
       if [ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]; then
         ./documentation/_scripts/rtdbuild.py --domain https://readthedocs.com --token ${READTHEDOCS_TOKEN} --project ${READTHEDOCS_PROJECT} --branch latest --state active

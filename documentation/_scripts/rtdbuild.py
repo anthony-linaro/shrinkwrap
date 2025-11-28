@@ -4,7 +4,9 @@
 # ALL RIGHTS RESERVED
 
 
+import re
 import requests
+import slugify
 import time
 import argparse
 
@@ -27,7 +29,17 @@ args = parser.parse_args()
 
 
 def git_branch_to_rtd_version(branch):
-	return branch.replace('/', '-')
+    # Follows the same approach as RTD's implementation.
+    normalized = re.sub("[/%!?]", "-", branch)
+    allowed = "-._"
+    return slugify.slugify(
+        normalized,
+        only_ascii=True,
+        spaces=False,
+        lower=True,
+        ok=allowed,
+        space_replacement="-",
+    ).lstrip(allowed)
 
 
 def build_readthedocs(domain, token, project, version='latest', timeout=240):
