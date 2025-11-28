@@ -78,13 +78,13 @@ dt                    https://git.kernel.org/pub/scm/linux/kernel/git/devicetree
 edk2 (edk2)           https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
 edk2 (edk2-platforms) https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git                        3223_arm_cca_v4
 edk2-cca-guest (edk2) https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
-hafnium               https://git.trustedfirmware.org/hafnium/hafnium.git                                v2.13.0
+hafnium               https://git.trustedfirmware.org/hafnium/hafnium.git                                v2.14.0
 kvm-unit-tests        https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca                                cca/rmm-v1.0-rel0
 kvmtool (dtc)         https://git.kernel.org/pub/scm/utils/dtc/dtc.git                                   v1.6.1
 kvmtool (kvmtool)     https://gitlab.arm.com/linux-arm/kvmtool-cca                                       cca/v6
 linux                 https://git.gitlab.arm.com/linux-arm/linux-cca.git                                 cca-host/v8
-rmm                   https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.7.0
-tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.13.0
-tftf                  https://git.trustedfirmware.org/TF-A/tf-a-tests.git                                v2.13.0
+rmm                   https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.8.0
+tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
+tftf                  https://git.trustedfirmware.org/TF-A/tf-a-tests.git                                v2.14.0
 ===================== ================================================================================== =================
 

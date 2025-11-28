@@ -52,6 +52,6 @@ Components
 component repository                                                                         revision
 ========= ================================================================================== =========
 dt        https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
-tfa       https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.13.0
+tfa       https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
 ========= ================================================================================== =========
 

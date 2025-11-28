@@ -140,7 +140,7 @@ kvm-unit-tests        https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca       
 kvmtool (dtc)         https://git.kernel.org/pub/scm/utils/dtc/dtc.git                                   v1.6.1
 kvmtool (kvmtool)     https://gitlab.arm.com/linux-arm/kvmtool-cca                                       cca/v6
 linux                 https://git.gitlab.arm.com/linux-arm/linux-cca.git                                 cca-host/v8
-rmm                   https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.7.0
-tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.13.0
+rmm                   https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.8.0
+tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
 ===================== ================================================================================== =================
 

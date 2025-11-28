@@ -62,6 +62,6 @@ acpica                https://github.com/acpica/acpica.git                      
 dt                    https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
 edk2 (edk2)           https://github.com/tianocore/edk2.git                                              edk2-stable202508.01
 edk2 (edk2-platforms) https://github.com/tianocore/edk2-platforms.git                                    8cc9da9dc8431d1f0dfab28d92b3941e2c19aeb8
-tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.13.0
+tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
 ===================== ================================================================================== ========================================
 
