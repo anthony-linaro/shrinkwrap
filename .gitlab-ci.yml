@@ -167,11 +167,13 @@ test-self:
     - export PATH=$PWD/shrinkwrap:$PATH
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
-    - ./test/test.py --runtime null ${SMOKE} --fvpjobs 4 --junit selftest-${TAG}.xml
+    - rm -rf selftest-${TAG}.xml selftest-${TAG}.log
+    - ./test/test.py --runtime null ${SMOKE} --fvpjobs 4 --junit selftest-${TAG}.xml | tee selftest-${TAG}.log
   artifacts:
     name: selftest-${TAG}
     paths:
       - selftest-${TAG}.xml
+      - selftest-${TAG}.log
     reports:
       junit: selftest-${TAG}.xml
 
