@@ -197,7 +197,7 @@ def test_name(r):
 	parts = []
 	add_part(parts, r, 'type')
 	add_part(parts, r, 'config')
-	add_part(parts, r, 'overlay')
+	add_part(parts, r, 'overlays')
 	add_part(parts, r, 'tag')
 	return ':'.join(parts)
 
