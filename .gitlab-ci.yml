@@ -176,6 +176,7 @@ test-self:
       - selftest-${TAG}.log
     reports:
       junit: selftest-${TAG}.xml
+    when: always
 
 deploy-docker-image:
   stage: deploy
