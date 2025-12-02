@@ -1,0 +1,393 @@
+..
+ # Copyright (c) 2025, Arm Limited.
+ #
+ # SPDX-License-Identifier: MIT
+
+#########
+2025.12.0
+#########
+
+*****
+Links
+*****
+
+- Tagged documentation: https://shrinkwrap.docs.arm.com/en/2025.12.0/
+- Tagged source code: https://gitlab.arm.com/tooling/shrinkwrap/-/tags/2025.12.0
+- Tagged container images:
+
+  - `shrinkwraptool/base-slim:2025.12.0
+    <https://hub.docker.com/layers/shrinkwraptool/base-slim/2025.12.0>`_
+  - `shrinkwraptool/base-full:2025.12.0
+    <https://hub.docker.com/layers/shrinkwraptool/base-full/2025.12.0>`_
+
+******************
+Component Versions
+******************
+
+----------
+Toolchains
+----------
+
+The base-slim container image includes:
+
+- aarch64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
+- aarch64-none-elf-gcc (Arm GNU Toolchain 14.3.Rel1 (Build arm-14.174)) 14.3.1
+  20250623
+
+The base-full container image additionally includes:
+
+- arm-linux-gnueabihf-gcc (Debian 14.2.0-19) 14.2.0
+- arm-none-eabi-gcc (Arm GNU Toolchain 14.3.Rel1 (Build arm-14.174)) 14.3.1
+  20250623
+- Debian clang version 20.1.8
+  (++20250809043815+87f0227cb601-1~exp1~20250809163919.3)
+
+---
+FVP
+---
+
+The base-slim and base-full container images both include:
+
+- FVP_Base_RevC-2xAEMvA [11.30.27 (Nov 14 2025)]
+
+-------------------
+Software Components
+-------------------
+
+A full list of every SW component, it's source repository and it's revision, is
+provided for each config that Shrinkwrap ships with. See
+:ref:`userguide/configstore/index:Config Store` for a list of configs.
+
+************
+Git Shortlog
+************
+
+- Chris Reed (2):
+
+  - build: stringify string btvars with non-string values
+  - refactor: use isinstance() instead of type()
+
+- Mathias Brossard (1):
+
+  - Add configuration files for running RF-A tests
+
+- Olivier Deprez (3):
+
+  - build: update to TF-A/Hafnium v2.14.0/TF-RMM v0.8.0
+  - docker: bump AEM FVP to version 11.30 build 27
+  - fvp: enable BRBE again
+
+- Ryan Roberts (32):
+
+  - version: Switch to new versioning scheme: 2025.12.0.dev0
+  - docs: Document the release process
+  - docs: Include table for all repos used in config
+  - docs: Update auto-generated docs with repo info
+  - docs: Display the version number within the documentation
+  - containers: tag containers with shrinkwrap version
+  - ci: Add option to control smoke vs full testing
+  - ci: Don't run pipeline for tag or merge request events
+  - test: Improve FVP output logging
+  - config: Look for correct shutdown message with bootwrapper
+  - config: Workaround bootwrapper's lack of support for GCS
+  - config: Extend bootwrapper.yaml to support building
+  - ci: Ensure caches get correctly invalidated
+  - run: Don't show update_submodules() bash function
+  - test: Honour config-defined container image
+  - config: Update buildroot to 2025.08.1
+  - config: Update dt to v6.17-dts
+  - config: Update edk2 to edk2-stable202508.01
+  - config: Update kvmtool revision
+  - config: Update linux to v6.17
+  - config: Update optee to 4.6.0
+  - docker: Update to Debian Trixie as the container base image
+  - docker: Update FVP to 11.29_42
+  - docker: Update bare-metal toolchains to 14.3.rel1
+  - docs: Update auto-generated docs for latest repo info
+  - docs: Update config component versions
+  - docs: Fix ReadTheDocs branch to version conversion
+  - test: Bypass attestation checks when built on arm64
+  - test: Save test output into log file
+  - test: Fix test names to include overlays
+  - test: Always keep test log
+  - docs: Add framework for release notes
+
+- Yousuf A (1):
+
+  - docker: add e2fsprogs for rootdisk maintenance
+
+*******************
+Test Report Summary
+*******************
+
+All automated tests have been run and passed on the CI. This demonstrates that
+all configs build and boot correctly on the FVP.
+
+There are 266 tests in total. All pass on both arm64 and x86_64 hosts.
+
+- PASS: build:ns-preload.yaml:arch/v8.0.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.0.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.0.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.0.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.0.yaml
+- PASS: run:ns-preload.yaml:arch/v8.0.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.0.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.0.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.0.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.0.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.0.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.0.yaml
+- PASS: build:ns-preload.yaml:arch/v8.1.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.1.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.1.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.1.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.1.yaml
+- PASS: run:ns-preload.yaml:arch/v8.1.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.1.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.1.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.1.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.1.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.1.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.1.yaml
+- PASS: build:ns-preload.yaml:arch/v8.2.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.2.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.2.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.2.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.2.yaml
+- PASS: run:ns-preload.yaml:arch/v8.2.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.2.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.2.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.2.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.2.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.2.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.2.yaml
+- PASS: build:ns-preload.yaml:arch/v8.3.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.3.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.3.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.3.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.3.yaml
+- PASS: run:ns-preload.yaml:arch/v8.3.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.3.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.3.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.3.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.3.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.3.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.3.yaml
+- PASS: build:ns-preload.yaml:arch/v8.4.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.4.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.4.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.4.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.4.yaml
+- PASS: run:ns-preload.yaml:arch/v8.4.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.4.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.4.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.4.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.4.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.4.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.4.yaml
+- PASS: build:ns-preload.yaml:arch/v8.5.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.5.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.5.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.5.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.5.yaml
+- PASS: run:ns-preload.yaml:arch/v8.5.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.5.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.5.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.5.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.5.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.5.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.5.yaml
+- PASS: build:ns-preload.yaml:arch/v8.6.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.6.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.6.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.6.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.6.yaml
+- PASS: run:ns-preload.yaml:arch/v8.6.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.6.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.6.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.6.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.6.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.6.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.6.yaml
+- PASS: build:ns-preload.yaml:arch/v8.7.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.7.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.7.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.7.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.7.yaml
+- PASS: run:ns-preload.yaml:arch/v8.7.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.7.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.7.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.7.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.7.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.7.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.7.yaml
+- PASS: build:ns-preload.yaml:arch/v8.8.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.8.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.8.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.8.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.8.yaml
+- PASS: run:ns-preload.yaml:arch/v8.8.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.8.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.8.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.8.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.8.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.8.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.8.yaml
+- PASS: build:ns-preload.yaml:arch/v8.9.yaml
+- PASS: build:ns-edk2.yaml:arch/v8.9.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v8.9.yaml
+- PASS: build:ffa-optee.yaml:arch/v8.9.yaml
+- PASS: build:bootwrapper.yaml:arch/v8.9.yaml
+- PASS: run:ns-preload.yaml:arch/v8.9.yaml
+- PASS: run:ns-edk2.yaml:arch/v8.9.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v8.9.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v8.9.yaml
+- PASS: run:ffa-optee.yaml:arch/v8.9.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v8.9.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v8.9.yaml
+- PASS: build:ns-preload.yaml:arch/v9.0.yaml
+- PASS: build:ns-edk2.yaml:arch/v9.0.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v9.0.yaml
+- PASS: build:ffa-optee.yaml:arch/v9.0.yaml
+- PASS: build:bootwrapper.yaml:arch/v9.0.yaml
+- PASS: run:ns-preload.yaml:arch/v9.0.yaml
+- PASS: run:ns-edk2.yaml:arch/v9.0.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v9.0.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v9.0.yaml
+- PASS: run:ffa-optee.yaml:arch/v9.0.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v9.0.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v9.0.yaml
+- PASS: build:ns-preload.yaml:arch/v9.1.yaml
+- PASS: build:ns-edk2.yaml:arch/v9.1.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v9.1.yaml
+- PASS: build:ffa-optee.yaml:arch/v9.1.yaml
+- PASS: build:bootwrapper.yaml:arch/v9.1.yaml
+- PASS: run:ns-preload.yaml:arch/v9.1.yaml
+- PASS: run:ns-edk2.yaml:arch/v9.1.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v9.1.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v9.1.yaml
+- PASS: run:ffa-optee.yaml:arch/v9.1.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v9.1.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v9.1.yaml
+- PASS: build:ns-preload.yaml:arch/v9.2.yaml
+- PASS: build:ns-edk2.yaml:arch/v9.2.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v9.2.yaml
+- PASS: build:ffa-optee.yaml:arch/v9.2.yaml
+- PASS: build:bootwrapper.yaml:arch/v9.2.yaml
+- PASS: run:ns-preload.yaml:arch/v9.2.yaml
+- PASS: run:ns-edk2.yaml:arch/v9.2.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v9.2.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v9.2.yaml
+- PASS: run:ffa-optee.yaml:arch/v9.2.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v9.2.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v9.2.yaml
+- PASS: build:ns-preload.yaml:arch/v9.3.yaml
+- PASS: build:ns-edk2.yaml:arch/v9.3.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v9.3.yaml
+- PASS: build:ffa-optee.yaml:arch/v9.3.yaml
+- PASS: build:bootwrapper.yaml:arch/v9.3.yaml
+- PASS: run:ns-preload.yaml:arch/v9.3.yaml
+- PASS: run:ns-edk2.yaml:arch/v9.3.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v9.3.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v9.3.yaml
+- PASS: run:ffa-optee.yaml:arch/v9.3.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v9.3.yaml:acpi
+- PASS: run:bootwrapper.yaml:arch/v9.3.yaml
+- PASS: build:ns-preload.yaml:arch/v9.4.yaml
+- PASS: build:ns-edk2.yaml:arch/v9.4.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v9.4.yaml
+- PASS: build:ffa-optee.yaml:arch/v9.4.yaml
+- PASS: run:ns-preload.yaml:arch/v9.4.yaml
+- PASS: run:ns-edk2.yaml:arch/v9.4.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v9.4.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v9.4.yaml
+- PASS: run:ffa-optee.yaml:arch/v9.4.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v9.4.yaml:acpi
+- PASS: build:ns-preload.yaml:arch/v9.5.yaml
+- PASS: build:ns-edk2.yaml:arch/v9.5.yaml
+- PASS: build:ns-edk2-optee.yaml:arch/v9.5.yaml
+- PASS: build:ffa-optee.yaml:arch/v9.5.yaml
+- PASS: run:ns-preload.yaml:arch/v9.5.yaml
+- PASS: run:ns-edk2.yaml:arch/v9.5.yaml:dt
+- PASS: run:ns-edk2.yaml:arch/v9.5.yaml:acpi
+- PASS: run:ns-edk2-optee.yaml:arch/v9.5.yaml
+- PASS: run:ffa-optee.yaml:arch/v9.5.yaml:dt
+- PASS: run:ffa-optee.yaml:arch/v9.5.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v8.5.yaml
+- PASS: build:ffa-tftf.yaml:arch/v8.5.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.5.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.5.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v8.5.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v8.5.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v8.6.yaml
+- PASS: build:ffa-tftf.yaml:arch/v8.6.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.6.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.6.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v8.6.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v8.6.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v8.7.yaml
+- PASS: build:ffa-tftf.yaml:arch/v8.7.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.7.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.7.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v8.7.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v8.7.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v8.8.yaml
+- PASS: build:ffa-tftf.yaml:arch/v8.8.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.8.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.8.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v8.8.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v8.8.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v8.9.yaml
+- PASS: build:ffa-tftf.yaml:arch/v8.9.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.9.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v8.9.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v8.9.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v8.9.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v9.0.yaml
+- PASS: build:ffa-tftf.yaml:arch/v9.0.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.0.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.0.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v9.0.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v9.0.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v9.1.yaml
+- PASS: build:ffa-tftf.yaml:arch/v9.1.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.1.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.1.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v9.1.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v9.1.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v9.2.yaml
+- PASS: build:ffa-tftf.yaml:arch/v9.2.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.2.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.2.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v9.2.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v9.2.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v9.3.yaml
+- PASS: build:ffa-tftf.yaml:arch/v9.3.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.3.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.3.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v9.3.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v9.3.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v9.4.yaml
+- PASS: build:ffa-tftf.yaml:arch/v9.4.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.4.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.4.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v9.4.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v9.4.yaml:acpi
+- PASS: build:ffa-hafnium-optee.yaml:arch/v9.5.yaml
+- PASS: build:ffa-tftf.yaml:arch/v9.5.yaml
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.5.yaml:dt
+- PASS: run:ffa-hafnium-optee.yaml:arch/v9.5.yaml:acpi
+- PASS: run:ffa-tftf.yaml:arch/v9.5.yaml:dt
+- PASS: run:ffa-tftf.yaml:arch/v9.5.yaml:acpi
+- PASS: build:cca-3world.yaml
+- PASS: build:cca-edk2.yaml
+- PASS: build:rfa.yaml
+- PASS: run:cca-3world.yaml
+- PASS: run:cca-edk2.yaml:dt
+- PASS: run:cca-edk2.yaml:acpi
+- PASS: run:rfa.yaml
+- PASS: build:cca-3world.yaml:buildroot-cca.yaml,test/cca.yaml
+- PASS: run:cca-3world.yaml:buildroot-cca.yaml,test/cca.yaml:realm
+- PASS: build:cca-4world.yaml
+- PASS: run:cca-4world.yaml
+- PASS: repo-sync-behaviours
