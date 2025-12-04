@@ -33,6 +33,8 @@ class Runtime:
 		self._rt = None
 		self._mountpoints = set()
 
+		ssh_agent_keys = ssh_agent_keys	or []
+
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
 		self._rt.network = "host"
