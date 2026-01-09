@@ -1,0 +1,22 @@
+# Copyright (c) 2026, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv9.6 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v9.5.yaml
+
+run:
+  params:
+    -C cluster0.has_arm_v9-6: 1
+    -C cluster1.has_arm_v9-6: 1
+    -C cluster0.sve.sve2_version: 2
+    -C cluster1.sve.sve2_version: 2
+    -C cluster0.sve.sme2_version: 2
+    -C cluster1.sve.sme2_version: 2
