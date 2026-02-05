@@ -8,29 +8,19 @@ description: >-
   customized by higher layers.
 
 layers:
-  - tfa-base.yaml
   - rust.yaml
 
 build:
-  tfa:
-    params:
-      FVP_TRUSTED_SRAM_SIZE: 512
-      BL31: ${artifact:RFA_BL31}
-    postbuild:
-      - cp ${artifact:RFA_BL31} ${param:builddir}/fvp/release/rfa_bl31.bin
-    artifacts:
-      BL31: ${param:builddir}/fvp/release/rfa_bl31.bin
-
   rfa:
     params:
       PLAT: fvp
       DEBUG: 0
       OBJCOPY: aarch64-none-elf-objcopy
+      CARGO_TARGET_DIR: ${param:builddir}/target
 
     repo:
       remote: https://git.trustedfirmware.org/RF-A/rusted-firmware-a
-      # The tests do not properly shut-down with v0.1.0 revision.
-      revision: b0fec182669b59f16271ba695b4387cffcbc42a1
+      revision: v0.2.0
 
     prebuild:
       # Calling rustup to install the toolchain / components described
@@ -40,10 +30,7 @@ build:
 
     build:
       - source ${artifact:RUST_ENV}
-      # Relocate the 'target' directory from ${param:sourcedir} to ${param:builddir} via symbolic link
-      - mkdir -p ${param:builddir}/target ; ln -sf ${param:builddir}/target ${param:sourcedir}/target
       - make -j${param:jobs} ${param:join_equal} build
 
     artifacts:
       RFA_BL31: ${param:builddir}/target/bl31.bin
-      RFA_BL31_ELF: ${param:builddir}/target/bl31.elf

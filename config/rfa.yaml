@@ -11,21 +11,28 @@ concrete: true
 
 layers:
   - FVP_Base_RevC-2xAEMvA-base.yaml
-  - arch/v9.0.yaml
+  - arch/v9.1.yaml
   - rfa-base.yaml
+  - tfa-base.yaml
 
 build:
   tfa:
     params:
       SPD: spmd
       SPMD_SPM_AT_SEL2: 0
-      LOG_LEVEL: 50
+      FVP_TRUSTED_SRAM_SIZE: 512
+      BL31: ${artifact:RFA_BL31}
       BL32: ${artifact:BL32}
       BL33: ${artifact:BL33}
 
+    artifacts:
+      BL31: ${artifact:RFA_BL31}
+
   rfa:
     build:
-      - make -j${param:jobs} ${param:join_equal} target/bl32.bin target/bl33.bin
+      - make -j${param:jobs} ${param:join_equal} STF_IMAGES_FLAGS="--bin bl32" ${param:builddir}/target/bl32.bin
+      - make -j${param:jobs} ${param:join_equal} STF_IMAGES_FLAGS="--bin bl33" ${param:builddir}/target/bl33.bin
+
     artifacts:
       BL32: ${param:builddir}/target/bl32.bin
       BL33: ${param:builddir}/target/bl33.bin
