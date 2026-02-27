@@ -19,14 +19,24 @@ build:
     params:
       PLAT: fvp
       DEBUG: $$( test '${btvar:TFTF_BUILD}' != debug ; echo $$? )
+      BUILD_BASE: ${param:builddir}
       LOG_LEVEL: ${btvar:TFTF_LOG_LEVEL}
       TESTS: ${btvar:TFTF_SUITE}
       ENABLE_REALM_PAYLOAD_TESTS: 1
 
+    prebuild:
+      # Taken from tfa-base.yaml as TF-A-Tests suffers from the same problem.
+      - 'echo "${param:join_equal}" > ${param:builddir}/shrinkwrap.params.new'
+      - if ! cmp -s "${param:builddir}/shrinkwrap.params.new" "${artifact:TFTF_OUT}/shrinkwrap.params"; then
+      -     make ${param:join_equal} clean
+      - fi
+      - mkdir -p ${artifact:TFTF_OUT}
+      - mv ${param:builddir}/shrinkwrap.params.new ${artifact:TFTF_OUT}/shrinkwrap.params
+
     build:
       # tfa-tests has makefile dependency bug that makes parallel make for more
       # than ~8 jobs unreliable, so limit it to 8.
-      - "make BUILD_BASE=${param:builddir} ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all"
+      - "make ${param:join_equal} -j$$(( ${param:jobs} < 8 ? ${param:jobs} : 8 )) all"
 
     artifacts:
       TFTF_OUT:
