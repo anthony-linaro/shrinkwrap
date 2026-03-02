@@ -37,14 +37,14 @@ build:
 
     prebuild:
       - export WORKSPACE=${param:sourcedir}
-      - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
+      - export GCC_AARCH64_PREFIX=$$CROSS_COMPILE
       - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
       - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
 
     params:
       -a: AARCH64
-      -t: GCC5
+      -t: GCC
       -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
       -b: RELEASE
       --pcd: PcdShellDefaultDelay=0
@@ -56,4 +56,4 @@ build:
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:
-      EDK2: ${param:builddir}/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
+      EDK2: ${param:builddir}/RELEASE_GCC/FV/FVP_AARCH64_EFI.fd

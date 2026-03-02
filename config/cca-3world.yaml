@@ -140,14 +140,14 @@ build:
 
     prebuild:
       - export WORKSPACE=${param:sourcedir}
-      - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
+      - export GCC_AARCH64_PREFIX=$$CROSS_COMPILE
       - export PACKAGES_PATH=$$WORKSPACE/edk2
       - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
 
     params:
       -a: AARCH64
-      -t: GCC5
+      -t: GCC
       -p: edk2/ArmVirtPkg/ArmVirtKvmTool.dsc
       -b: RELEASE
       --pcd: PcdShellDefaultDelay=0
@@ -160,7 +160,7 @@ build:
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:
-      EDK2_CCA_GUEST: ${param:builddir}/RELEASE_GCC5/FV/KVMTOOL_EFI.fd
+      EDK2_CCA_GUEST: ${param:builddir}/RELEASE_GCC/FV/KVMTOOL_EFI.fd
 
   guest-disk:
     build:

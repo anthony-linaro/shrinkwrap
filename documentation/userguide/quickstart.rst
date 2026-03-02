@@ -572,25 +572,25 @@ run:
   export CROSS_COMPILE=aarch64-none-elf-
   pushd source/ns-edk2/edk2
   export WORKSPACE=source/ns-edk2/edk2
-  export GCC5_AARCH64_PREFIX=$CROSS_COMPILE
+  export GCC_AARCH64_PREFIX=$CROSS_COMPILE
   export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms
   export IASL_PREFIX=source/ns-edk2/acpica/generate/unix/acpica/
   export PYTHON_COMMAND=/usr/bin/python3
   source edk2/edksetup.sh --reconfig
   make -j4 -C edk2/BaseTools
-  build -n 4 -D EDK2_OUT_DIR=build/ns-edk2/edk2 -a AARCH64 -t GCC5 -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE --pcd PcdShellDefaultDelay=0  --pcd PcdUefiShellDefaultBootEnable=1
+  build -n 4 -D EDK2_OUT_DIR=build/ns-edk2/edk2 -a AARCH64 -t GCC -p Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc -b RELEASE --pcd PcdShellDefaultDelay=0  --pcd PcdUefiShellDefaultBootEnable=1
   popd
 
   # Copy artifacts for config=ns-edk2 component=dt.
   cp -r build/ns-edk2/dt/dt_bootargs.dtb package/ns-edk2/dt_bootargs.dtb
 
   # Copy artifacts for config=ns-edk2 component=edk2.
-  cp -r build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd package/ns-edk2/FVP_AARCH64_EFI.fd
+  cp -r build/ns-edk2/edk2/RELEASE_GCC/FV/FVP_AARCH64_EFI.fd package/ns-edk2/FVP_AARCH64_EFI.fd
 
   # Build for config=ns-edk2 component=tfa.
   export CROSS_COMPILE=aarch64-none-elf-
   pushd source/ns-edk2/tfa
-  make BUILD_BASE=build/ns-edk2/tfa LOG_LEVEL=40 ARM_ARCH_MINOR=2 DEBUG=0 ARM_DISABLE_TRUSTED_WDOG=1 CTX_INCLUDE_AARCH32_REGS=0 BRANCH_PROTECTION=1 ARM_ARCH_MAJOR=9 PLAT=fvp BL33=build/ns-edk2/edk2/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd FVP_HW_CONFIG_DTS=fdts/fvp-base-gicv3-psci-1t.dts -j$(( 4 < 8 ? 4 : 8 )) all fip
+  make BUILD_BASE=build/ns-edk2/tfa LOG_LEVEL=40 ARM_ARCH_MINOR=2 DEBUG=0 ARM_DISABLE_TRUSTED_WDOG=1 CTX_INCLUDE_AARCH32_REGS=0 BRANCH_PROTECTION=1 ARM_ARCH_MAJOR=9 PLAT=fvp BL33=build/ns-edk2/edk2/RELEASE_GCC/FV/FVP_AARCH64_EFI.fd FVP_HW_CONFIG_DTS=fdts/fvp-base-gicv3-psci-1t.dts -j$(( 4 < 8 ? 4 : 8 )) all fip
   popd
 
   # Copy artifacts for config=ns-edk2 component=tfa.
@@ -991,14 +991,14 @@ command:
       stderrfilt: true
       params:
         -a: AARCH64
-        -t: GCC5
+        -t: GCC
         -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
         -b: RELEASE
         --pcd: PcdShellDefaultDelay=0
         ' --pcd': PcdUefiShellDefaultBootEnable=1
       prebuild:
       - export WORKSPACE=${param:sourcedir}
-      - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
+      - export GCC_AARCH64_PREFIX=$$CROSS_COMPILE
       - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
       - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
@@ -1008,7 +1008,7 @@ command:
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
       postbuild: []
       artifacts:
-        EDK2: ${param:builddir}/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
+        EDK2: ${param:builddir}/RELEASE_GCC/FV/FVP_AARCH64_EFI.fd
     tfa:
       repo:
         .:
