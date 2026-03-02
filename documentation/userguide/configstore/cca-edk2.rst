@@ -67,14 +67,14 @@ SHARE          <empty>                                                         <
 Components
 ##########
 
-===================== ================================================================================== ===============
-component             repository                                                                         revision
-===================== ================================================================================== ===============
-acpica                https://github.com/acpica/acpica.git                                               R2025_04_04
-dt                    https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
-edk2 (edk2)           https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
-edk2 (edk2-platforms) https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git                        3223_arm_cca_v4
-rmm                   https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.8.0
-tfa                   https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
-===================== ================================================================================== ===============
+============== ================================================================================== ===============
+component      repository                                                                         revision
+============== ================================================================================== ===============
+acpica         https://github.com/acpica/acpica.git                                               R2025_04_04
+dt             https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
+edk2           https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
+edk2-platforms https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git                        3223_arm_cca_v4
+rmm            https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.8.0
+tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
+============== ================================================================================== ===============
 
