@@ -130,33 +130,38 @@ build:
 
   edk2-cca-guest:
     repo:
-      edk2:
-        remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
-        revision: 3223_arm_cca_v4
+      remote: https://github.com/tianocore/edk2.git
+      revision: edk2-stable202508.01
 
     toolchain: aarch64-none-elf-
 
     stderrfilt: true
 
     prebuild:
-      - export WORKSPACE=${param:sourcedir}
+      # Change working directory to reduce build artifacts in repo
+      - export WORKSPACE=${param:builddir}
+      - export CONF_PATH=${param:builddir}/Conf
+      - export EDK_TOOLS_PATH=${param:sourcedir}/BaseTools
       - export GCC_AARCH64_PREFIX=$$CROSS_COMPILE
-      - export PACKAGES_PATH=$$WORKSPACE/edk2
+      - export PACKAGES_PATH=${param:sourcedir}
       - export IASL_PREFIX=${artifact:ACPICA}/
       - export PYTHON_COMMAND=/usr/bin/python3
+
+      # Pre-build steps: create configuration + compile tools
+      - mkdir -p $$CONF_PATH
+      - source ${param:sourcedir}/edksetup.sh --reconfig
+      - make -j${param:jobs} -C $$EDK_TOOLS_PATH
 
     params:
       -a: AARCH64
       -t: GCC
-      -p: edk2/ArmVirtPkg/ArmVirtKvmTool.dsc
+      -p: ArmVirtPkg/ArmVirtKvmTool.dsc
       -b: ${btvar:EDK2_BUILD}
       --pcd: PcdShellDefaultDelay=0
       ' --pcd': PcdPlatformBootTimeOut=0
       '  --pcd': PcdUefiShellDefaultBootEnable=1
 
     build:
-      - source edk2/edksetup.sh --reconfig
-      - make -j${param:jobs} -C edk2/BaseTools
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:
