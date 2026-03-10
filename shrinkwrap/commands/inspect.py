@@ -214,12 +214,12 @@ def _var_options(_opt):
 def _vars_wrap(tag, vars, width=80, kindent=0, vindent=0, end='\n'):
 	vars_indent = 0
 	for var in vars.values():
-		vars_indent = max(vars_indent, len(var['value']))
+		vars_indent = max(vars_indent, len(_var_value(var['value'])))
 	vars_indent += 2
 
 	dictionary = {
 		k:	f"{ _var_value(v['value']) }"
-			f"{ ' ' * (vars_indent - len(v['value'])) }"
+			f"{ ' ' * (vars_indent - len(_var_value(v['value']))) }"
 			f"{ _var_options(v['options']) }"
 		for k, v in vars.items() }
 
