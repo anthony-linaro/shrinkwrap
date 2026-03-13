@@ -101,18 +101,9 @@ def _vars_normalize(vars):
 	for k, p in vars.items():
 		assert(isinstance(p, dict))
 
-		t = p.setdefault('type', 'string')
 		v = p.setdefault('value', None)
 		if v is not None:
-			if t == 'path':
-				if not isinstance(v, str):
-					raise TypeError(f"Path variable {k} should be a string")
-			# Ensure that string btvars with non-string values are converted to strings.
-			# Note that values with non-decimal base in the yaml will get converted to
-			# a decimal string. This should not be an issue for most uses, but might be
-			# unexpected in some edge cases.
-			elif t == 'string':
-				p['value'] = str(v)
+			p['value'] = str(v)
 
 		o = p.get('options')
 		if o is None:
