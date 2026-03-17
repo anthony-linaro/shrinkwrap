@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2022, Arm Limited.
+# Copyright (c) 2026, Arm Limited.
 # SPDX-License-Identifier: MIT
 
 

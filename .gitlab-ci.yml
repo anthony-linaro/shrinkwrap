@@ -180,6 +180,27 @@ test-self:
       junit: selftest-${TAG}.xml
     when: always
 
+test-pytest:
+  stage: test
+  image: registry.gitlab.arm.com/tooling/shrinkwrap/base-full:${CI_PIPELINE_IID}
+  tags:
+    - amd64
+  cache:
+    key: test-assets
+    policy: pull
+    paths:
+      - test/assets/
+  script:
+    - pip3 install pytest
+    - python3 -m pytest test --junitxml=pytest.xml -vv -s -l --tb=long
+  artifacts:
+    name: pytest
+    paths:
+      - pytest.xml
+    reports:
+      junit: pytest.xml
+    when: always
+
 deploy-docker-image:
   stage: deploy
   image: shrinkwraptool/base-slim:latest
