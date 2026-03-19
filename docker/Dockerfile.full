@@ -11,7 +11,8 @@ FROM ${BASE}
 # Install the arm-linux-gnueabihf- toolchain. We use the stock Debian packages
 # for this. See below for the arm-none-eabi- toolchain, which comes from
 # developer.arm.com.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		crossbuild-essential-armhf \
 		libc6-dev-armhf-cross
 
@@ -57,7 +58,8 @@ RUN mkdir -p /etc/apt/keyrings && \
 # versions for cross-compiling, and the native versions for good measure.
 RUN dpkg --add-architecture arm64 \
 	&& apt-get update
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		libcap-dev \
 		libcap-ng-dev \
 		libelf-dev \
@@ -68,7 +70,8 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 		libasound-dev \
 		liburing-dev \
 		libz-dev
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		libcap-dev:arm64 \
 		libcap-ng-dev:arm64 \
 		libelf-dev:arm64 \

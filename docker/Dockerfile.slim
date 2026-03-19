@@ -8,14 +8,15 @@ FROM ${BASE}
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Setup apt before we install any packages.
-RUN apt-get update \
-	&& apt-get install auto-apt-proxy --assume-yes \
+RUN apt-get update && \
+	apt-get install auto-apt-proxy --assume-yes \
 	&& (timeout --signal=KILL 10s auto-apt-proxy \
 		|| apt-get purge --quiet --assume-yes auto-apt-proxy)
 
 # Explicitly install Python and create a venv for pip packages, since Debian
 # does not allow us to install pip packages system-wide.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		python3 \
 		python3-pip \
 		python3-venv
@@ -27,7 +28,8 @@ ENV PATH="/pyvenv/bin:${PATH}"
 # them for each component in order to keep track of who needs what.
 
 # Install packages that Shrinkwrap relies upon.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		netcat-openbsd \
 		openssh-client \
 		python3 \
@@ -41,14 +43,16 @@ RUN pip3 install \
 
 # Install packages requried by TF-A.
 # From https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/prerequisites.html.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		build-essential \
 		git \
 		device-tree-compiler
 
 # Install packages requried by TF-A Tests.
 # From https://trustedfirmware-a-tests.readthedocs.io/en/latest/getting_started/requirements.html.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		build-essential \
 		device-tree-compiler \
 		git \
@@ -58,7 +62,8 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 # Install packages requried by Hafnium.
 # From https://review.trustedfirmware.org/plugins/gitiles/hafnium/hafnium/+/HEAD/docs/GettingStarted.md
 # plus extras until the build worked.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		bc \
 		bison \
 		cpio \
@@ -73,7 +78,8 @@ RUN pip3 install \
 
 # Install packages requried by OPTEE.
 # From https://optee.readthedocs.io/en/latest/building/prerequisites.html
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		adb \
 		acpica-tools \
 		autoconf \
@@ -127,7 +133,8 @@ RUN pip3 install \
 
 # Install packages requried by EDK2.
 # From https://developer.arm.com/documentation/102571/0100/Build-firmware-on-a-Linux-host.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		bison \
 		build-essential \
 		flex \
@@ -140,7 +147,8 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 
 # Install packages requried by RMM.
 # From https://tf-rmm.readthedocs.io/en/latest/getting_started/getting-started.html.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		build-essential \
 		git \
 		make \
@@ -151,12 +159,14 @@ RUN pip3 install \
 		cmake==3.31.6
 
 # Install packages requried by kvmtool.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		build-essential \
 		pkg-config
 
 # Install packages requried by Linux.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		build-essential \
 		fakeroot \
 		kmod \
@@ -168,7 +178,8 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 # Install the aarch64-linux-gnu- toolchain. We use the stock Debian packages for
 # this. See below for the aarch64-none-elf- toolchain, which comes from
 # developer.arm.com.
-RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+RUN apt-get update && \
+    apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
 		crossbuild-essential-arm64 \
 		libc6-dev-arm64-cross
 
