@@ -13,7 +13,7 @@ build:
   buildroot:
     repo:
       remote: https://github.com/buildroot/buildroot.git
-      revision: 2025.08.1
+      revision: "2026.02"
 
     toolchain: aarch64-linux-gnu-
 
