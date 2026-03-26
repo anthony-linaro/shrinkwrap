@@ -101,6 +101,7 @@ build-documentation:
     - amd64
   needs:
     - build-docker-manifest
+  resource_group: build-documentation
   script:
     - export PATH=$PWD/shrinkwrap:$PATH
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
