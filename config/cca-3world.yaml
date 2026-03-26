@@ -130,8 +130,8 @@ build:
 
   edk2-cca-guest:
     repo:
-      remote: https://github.com/tianocore/edk2.git
-      revision: edk2-stable202508.01
+      remote: https://git.gitlab.arm.com/linux-arm/edk2-cca.git
+      revision: 3223_arm_cca_v4
 
     toolchain: aarch64-none-elf-
 

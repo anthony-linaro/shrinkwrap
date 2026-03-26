@@ -134,13 +134,13 @@ SHARE          <empty>                                                         <
 Components
 ##########
 
-================= ================================================================================== ====================
+================= ================================================================================== =================
 component         repository                                                                         revision
-================= ================================================================================== ====================
+================= ================================================================================== =================
 acpica            https://github.com/acpica/acpica.git                                               R2025_04_04
 dt                https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
 edk2              https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
-edk2-cca-guest    https://github.com/tianocore/edk2.git                                              edk2-stable202508.01
+edk2-cca-guest    https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
 edk2-platforms    https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git                        3223_arm_cca_v4
 kvm-unit-tests    https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca                                cca/rmm-v1.0-rel0
 kvmtool (dtc)     https://git.kernel.org/pub/scm/utils/dtc/dtc.git                                   v1.6.1
@@ -148,5 +148,5 @@ kvmtool (kvmtool) https://gitlab.arm.com/linux-arm/kvmtool-cca                  
 linux             https://git.gitlab.arm.com/linux-arm/linux-cca.git                                 cca-host/v8
 rmm               https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.8.0
 tfa               https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
-================= ================================================================================== ====================
+================= ================================================================================== =================
 
