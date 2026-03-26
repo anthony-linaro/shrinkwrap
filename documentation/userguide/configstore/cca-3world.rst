@@ -137,8 +137,8 @@ Components
 ================= ================================================================================== =================
 component         repository                                                                         revision
 ================= ================================================================================== =================
-acpica            https://github.com/acpica/acpica.git                                               R2025_04_04
-dt                https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.17-dts
+acpica            https://github.com/acpica/acpica.git                                               20251212
+dt                https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.19-dts
 edk2              https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
 edk2-cca-guest    https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
 edk2-platforms    https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git                        3223_arm_cca_v4
