@@ -10,7 +10,7 @@ build:
   optee:
     repo:
       remote: https://github.com/OP-TEE/optee_os.git
-      revision: 4.6.0
+      revision: 4.9.0
 
     toolchain: aarch64-linux-gnu-
 
