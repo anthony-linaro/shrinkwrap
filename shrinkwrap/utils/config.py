@@ -1071,7 +1071,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							# branch. So if gitrev is a branch, do a `git reset` as well.
 							sync_cmd_when_exists = f'''
 							git remote set-url origin {gitremote}
-							git fetch {gitargs}--prune --prune-tags --force --recurse-submodules=off origin
+							git fetch {gitargs}--prune --prune-tags --force --recurse-submodules=off --tags origin {gitrev}
 							git checkout {gitargs}--force {gitrev}
 							git show-ref -q --heads {gitrev} && git reset {gitargs}--hard origin/{gitrev}
 							git submodule {gitargs}sync --recursive
@@ -1081,7 +1081,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							sync_cmd_when_exists = f'''
 							if ! git checkout {gitargs} {gitrev} > /dev/null 2>&1 &&
 							   ! ( git remote set-url origin {gitremote} &&
-							       git fetch {gitargs}--prune --tags origin &&
+							       git fetch {gitargs}--prune --tags origin {gitrev} &&
 							       git checkout {gitargs} {gitrev}) ||
 							   ! git submodule {gitargs}update --init --checkout --recursive
 							then
@@ -1095,8 +1095,9 @@ def build_graph(configs, echo, nosync, force_sync):
 							rm -rf {gitlocal} > /dev/null 2>&1 || true
 							mkdir -p {basedir}
 							touch {sync}
-							git clone {gitargs}{git_local_reference}{gitremote} {gitlocal}
+							git clone {gitargs}{git_local_reference}{gitremote} --no-checkout {gitlocal}
 							pushd {gitlocal}
+							git fetch {gitargs} --tags origin {gitrev}
 							git checkout {gitargs}--force {gitrev}
 							# run with --reference
 							update_submodules "$(pwd)" "{git_project_cache}"
