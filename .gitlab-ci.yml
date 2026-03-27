@@ -136,7 +136,8 @@ prep-test-assets:
     - |
       if [ "$INVALIDATE_TEST_ASSETS" == "true" ]; then
         echo "Invalidating test assets cache..."
-        rm -rf test/assets/*
+        rm -rf test/assets
+        mkdir -p test/assets
       fi
       if [ ! -f ./test/assets/.cache_exists ]; then
         echo "Generating test assets..."
