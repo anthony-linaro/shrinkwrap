@@ -13,3 +13,4 @@ Releases
    :caption: Contents
 
    2025.12.0
+   2026.3.0
