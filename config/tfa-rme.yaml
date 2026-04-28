@@ -18,7 +18,8 @@ layers:
 build:
   tfa:
     params:
-      ENABLE_RME: 1
+      ENABLE_FEAT_RME: 1
+      ENABLE_RMM: 1
       RMM: ${artifact:RMM}
       FVP_HW_CONFIG: ${artifact:DTB}
 
