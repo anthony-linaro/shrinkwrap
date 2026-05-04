@@ -112,7 +112,7 @@ build:
   linux:
     repo:
       remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
-      revision: cca-host/v8
+      revision: cca-host/v13
     prebuild:
       # Use source dir modification time as timestamp (for locally reproducible build)
       - export KBUILD_BUILD_TIMESTAMP="@$$(stat -c '%Y' ${param:sourcedir})"
@@ -123,10 +123,10 @@ build:
   kvmtool:
     repo:
       dtc:
-        revision: v1.6.1
+        revision: v1.7.2
       kvmtool:
         remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
-        revision: cca/v6
+        revision: cca/v11
 
   edk2-cca-guest:
     repo:
