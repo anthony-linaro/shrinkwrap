@@ -110,6 +110,12 @@ def dispatch(args):
 
 	log = logger.Logger(name_field)
 
+	def _logwrap(pm, proc, data, streamid):
+		logstd = True
+		if len(proc.data) >= 3:
+			logstd = proc.data[2]
+		log.log(pm, proc, data, streamid, logstd)
+
 	def _strip_telnet_header(pm, proc, data, streamid):
 		"""
 		For any stdinout terminals (which use telnet), strip the first
@@ -126,9 +132,9 @@ def dispatch(args):
 					terminals[pdata[1]]['strip'] = False
 					if all([not t['strip'] \
 						for t in terminals.values()]):
-						pm.set_handler(log.log)
+						pm.set_handler(_logwrap)
 			else:
-				log.log(pm, proc, line, streamid)
+				_logwrap(pm, proc, line, streamid)
 
 	def _colorize(global_no_color, terminal):
 		if global_no_color:
@@ -161,7 +167,7 @@ def dispatch(args):
 		standard logger.
 		"""
 		# First, forward to the standard log handler.
-		log.log(pm, proc, data, streamid)
+		_logwrap(pm, proc, data, streamid)
 
 		found_all_ports = True
 
@@ -188,6 +194,12 @@ def dispatch(args):
 				colorize = _colorize(args.no_color, t)
 				escape = _escape(t)
 
+				if type in ['null', None]:
+					cmd = f'nc localhost {port}'
+					pm.add(process.Process(cmd,
+						False,
+						(log.alloc_data(name, colorize, escape, _logfile(t)), k, False),
+						False))
 				if type in ['stdout']:
 					cmd = f'nc localhost {port}'
 					pm.add(process.Process(cmd,
@@ -221,7 +233,7 @@ def dispatch(args):
 			if strip:
 				pm.set_handler(_strip_telnet_header)
 			else:
-				pm.set_handler(log.log)
+				pm.set_handler(_logwrap)
 
 	def _complete(pm, proc, retcode):
 		log.free_data(proc.data[0])

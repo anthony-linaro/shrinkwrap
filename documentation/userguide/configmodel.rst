@@ -254,6 +254,7 @@ logfile     string      Optional (defaults to none, only applies to ['stdout', '
 
 Terminal types:
 
+- **null**: Drain output to /dev/null. Do not supply any input.
 - **stdout**: Mux output to stdout. Do not supply any input.
 - **stdinout**: Mux output to stdout. Forward stdin to its input. Max of 1 of these types allowed.
 - **telnet**: Shrinkwrap will print out a telnet command to run in a separate terminal to get a unique interactive terminal.
