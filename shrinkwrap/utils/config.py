@@ -765,6 +765,28 @@ def resolver(config, rtvars={}, clivars={}):
 
 	terms = []
 	for param, terminal in run['terminals'].items():
+		# port_regex is deprecated; when not provided, we add an echo to
+		# terminal_command then construct the regex to find it. This is
+		# guarranteed to be a unique string, whereas the string output
+		# by the FVP may be ambiguous for some models that have lots of
+		# terminals.
+		if 'port_regex' not in terminal or terminal['port_regex'] is None:
+			terminal['port_regex'] = f'{param}: port (\\d+)'
+			terms.append(f'-C {param}.start_telnet=1')
+
+			cmd = f'-C {param}.terminal_command="echo {param}: port %port"'
+			if terminal['type'] == 'xterm':
+				cmd += '; xterm -e telnet localhost %port'
+			terms.append(cmd)
+
+			if terminal['type'] in ['telnet', 'stdinout', 'xterm']:
+				terms.append(f'-C {param}.mode=telnet')
+			else:
+				terms.append(f'-C {param}.mode=raw')
+			continue
+
+		# port_regex was provided so fallback to old behaviour for
+		# compatibility.
 		if terminal['type'] in ['stdout']:
 			terms.append(f'-C {param}.start_telnet=0')
 			terms.append(f'-C {param}.mode=raw')

@@ -245,7 +245,7 @@ terminal section
 key         type        description
 =========== =========== ===========
 friendly    string      Label to display against the terminal when muxing to stdout. An empty string disables the prefix for the output.
-port_regex  string      Regex to use to find the TCP port of the terminal when parsing the FVP stdout. Must have single capture group.
+port_regex  string      Deprecated; do not use in new configs. Regex to use to find the TCP port of the terminal when parsing the FVP stdout. Must have single capture group.
 type        enum-string Terminal type. See below for options.
 no_color    boolean     Optional (defaults to false, only applies to ['stdout', 'stdinout'] types): If true, output from this terminal is not color-coded. If this terminal carries the interactive shell, it is advised to set this to true to prevent interfering with the shell's escape sequences. --no-color command line option causes this to behave as if set to true.
 no_escapes  bool/string Optional (defaults to false, only applies to ['stdout', 'stdinout'] types): If true, strips any escape sequences from the output stream before forwarding to the terminal. If a string, behaves as if true until the string is found in the output, which sets it to false. Useful to expunge escape sequences from EDK2 during boot.
