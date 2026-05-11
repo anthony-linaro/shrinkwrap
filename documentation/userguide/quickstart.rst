@@ -14,26 +14,22 @@ Install Shrinkwrap
 Packages don't yet exist, so currently the only way to install Shrinkwrap is to
 install its dependencies and clone the git repository.
 
-Shrinkwrap is tested on **Ubuntu 20.04** although other Linux distributions are
+Shrinkwrap is tested on **Ubuntu 24.04** although other Linux distributions are
 likely to JustWork (TM). macOS is also known to work when using the docker
 runtime as long as Docker Desktop has first been installed.
 
-Shrinkwrap requires **at least Python 3.6.9**. Older versions may work, but are
+Shrinkwrap requires **at least Python 3.9**. Older versions may work, but are
 not tested.
 
 .. code-block:: shell
 
-  sudo apt-get install git netcat-openbsd python3 python3-pip telnet
-  sudo pip3 install pyyaml termcolor tuxmake
+  sudo apt-get update
+  sudo apt-get install git netcat-openbsd python3 python3-pip python3-venv telnet
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip3 install pyyaml termcolor tuxmake
   git clone https://git.gitlab.arm.com/tooling/shrinkwrap.git
   export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
-
-If using a Python version older than 3.9, you will also need to install the
-``graphlib-backport`` pip package:
-
-.. code-block:: shell
-
-  sudo pip3 install graphlib-backport
 
 -------------------------------
 If using Docker Runtime Backend
@@ -47,7 +43,6 @@ linux-postinstall <https://docs.docker.com/engine/install/linux-postinstall/>`_.
 .. code-block:: shell
 
   sudo apt-get install docker.io
-  sudo groupadd docker
   sudo usermod -aG docker $USER
   # Log out/log in for change to take effect
 
