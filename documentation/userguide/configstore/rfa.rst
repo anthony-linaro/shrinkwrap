@@ -40,6 +40,6 @@ Components
 component repository                                                  revision
 ========= =========================================================== ========
 rfa       https://git.trustedfirmware.org/RF-A/rusted-firmware-a      v0.2.0
-tfa       https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git v2.14.0
+tfa       https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git v2.15.0
 ========= =========================================================== ========
 

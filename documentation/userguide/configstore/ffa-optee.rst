@@ -51,6 +51,6 @@ dt             https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/device
 edk2           https://github.com/tianocore/edk2.git                                              edk2-stable202511
 edk2-platforms https://github.com/tianocore/edk2-platforms.git                                    0f527ebcef4e111586bf7a62b0f24a7f6c7dc2a4
 optee          https://github.com/OP-TEE/optee_os.git                                             4.9.0
-tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.14.0
+tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.15.0
 ============== ================================================================================== ========================================
 
