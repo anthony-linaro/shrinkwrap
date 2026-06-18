@@ -33,8 +33,10 @@ run:
     -C pci.pci_smmuv3.mmu.SMMU_ROOT_IIDR: 0x43B
     -C pci.pci_smmuv3.mmu.root_register_page_offset: 0x20000
 
-    # Enable FEAT_CSV2_2, which is optional. But TFA 2.10 force-enables it when
-    # ENABLE_RME=1 so if it's not there we see an exception.
+    # FEAT_CSV2_2 is optional from Armv8.0. Enable this hw mitigation against
+    # prediction resources side-channel speculation attacks, as it is reasonable
+    # to assume Arm CCA systems implement it. TF-A detects the feature through
+    # ID registers and permits its use by lower EL.
     -C cluster0.restriction_on_speculative_execution: 2
     -C cluster1.restriction_on_speculative_execution: 2
     -C cluster0.restriction_on_speculative_execution_aarch32: 2
