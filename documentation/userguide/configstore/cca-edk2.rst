@@ -70,8 +70,8 @@ Components
 ============== ================================================================================== ===============
 component      repository                                                                         revision
 ============== ================================================================================== ===============
-acpica         https://github.com/acpica/acpica.git                                               20251212
-dt             https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v6.19-dts
+acpica         https://github.com/acpica/acpica.git                                               20260408
+dt             https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v7.1-rc7-dts
 edk2           https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
 edk2-platforms https://git.gitlab.arm.com/linux-arm/edk2-platforms-cca.git                        3223_arm_cca_v4
 rmm            https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.9.0
