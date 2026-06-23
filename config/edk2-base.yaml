@@ -12,7 +12,7 @@ build:
   acpica:
     repo:
       remote: https://github.com/acpica/acpica.git
-      revision: "20251212"
+      revision: "20260408"
 
     build:
       - make -j${param:jobs}
@@ -25,7 +25,7 @@ build:
   edk2-platforms:
     repo:
       remote: https://github.com/tianocore/edk2-platforms.git
-      revision: 0f527ebcef4e111586bf7a62b0f24a7f6c7dc2a4
+      revision: ae058185e12591a9a49e5895e90ca52936851973
 
     artifacts:
       # Share the source directory with EDK2
@@ -36,7 +36,7 @@ build:
   edk2:
     repo:
       remote: https://github.com/tianocore/edk2.git
-      revision: edk2-stable202511
+      revision: edk2-stable202605
 
     toolchain: aarch64-none-elf-
 
