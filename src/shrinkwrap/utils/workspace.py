@@ -34,7 +34,7 @@ def configs():
 		# exist.
 		paths = value.split(':') if value else []
 		paths += [os.path.realpath(os.path.join(_data_root, 'config'))]
-		paths += [os.path.realpath(os.path.join(_code_root, '../config'))]
+		paths += [os.path.realpath(os.path.join(_code_root, '../../config'))]
 		_configs = [p for p in paths if os.path.exists(p)]
 
 	return _configs
