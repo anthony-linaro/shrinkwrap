@@ -1,5 +1,5 @@
 ..
- # Copyright (c) 2022,2023, Arm Limited.
+ # Copyright (c) 2022-2026 Arm Limited.
  #
  # SPDX-License-Identifier: MIT
 
@@ -30,7 +30,7 @@ users can discover every single invoked command with the ``--dry-run`` option.
 Configs are defined in YAML and can easily be composed and extended using the
 built-in layering system.
 
-See :ref:`userguide/quickstart:Quick Start Guide` to get up and running.
+See :doc:`userguide/quickstart` to get up and running.
 
 ********
 Features
@@ -81,16 +81,21 @@ point to the kernel or rootfs that should be used.
 Repository Structure
 ********************
 
-=================== ====
-Directory           Description
-=================== ====
-./config            Shrinkwrap standard config store.
-./docker            Scripts to generate docker images used by shrinkwrap's
-                    container runtimes.
-./documentation     Source for this documentation.
-./shrinkwrap        Shrinkwrap Python tool implementation.
-./test              Automated tests.
-=================== ====
+.. list-table::
+   :header-rows: 1
+
+   * - Directory
+     - Description
+   * - ``./src/shrinkwrap/config``
+     - Shrinkwrap standard config store.
+   * - ``./docker``
+     - Scripts to generate docker images used by shrinkwrap's container runtimes.
+   * - ``./documentation``
+     - Source for this documentation.
+   * - ``./src/shrinkwrap``
+     - Shrinkwrap Python tool implementation.
+   * - ``./test``
+     - Automated tests.
 
 ******************
 Repository License
@@ -116,3 +121,4 @@ Maintainer(s)
 *************
 
 - Ryan Roberts <ryan.roberts@arm.com>
+- Saul Romero Dominguez <saul.romerodominguez@arm.com>

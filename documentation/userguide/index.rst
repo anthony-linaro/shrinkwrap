@@ -1,5 +1,5 @@
 ..
- # Copyright (c) 2022, Arm Limited.
+ # Copyright (c) 2022-2026, Arm Limited.
  #
  # SPDX-License-Identifier: MIT
 
@@ -13,6 +13,7 @@ User Guide
    :caption: Contents
 
    quickstart
+   troubleshooting
    runtimes
    commands
    configmodel

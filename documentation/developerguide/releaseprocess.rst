@@ -29,6 +29,33 @@ is tagged in the Gitlab repository, the contianer images are tagged in docker
 hub, and the documentation is tagged in readthedocs. In future, the Python
 package may additionally be uploaded to PyPI.
 
+~~~~~~~~~~~~~~~~~~
+Manual PyPI Upload
+~~~~~~~~~~~~~~~~~~
+
+PyPI uploads are currently a manual maintainer step.
+
+From a clean checkout of the release commit or tag:
+
+.. code-block:: console
+
+   python -m build
+   twine check dist/*
+   twine upload dist/*
+
+If maintainers want to validate the package before publishing it to PyPI, upload
+to TestPyPI first:
+
+.. code-block:: console
+
+   twine upload --repository testpypi dist/*
+
+The ``twine`` command reads credentials from the maintainer environment, for
+example from ``~/.pypirc`` or the standard Twine environment variables. Because
+PyPI does not allow replacing an existing file for the same version, make sure
+the upload is done from the final release commit after the version has been set
+to the release number.
+
 ~~~~~~~~~~~~~~~~~
 Versioning Scheme
 ~~~~~~~~~~~~~~~~~
@@ -87,6 +114,7 @@ Release Checklist
     docker hub
 
 - Maintainer creates tag of the tested SHA in Gitlab
+- Maintainer builds and uploads the release package to PyPI
 - Maintainer creates new version corresponding to tag in readthedocs
 - Maintainer makes commit to set the next version for the newly started
   development cycle ``<year>.<month>.0.dev0``

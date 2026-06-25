@@ -12,5 +12,5 @@ Developer Guide
    :maxdepth: 2
    :caption: Contents
 
+   installation
    releaseprocess
-   compiledocs

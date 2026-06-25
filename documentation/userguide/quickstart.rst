@@ -1,18 +1,11 @@
 ..
- # Copyright (c) 2022, Arm Limited.
+ # Copyright (c) 2022-2026, Arm Limited.
  #
  # SPDX-License-Identifier: MIT
 
-#################
-Quick Start Guide
-#################
 
-******************
-Install Shrinkwrap
-******************
-
-Packages don't yet exist, so currently the only way to install Shrinkwrap is to
-install its dependencies and clone the git repository.
+Quickstart
+==========
 
 Shrinkwrap is tested on **Ubuntu 24.04** although other Linux distributions are
 likely to JustWork (TM). macOS is also known to work when using the docker
@@ -21,19 +14,128 @@ runtime as long as Docker Desktop has first been installed.
 Shrinkwrap requires **at least Python 3.9**. Older versions may work, but are
 not tested.
 
-.. code-block:: shell
+Prerequisites
+-------------
 
-  sudo apt-get update
-  sudo apt-get install git netcat-openbsd python3 python3-pip python3-venv telnet
-  python3 -m venv .venv
-  source .venv/bin/activate
-  pip3 install pyyaml termcolor tuxmake
-  git clone https://git.gitlab.arm.com/tooling/shrinkwrap.git
-  export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
+Shrinkwrap requires:
 
--------------------------------
+* Ubuntu 24.04 or newer
+* Python **3.9 or newer**
+* Git
+* Telnet
+* OpenBSD netcat
+
+.. code-block:: bash
+
+   sudo apt-get update
+   sudo apt-get install git netcat-openbsd python3 python3-pip python3-venv telnet
+
+.. important::
+
+   Shrinkwrap is strongly recommended to be installed inside a virtual environment.
+   Installing into the system Python (``/usr/bin/python``) is not supported.
+
+Recommended installation (pyenv)
+--------------------------------
+
+The **recommended** way to install Shrinkwrap is using **pyenv**.
+This ensures a clean Python installation and avoids conflicts with system
+packages.
+
+Install pyenv
+^^^^^^^^^^^^^
+
+Install pyenv (once per system):
+
+.. code-block:: bash
+
+   curl https://pyenv.run | bash
+
+Follow the instructions printed by the installer to enable pyenv in your shell
+(usually by updating ``~/.bashrc``).
+
+Install Python
+^^^^^^^^^^^^^^
+
+Install a supported Python version:
+
+.. code-block:: bash
+
+   pyenv install 3.11.8
+
+.. _quickstart-virtualenv:
+
+Create a virtual environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create and activate a virtual environment:
+
+.. code-block:: bash
+
+   pyenv virtualenv 3.11.8 shrinkwrap-env
+   pyenv activate shrinkwrap-env
+
+Install Shrinkwrap
+^^^^^^^^^^^^^^^^^^
+
+Install Shrinkwrap using pip:
+
+.. code-block:: bash
+
+   pip install --upgrade pip
+   pip install shrinkwraptool
+
+Alternative installation (python venv)
+--------------------------------------
+
+If you prefer not to use pyenv, you can use Python’s built-in ``venv`` module.
+
+Create a virtual environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create and activate a virtual environment:
+
+.. code-block:: bash
+
+   python3 -m venv .venv
+   source .venv/bin/activate
+
+Install Shrinkwrap
+^^^^^^^^^^^^^^^^^^
+
+Install Shrinkwrap:
+
+.. code-block:: bash
+
+   python -m pip install --upgrade pip
+   pip install shrinkwraptool
+
+.. note::
+
+   Do not use ``sudo pip``.
+   Always install Shrinkwrap inside a virtual environment.
+
+Verify installation
+-------------------
+
+Verify that Shrinkwrap is installed correctly:
+
+.. code-block:: bash
+
+   shrinkwrap --help
+
+You should see the Shrinkwrap command-line help output.
+
+.. note::
+
+   The PyPI package name is ``shrinkwraptool``. The installed command-line
+   tool is named ``shrinkwrap``.
+
+Docker/Podman
+---------------
+
 If using Docker Runtime Backend
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If Docker was not previously set up on your system, you will need to install the
 package, create a 'docker' group and add your user to it. This allows shrinkwrap
@@ -43,12 +145,12 @@ linux-postinstall <https://docs.docker.com/engine/install/linux-postinstall/>`_.
 .. code-block:: shell
 
   sudo apt-get install docker.io
+  sudo groupadd docker
   sudo usermod -aG docker $USER
   # Log out/log in for change to take effect
 
--------------------------------
 If using Podman Runtime Backend
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
 
@@ -61,9 +163,8 @@ If using Podman Runtime Backend
 
   sudo apt-get install podman
 
-------------------------------
 Optional Environment Variables
-------------------------------
+-------------------------------
 
 Shrinkwrap consumes the following set of optional environment variables:
 
@@ -76,9 +177,9 @@ SHRINKWRAP_PACKAGE        ~/.shrinkwrap/package Location where config builds are
 SHRINKWRAP_PROJECT_CACHE  <None>                Location where cache repositories are stored. This directory contains git trees used as reference when downloading components, allowing to reduce network usage and local storage if the same project is used multiple times. Cache directories ending in ".git" are bare repositories, and ones without the suffix are full repositories. By default no cache is used.
 ========================= ===================== ====
 
-***************************************************
+
 Guided Tour: Configure a platform and boot a kernel
-***************************************************
+----------------------------------------------------
 
 This section provides a guided tour of Shrinkwrap, using a common use case of
 building required platform FW and configuring the FVP for Armv9.3 and booting a
