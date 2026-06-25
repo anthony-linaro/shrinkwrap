@@ -103,7 +103,10 @@ build-documentation:
     - build-docker-manifest
   resource_group: build-documentation
   script:
-    - export PATH=$PWD/shrinkwrap:$PATH
+    # Install the current checkout so documentation generation uses this
+    # branch's shrinkwrap command and dependencies rather than a published
+    # package snapshot.
+    - pip install -v .
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
     - rm -rf ./documentation/userguide/configstore/*
@@ -140,6 +143,7 @@ prep-test-assets:
         mkdir -p test/assets
       fi
       if [ ! -f ./test/assets/.cache_exists ]; then
+        pip install -v .
         echo "Generating test assets..."
         ./test/genassets.sh -R null
         echo > ./test/assets/.cache_exists
@@ -166,7 +170,7 @@ test-self:
       if [ "$SMOKE_TEST" == "true" ]; then
         SMOKE="--smoke-test"
       fi
-    - export PATH=$PWD/shrinkwrap:$PATH
+    - pip install -v .
     - export SHRINKWRAP_BUILD=$PWD/shrinkwrap_workspace
     - export SHRINKWRAP_PACKAGE=$PWD/shrinkwrap_workspace/package
     - rm -rf selftest-${TAG}.xml selftest-${TAG}.log
@@ -191,7 +195,7 @@ test-pytest:
     paths:
       - test/assets/
   script:
-    - pip3 install pytest
+    - pip install -v ".[dev]"
     - python3 -m pytest test --junitxml=pytest.xml -vv -s -l --tb=long
   artifacts:
     name: pytest
@@ -210,7 +214,7 @@ deploy-docker-image:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     # Grab the current shrinkwrap version.
-    - export PATH=$PWD/shrinkwrap:$PATH
+    - pip install -v .
     - VERSION=$(shrinkwrap --version | cut -d' ' -f3)
 
     # Install regctl.

@@ -1,8 +1,0 @@
-#!/bin/bash
-# Copyright (c) 2022, Arm Limited.
-# SPDX-License-Identifier: MIT
-
-dir="$(dirname "$0")"
-base="$(basename "$0")"
-py="$dir/$base.py"
-/usr/bin/env python3 "$py" "$@"

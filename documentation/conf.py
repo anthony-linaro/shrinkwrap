@@ -18,8 +18,12 @@
 import os
 import sys
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path = [p for p in sys.path if os.path.basename(p) != 'shrinkwrap']
-sys.path = [root] + sys.path
+src = os.path.join(root, 'src')
+# Prefer the in-tree package from the src/ layout when building docs.
+# This keeps autodoc/version imports aligned with the checked-out source
+# instead of whatever shrinkwrap package may already be installed.
+sys.path = [p for p in sys.path if os.path.abspath(p) not in (root, src)]
+sys.path = [src, root] + sys.path
 from shrinkwrap import __version__
 
 

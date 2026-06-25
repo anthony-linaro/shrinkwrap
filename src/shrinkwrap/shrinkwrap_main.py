@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
-# Copyright (c) 2022, Arm Limited.
+# Copyright (c) 2022-2026, Arm Limited.
 # SPDX-License-Identifier: MIT
-
-
-# Fixup PythonPath to avoid confusion between (this) module and package.
-import sys
-import os
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path = [p for p in sys.path if os.path.basename(p) != 'shrinkwrap']
-sys.path = [root] + sys.path
-
 
 import argparse
 import shutil
-from shrinkwrap import __version__
 
 
 from shrinkwrap.commands import build
@@ -26,6 +16,13 @@ from shrinkwrap.commands import run
 
 VERBOSE = True
 
+def _pkg_version() -> str:
+    try:
+        from importlib.metadata import version
+        return version("shrinkwraptool")
+    except Exception:
+        from shrinkwrap import __version__
+        return __version__
 
 def config_verbose_flag(args):
 	global VERBOSE
@@ -50,7 +47,7 @@ def main():
 	command handler.
 	"""
 
-	tool_name = os.path.splitext(os.path.basename(__file__))[0]
+	tool_name = "shrinkwrap"
 
 	# Parse the arguments. The parser will raise an exception if the
 	# required arguments are not present, which will tell the user what they
@@ -62,7 +59,7 @@ def main():
 
 	parser.add_argument('--version',
 		action='version',
-		version=f'{tool_name} version {__version__}')
+		version=f'{tool_name} version {_pkg_version()}')
 
 	parser.add_argument('-R', '--runtime',
 		metavar='engine', required=False, default='docker',

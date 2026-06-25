@@ -3,7 +3,7 @@
 
 import sys
 import pytest
-import shrinkwrap.shrinkwrap as cli
+import shrinkwrap.shrinkwrap_main as cli
 
 
 def test_version(monkeypatch, capsys):

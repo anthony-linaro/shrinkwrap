@@ -6,3 +6,6 @@ public/
 test/assets/
 test/build/
 docker/assets/
+**/shrinkwrap*.egg-info
+dist/
+.venv
