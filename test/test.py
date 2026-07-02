@@ -29,7 +29,7 @@ KERNEL = os.path.join(ASSETS, 'Image')
 ROOTFS = os.path.join(ASSETS, 'rootfs.ext4')
 
 
-ARCH_LATEST = 'v9.5'
+ARCH_LATEST = 'v9.7'
 CONFIGS = [
 	{
 		'config': 'ns-preload.yaml',
