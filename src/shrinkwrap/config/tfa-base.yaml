@@ -20,6 +20,7 @@ build:
       DEBUG: $$( test '${btvar:TFA_BUILD}' != debug ; echo $$? )
       BUILD_BASE: ${param:builddir}
       LOG_LEVEL: ${btvar:TFA_LOG_LEVEL}
+      FEATURE_DETECTION: 0
       ARM_DISABLE_TRUSTED_WDOG: 1
       FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
 
