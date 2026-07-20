@@ -15,6 +15,16 @@ from urllib.parse import urlparse
 
 _default_image = 'docker.io/shrinkwraptool/base-slim'
 
+
+def _looks_like_abbreviated_git_sha(revision):
+	"""
+	Detect abbreviated/full object ids that are likely commit hashes rather than
+	ref names. Git servers generally cannot resolve these with
+	`git fetch origin <sha>`, but a regular clone/fetch followed by
+	`git checkout <sha>` works once the object is present locally.
+	"""
+	return isinstance(revision, str) and re.fullmatch(r'(?i)(?=.*[a-f])[0-9a-f]{7,40}', revision) is not None
+
 def _get_image(configs, args):
 	"""
 	Determine the image to use
@@ -1065,6 +1075,7 @@ def build_graph(configs, echo, nosync, force_sync):
 						git_project_cache = repo['project']
 						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
 						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+						fetchrev = '' if _looks_like_abbreviated_git_sha(gitrev) else f' {gitrev}'
 
 						project_cache_dir = workspace.project_cache
 						git_local_reference=" "
@@ -1093,7 +1104,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							# branch. So if gitrev is a branch, do a `git reset` as well.
 							sync_cmd_when_exists = f'''
 							git remote set-url origin {gitremote}
-							git fetch {gitargs}--prune --prune-tags --force --recurse-submodules=off --tags origin {gitrev}
+							git fetch {gitargs}--prune --prune-tags --force --recurse-submodules=off --tags origin{fetchrev}
 							git checkout {gitargs}--force {gitrev}
 							git show-ref -q --heads {gitrev} && git reset {gitargs}--hard origin/{gitrev}
 							git submodule {gitargs}sync --recursive
@@ -1103,7 +1114,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							sync_cmd_when_exists = f'''
 							if ! git checkout {gitargs} {gitrev} > /dev/null 2>&1 &&
 							   ! ( git remote set-url origin {gitremote} &&
-							       git fetch {gitargs}--prune --tags origin {gitrev} &&
+							       git fetch {gitargs}--prune --tags origin{fetchrev} &&
 							       git checkout {gitargs} {gitrev}) ||
 							   ! git submodule {gitargs}update --init --checkout --recursive
 							then
@@ -1119,7 +1130,7 @@ def build_graph(configs, echo, nosync, force_sync):
 							touch {sync}
 							git clone {gitargs}{git_local_reference}{gitremote} --no-checkout {gitlocal}
 							pushd {gitlocal}
-							git fetch {gitargs} --tags origin {gitrev}
+							git fetch {gitargs} --tags origin{fetchrev}
 							git checkout {gitargs}--force {gitrev}
 							# run with --reference
 							update_submodules "$(pwd)" "{git_project_cache}"
