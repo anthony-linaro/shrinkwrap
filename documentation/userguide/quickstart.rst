@@ -726,17 +726,17 @@ interact directly with the FVP in a terminal without the need for a GUI setup:
 
 .. code-block:: none
 
-  [       fvp ] terminal_0: Listening for serial connection on port 5000
-  [       fvp ] terminal_1: Listening for serial connection on port 5001
-  [       fvp ] terminal_2: Listening for serial connection on port 5002
-  [       fvp ] terminal_3: Listening for serial connection on port 5003
-  [       fvp ]
-  [       fvp ] Info: FVP_Base_RevC_2xAEMvA: FVP_Base_RevC_2xAEMvA.bp.flashloader0: FlashLoader: Loaded 100 kB from file '<root>/package/ns-preload/fip.bin'
-  [       fvp ]
-  [       fvp ] Info: FVP_Base_RevC_2xAEMvA: FVP_Base_RevC_2xAEMvA.bp.secureflashloader: FlashLoader: Loaded 30 kB from file '<root>/package/ns-preload/bl1.bin'
-  [       fvp ]
-  [       fvp ] libdbus-1.so.3: cannot open shared object file: No such file or directory
-  [       fvp ] libdbus-1.so.3: cannot open shared object file: No such file or directory
+  [       FVP ] terminal_0: Listening for serial connection on port 5000
+  [       FVP ] terminal_1: Listening for serial connection on port 5001
+  [       FVP ] terminal_2: Listening for serial connection on port 5002
+  [       FVP ] terminal_3: Listening for serial connection on port 5003
+  [       FVP ]
+  [       FVP ] Info: FVP_Base_RevC_2xAEMvA: FVP_Base_RevC_2xAEMvA.bp.flashloader0: FlashLoader: Loaded 100 kB from file '<root>/package/ns-preload/fip.bin'
+  [       FVP ]
+  [       FVP ] Info: FVP_Base_RevC_2xAEMvA: FVP_Base_RevC_2xAEMvA.bp.secureflashloader: FlashLoader: Loaded 30 kB from file '<root>/package/ns-preload/bl1.bin'
+  [       FVP ]
+  [       FVP ] libdbus-1.so.3: cannot open shared object file: No such file or directory
+  [       FVP ] libdbus-1.so.3: cannot open shared object file: No such file or directory
   [ tfa+linux ] NOTICE:  BL31: v2.7(release):v2.7.0-391-g9dedc1ab2
   [ tfa+linux ] NOTICE:  BL31: Built : 09:41:20, Sep 15 2022
   [ tfa+linux ] INFO:    GICv3 with legacy support detected.

@@ -86,7 +86,7 @@ class Logger:
 
 	def log(self, pm, proc, data, streamid, logstd=True):
 		"""
-		Logs text data from one of the processes (FVP or one of its uart
+		Logs text data from one of the processes (runner or one of its uart
 		terminals) to the terminal. Text is colored and a tag is added
 		on the left to identify the originating process.
 		"""
