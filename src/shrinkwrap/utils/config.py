@@ -771,45 +771,32 @@ def resolver(config, rtvars={}, clivars={}):
 	run['params'] = { k: _string_substitute(v, lut) for k, v in run['params'].items() }
 
 	# Assemble the final runtime command and stuff it into the config.
-	params = _mk_params(run['params'], '=')
-
-	terms = []
-	for param, terminal in run['terminals'].items():
-		# port_regex is deprecated; when not provided, we add an echo to
-		# terminal_command then construct the regex to find it. This is
-		# guarranteed to be a unique string, whereas the string output
-		# by the FVP may be ambiguous for some models that have lots of
-		# terminals.
-		if 'port_regex' not in terminal or terminal['port_regex'] is None:
-			terminal['port_regex'] = f'{param}: port (\\d+)'
-			terms.append(f'-C {param}.start_telnet=1')
-
-			cmd = f'-C {param}.terminal_command="echo {param}: port %port"'
-			if terminal['type'] == 'xterm':
-				cmd += '; xterm -e telnet localhost %port'
-			terms.append(cmd)
-
-			if terminal['type'] in ['telnet', 'stdinout', 'xterm']:
-				terms.append(f'-C {param}.mode=telnet')
-			else:
-				terms.append(f'-C {param}.mode=raw')
-			continue
-
-		# port_regex was provided so fallback to old behaviour for
-		# compatibility.
-		if terminal['type'] in ['stdout']:
-			terms.append(f'-C {param}.start_telnet=0')
-			terms.append(f'-C {param}.mode=raw')
-		if terminal['type'] in ['xterm']:
-			terms.append(f'-C {param}.start_telnet=1')
-			terms.append(f'-C {param}.mode=telnet')
-		if terminal['type'] in ['telnet', 'stdinout']:
-			terms.append(f'-C {param}.start_telnet=0')
-			terms.append(f'-C {param}.mode=telnet')
-	terms = ' '.join(terms)
-
 	if run["name"]:
-		run['run'] = [' '.join([run["name"], params, terms])]
+		terms = []
+		params = _mk_params(run['params'], '=')
+		for param, terminal in run['terminals'].items():
+			# port_regex is deprecated; when not provided, we add an echo to
+			# terminal_command then construct the regex to find it. This is
+			# guarranteed to be a unique string, whereas the string output
+			# by the FVP may be ambiguous for some models that have lots of
+			# terminals.
+			if 'port_regex' not in terminal or terminal['port_regex'] is None:
+				terminal['port_regex'] = f'{param}: port (\\d+)'
+				terms.append(f'-C {param}.start_telnet=1')
+
+				cmd = f'-C {param}.terminal_command="echo {param}: port %port"'
+				if terminal['type'] == 'xterm':
+					cmd += '; xterm -e telnet localhost %port'
+				terms.append(cmd)
+
+				if terminal['type'] in ['telnet', 'stdinout', 'xterm']:
+					terms.append(f'-C {param}.mode=telnet')
+				else:
+					terms.append(f'-C {param}.mode=raw')
+				continue
+
+		run['run'] = [' '.join([run["name"], params] + terms)]
+
 
 	for i, s in enumerate(run['prerun']):
 		run['prerun'][i] = _string_substitute(s, lut)
