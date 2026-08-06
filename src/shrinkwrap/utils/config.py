@@ -768,8 +768,6 @@ def resolver(config, rtvars={}, clivars={}):
 	# we don't have values for.
 	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
 
-	run['params'] = { k: _string_substitute(v, lut) for k, v in run['params'].items() }
-
 	# Assemble the final runtime command and stuff it into the config.
 	if run["name"]:
 		terms = []
@@ -797,6 +795,8 @@ def resolver(config, rtvars={}, clivars={}):
 
 		run['run'] = [' '.join([run["name"], params] + terms)]
 
+	for i, s, in enumerate(run['run']):
+		run['run'][i] = _string_substitute(s, lut)
 
 	for i, s in enumerate(run['prerun']):
 		run['prerun'][i] = _string_substitute(s, lut)
