@@ -235,6 +235,8 @@ rtvars      dictionary  Run-Time variables. Keys are the variable names and valu
 params      dictionary  Dictionary of parameters to be passed to the FVP. Similar to the component's params, laying these out in a dictionary makes it easy for higher layers to override and add parameters.
 prerun      list        List of shell commands to be executed before the FVP is started.
 terminals   dictionary  Describes the set of UART terminals available for the FVP. key is the terminal parameter name known to the FVP (e.g. ``bp.terminal_0``) See below for format of the value.
+runner      string      Type of runner to use, by default FVP.
+runners     dictionary  Dictionary of runners other than the FVP, with their variables. See below for the format of the runners.
 =========== =========== ===========
 
 ~~~~~~~~~~~~~~~~
@@ -259,3 +261,21 @@ Terminal types:
 - **stdinout**: Mux output to stdout. Forward stdin to its input. Max of 1 of these types allowed.
 - **telnet**: Shrinkwrap will print out a telnet command to run in a separate terminal to get a unique interactive terminal.
 - **xterm**: Shrinkwrap will automatically launch xterm to provide a unique interactive terminal. Only works when runtime=null.
+
+~~~~~~~~~~~~~~~
+runners section
+~~~~~~~~~~~~~~~
+
+The *run* section contains parameters for the FVP. A *runners* subsection
+allows specifying parameters for other runners. The format of each value is the
+same as in the *run* section, except for *params*.
+
+=========== =========== ===========
+key         type        description
+=========== =========== ===========
+name        string      Name or path to the runner binary
+rtvars      dictionary  Run-Time variables.
+params      dictionary  Parameters to be passed to the runner. Unlike the `params` value in the run section, this is a list of parameters, which gets joined by spaces.
+prerun      list        List of shell commands to be executed before the runner is started.
+terminals   dictionary  Describes the set of UART terminals available for the runner.
+=========== =========== ===========

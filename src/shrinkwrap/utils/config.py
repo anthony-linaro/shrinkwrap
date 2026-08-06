@@ -149,6 +149,14 @@ def _buildex_normalize(buildex):
 	"""
 	_vars_normalize(buildex.setdefault('btvars', {}))
 
+def _runners_normalize(runners):
+	for runner in runners.values():
+		runner.setdefault('name', None)
+		runner.setdefault('rtvars', {})
+		runner.setdefault('params', [])
+		runner.setdefault('prerun', [])
+		runner.setdefault('run', [])
+		runner.setdefault('terminals', {})
 
 def _run_normalize(run):
 	"""
@@ -160,6 +168,9 @@ def _run_normalize(run):
 	run.setdefault('prerun', [])
 	run.setdefault('run', [])
 	run.setdefault('terminals', {})
+	run.setdefault('runner', None)
+	run.setdefault('runners', {})
+	_runners_normalize(run['runners'])
 
 
 def _config_normalize(config):
@@ -232,7 +243,7 @@ def _run_sort(run):
 	Sort the run section so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['name', 'rtvars', 'params', 'prerun', 'run', 'terminals']
+	lut = ['name', 'rtvars', 'params', 'prerun', 'run', 'terminals', 'runners', 'runner']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(run.items(), key=lambda x: lut[x[0]]))
 
@@ -703,6 +714,17 @@ def resolveb(config, btvars={}, clivars={}):
 
 	return _config_sort(config)
 
+def _resolve_run(run, lut):
+	# Now create a lookup table with all the rtvars and resolve all the
+	# parameters. An exception will be thrown if there are any macros that
+	# we don't have values for.
+	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
+
+	for i, s, in enumerate(run['run']):
+		run['run'][i] = _string_substitute(s, lut)
+
+	for i, s in enumerate(run['prerun']):
+		run['prerun'][i] = _string_substitute(s, lut)
 
 def resolver(config, rtvars={}, clivars={}):
 	"""
@@ -712,21 +734,25 @@ def resolver(config, rtvars={}, clivars={}):
 	clivars = uclivars.get(**clivars)
 	run = config['run']
 
-	# Find the list of imported artifacts before any processing passes
 	artifacts_imp = set()
-	_string_extract_artifacts(artifacts_imp, run['params'].values())
-	_string_extract_artifacts(artifacts_imp, run['prerun'])
-	_string_extract_artifacts(artifacts_imp, run['run'])
-	_string_extract_artifacts(artifacts_imp, run['rtvars'].values())
+	all_runners = [run] + list(run['runners'].values())
 
-	#Override the rtvars with any values supplied by the user and check that
-	#all rtvars are defined.
-	for k, v in run['rtvars'].items():
-		if k in rtvars:
-			v['value'] = rtvars[k]
-		if v['value'] is None:
-			raise Exception(f'{k} run-time variable not ' \
-					'set by user and no default available.')
+	for runner in all_runners:
+		params = runner['params'].values() if type(runner['params']) == dict else runner['params']
+		# Find the list of imported artifacts before any processing passes
+		_string_extract_artifacts(artifacts_imp, params)
+		_string_extract_artifacts(artifacts_imp, runner['prerun'])
+		_string_extract_artifacts(artifacts_imp, runner['run'])
+		_string_extract_artifacts(artifacts_imp, runner['rtvars'].values())
+
+		# Override the rtvars with any values supplied by the user and check
+		# that all rtvars are defined.
+		for k, v in runner['rtvars'].items():
+			if k in rtvars:
+				v['value'] = rtvars[k]
+			if v['value'] is None:
+				raise Exception(f'{k} run-time variable not ' \
+						'set by user and no default available.')
 
 	# Update the artifacts so that the destination now points to an absolute
 	# path rather than one that is implictly relative to SHRINKWRAP_PACKAGE.
@@ -753,22 +779,20 @@ def resolver(config, rtvars={}, clivars={}):
 		'btvar': {k: v['value']
 				for k, v in config['buildex']['btvars'].items()},
 	}
-	for k, v in run['rtvars'].items():
-		v['value'] = _string_substitute(str(v['value']), lut)
-		if v['type'] == 'path' and v['value']:
-			v['value'] = os.path.expanduser(v['value'])
-			v['value'] = os.path.abspath(v['value'])
-		v['options'] = { _string_substitute(o, lut) for o in v['options'] }
-		if not _var_validate(v):
-			raise ValueError(f"{k} run-time variable " \
-				f"must take one of the following values: { _var_options(v) }")
+	for runner in all_runners:
+		for v in runner['rtvars'].values():
+			v['value'] = _string_substitute(str(v['value']), lut)
+			if v['type'] == 'path' and v['value']:
+				v['value'] = os.path.expanduser(v['value'])
+				v['value'] = os.path.abspath(v['value'])
 
-	# Now create a lookup table with all the rtvars and resolve all the
-	# parameters. An exception will be thrown if there are any macros that
-	# we don't have values for.
-	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
-
-	# Assemble the final runtime command and stuff it into the config.
+	if run['runner'] is None:
+		run['runner'] = 'FVP'
+ 
+	# Assemble the final runtime commands and stuff them into the config.
+	# For backward compatibility, run['run'] will contain the FVP command-line,
+	# and run['runners'][r]['run'] contain the command-line of each of the
+	# other runners.
 	if run["name"]:
 		terms = []
 		params = _mk_params(run['params'], '=')
@@ -794,12 +818,14 @@ def resolver(config, rtvars={}, clivars={}):
 				continue
 
 		run['run'] = [' '.join([run["name"], params] + terms)]
+	_resolve_run(run, lut)
 
-	for i, s, in enumerate(run['run']):
-		run['run'][i] = _string_substitute(s, lut)
-
-	for i, s in enumerate(run['prerun']):
-		run['prerun'][i] = _string_substitute(s, lut)
+	# Additional runners use a list of params rather than a dict
+	for runner in run['runners'].values():
+		if runner['name']:
+			params = ' '.join(runner['params'])
+			runner['run'] = [' '.join([runner['name'], params])]
+		_resolve_run(runner, lut)
 
 	return _config_sort(config)
 

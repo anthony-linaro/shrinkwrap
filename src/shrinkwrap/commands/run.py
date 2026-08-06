@@ -87,7 +87,15 @@ def dispatch(args):
 	resolveb = config.load(filename, overlays)
 	rtvars_dict = vars.parse(args.rtvar, type='rt')
 	resolver = config.resolver(resolveb, rtvars_dict)
-	cmds = _pretty_print_sh(resolver['run'])
+
+	runner_name = resolver['run']['runner']
+	if runner_name == 'FVP':
+		runner = resolver['run']
+	else:
+		runner = resolver['run']['runners'].get(runner_name)
+		if runner is None:
+			raise Exception(f'invalid runner `{runner_name}`')
+	cmds = _pretty_print_sh(runner_name, runner)
 
 	# If dry run, just output the command that we would have run. We
 	# don't include the netcat magic to access the fvp terminals.
@@ -100,7 +108,7 @@ def dispatch(args):
 	# that tag field needs to be so that everything remains aligned.
 	max_name_field = 10
 	name_field = 0
-	terminals = resolver['run']['terminals']
+	terminals = runner['terminals']
 	terminals = dict(sorted(terminals.items()))
 	for t in terminals.values():
 		t['port'] = None
@@ -248,7 +256,7 @@ def dispatch(args):
 	with runtime.Runtime(name=args.runtime, image=config.get_image([resolveb], args),
 		       		ssh_agent_keys=args.ssh_agent_keys,
 				timeout=args.timeout) as rt:
-		for rtvar in resolver['run']['rtvars'].values():
+		for rtvar in runner['rtvars'].values():
 			if rtvar['type'] == 'path':
 				rt.add_volume(rtvar['value'])
 		for t in terminals.values():
@@ -278,7 +286,7 @@ def dispatch(args):
 			pm = process.ProcessManager(_find_term_ports, _complete)
 			pm.add(process.Process(f'bash {tmpfilename}',
 				False,
-				(log.alloc_data('FVP', not args.no_color),),
+				(log.alloc_data(runner_name, not args.no_color),),
 				True))
 
 			rt_ip = runtime.get().ip_address()
@@ -292,21 +300,18 @@ def dispatch(args):
 			pm.run(forward_stdin=True)
 
 
-def _pretty_print_sh(run):
-	prerun = run['prerun']
-	run = run['run']
+def _pretty_print_sh(runner_name, runner):
+	prerun = runner['prerun']
+	run = runner['run']
 
 	# This is a hack to improve the way the FVP arguments look. It tends to
 	# be huge so attempt to make it more readable by putting each option on
-	# a separate line and sorting alphabetically. Only likely to work for
-	# FVP so try to infer its definitely the FVP.
-	if len(run) == 1:
-		prog = run[0].split(' ')[0].lower()
-		if prog.find('isim') >= 0 or prog.find('fvp') >= 0:
-			parts = run[0].split(' -')
-			prog = parts[0]
-			args = sorted(parts[1:])
-			run = [' \\\n    -'.join([prog] + args)]
+	# a separate line and sorting alphabetically.
+	if runner_name == 'FVP':
+		parts = run[0].split(' -')
+		prog = parts[0]
+		args = sorted(parts[1:])
+		run = [' \\\n    -'.join([prog] + args)]
 
 	pre = config.script_preamble(False)
 	script = config.Script('run model', preamble=pre)
