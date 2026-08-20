@@ -149,6 +149,10 @@ def _buildex_normalize(buildex):
 	"""
 	_vars_normalize(buildex.setdefault('btvars', {}))
 
+	for build in buildex.setdefault('runners', {}).values():
+		for name, component in build.items():
+			_component_normalize(component, name)
+
 def _runners_normalize(runners):
 	for runner in runners.values():
 		runner.setdefault('name', None)
@@ -637,6 +641,14 @@ def resolveb(config, btvars={}, clivars={}):
 		for v in config['buildex']['btvars'].values():
 			v['value'] = _string_substitute(v['value'], lut, final)
 			v['options'] = { _string_substitute(o, lut, final) for o in v['options'] }
+
+	# If the runner is different from the default, override some of the
+	# components by those defined in buildex for this runner.
+	runner = config['run']['runner']
+	build_components_override = config['buildex']['runners'].get(runner, {})
+
+	for name, component in build_components_override.items():
+		config['build'][name] = component
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply

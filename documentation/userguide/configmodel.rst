@@ -183,6 +183,7 @@ created.
 key         type        description
 =========== =========== ===========
 btvars      dictionary  Build-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string'), 'value' (which takes the default value), and 'options' (which is the list of allowed values, and can include 'null' which makes the variable optional). Build-Time variables can be overridden by the user at the command line.
+runners     dictionary  Components built per runner. If a given runner is selected in the run section, components in its buildex section are built, and replace ones with the same name in the build section.
 =========== =========== ===========
 
 ~~~~~~~~~~~~~~~~~
