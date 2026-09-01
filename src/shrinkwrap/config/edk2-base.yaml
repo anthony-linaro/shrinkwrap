@@ -25,7 +25,7 @@ build:
   edk2-platforms:
     repo:
       remote: https://github.com/tianocore/edk2-platforms.git
-      revision: ae058185e12591a9a49e5895e90ca52936851973
+      revision: d672a812054e9d4fe5868a1ee65f438c10710535
 
     artifacts:
       # Share the source directory with EDK2
@@ -36,7 +36,7 @@ build:
   edk2:
     repo:
       remote: https://github.com/tianocore/edk2.git
-      revision: edk2-stable202605
+      revision: edk2-stable202608
 
     toolchain: aarch64-none-elf-
 
