@@ -266,33 +266,49 @@ def _config_sort(config):
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))
 
 
+def _merge(base, new, level=0):
+	"""
+	Recursively merges new into base.
+	- Lists are concatenated.
+	- Sets are unioned.
+	- Dicts are merged recursively (unless new contains 'replace: true',
+	  in which case new replaces base entirely at that level).
+	- If new is a dict with a 'replace' key whose value is a list, and base
+	  is a list, the replacement list replaces base entirely.
+	- Scalars: new wins (None is treated as "not set", so base wins).
+	"""
+	if new is None:
+		return base
+
+	if isinstance(base, list) and isinstance(new, list):
+		return base + new
+
+	if isinstance(base, set) and isinstance(new, set):
+		return base | new
+
+	elif isinstance(base, dict) and isinstance(new, dict):
+		if new.pop('replace', False):
+			return new
+		d = {}
+		for k in list(set(list(base.keys()) + list(new.keys()))):
+			d[k] = _merge(base.get(k), new.get(k), level+1)
+		return d
+
+	elif isinstance(base, list) and isinstance(new, dict) and 'replace' in new:
+		return new.pop('replace')
+
+	elif isinstance(base, str) and isinstance(new, str):
+		return new
+
+	return new
+
+
 def _config_merge(base, new):
 	"""
 	Merges new config into the base config.
 	"""
 	_config_validate(base)
 	_config_validate(new)
-
-	def _merge(base, new, level=0):
-		if new is None:
-			return base
-
-		if isinstance(base, list) and isinstance(new, list):
-			return base + new
-
-		if isinstance(base, set) and isinstance(new, set):
-			return base | new
-
-		elif isinstance(base, dict) and isinstance(new, dict):
-			d = {}
-			for k in list(set(list(base.keys()) + list(new.keys()))):
-				d[k] = _merge(base.get(k), new.get(k), level+1)
-			return d
-
-		elif isinstance(base, str) and isinstance(new, str):
-			return new
-
-		return new
 
 	config = _merge(base, new)
 
@@ -648,7 +664,10 @@ def resolveb(config, btvars={}, clivars={}):
 	build_components_override = config['buildex']['runners'].get(runner, {})
 
 	for name, component in build_components_override.items():
-		config['build'][name] = component
+		if name in config['build']:
+			config['build'][name] = _merge(config['build'][name], component)
+		else:
+			config['build'][name] = component
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply

@@ -47,6 +47,66 @@ For each leaf key in the union of the hierarchical dictionaries:
 
 - In all other cases the upper value is taken
 
+The merge can be overridden explicitly when a config wants to replace an entire
+lower value instead of appending to or merging it.
+
+-------------------
+Replace Overrides
+-------------------
+
+A dictionary can request a full replacement by setting ``replace: true``. In
+that case, the upper dictionary replaces the lower dictionary entirely instead of
+being merged recursively.
+
+.. code-block:: yaml
+	:caption: lower config
+
+	params:
+	  A: 1
+	  B: 2
+	  C: 3
+
+.. code-block:: yaml
+	:caption: upper config
+
+	params:
+	  replace: true
+	  B: 4
+
+.. code-block:: yaml
+	:caption: merged result
+
+	params:
+	  B: 4
+
+A list can also be replaced entirely by setting ``replace`` to a list value in a
+mapping that is overriding a lower list.
+
+.. code-block:: yaml
+	:caption: lower config
+
+	features:
+	  - a
+	  - b
+
+.. code-block:: yaml
+	:caption: upper config
+
+	features:
+	  replace:
+	    - c
+	    - d
+
+.. code-block:: yaml
+	:caption: merged result
+
+	features:
+	  - c
+	  - d
+
+When ``replace`` is omitted or set to ``false`` the normal merge rules continue
+to apply.
+
 You can use the ``process`` command to merge configs and see the resulting
 output to get a better feel for how it works. See
 :ref:`userguide/commands:Commands`.
