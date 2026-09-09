@@ -1,0 +1,68 @@
+# Copyright (c) 2024-2026, Linaro Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  EDK2 UEFI firmware implementation for QEMU SBSA. This depends on
+  Trusted-Firmware-A, and produces the flash images passed to QEMU.
+
+layers:
+  - ../edk2-base.yaml
+
+buildex:
+  runners:
+    QEMU:
+      edk2-non-osi:
+        repo:
+          remote: https://github.com/tianocore/edk2-non-osi.git
+          revision: 7ac12d81e02b323bffdf1ef3c188ea33c2185c91
+        artifacts:
+          # Share the source directory with EDK2
+          EDK2_NON_OSI:
+            path: ${param:sourcedir}
+            export: false
+      edk2:
+        prebuild:
+          - export PACKAGES_PATH=$$PACKAGES_PATH:${artifact:EDK2_NON_OSI}
+          - export PLATFORM_NAME=SbsaQemu
+          - cp ${artifact:BL1} ${artifact:EDK2_NON_OSI}/Platform/Qemu/Sbsa/
+          - cp ${artifact:FIP} ${artifact:EDK2_NON_OSI}/Platform/Qemu/Sbsa/
+
+        params:
+          -p: ${artifact:EDK2_PLATFORMS}/Platform/Qemu/SbsaQemu/SbsaQemu.dsc
+
+        build:
+          replace:
+            - build ${param:join_space} -D EDK2_OUT_DIR=${param:builddir} --pcd PcdShellDefaultDelay=0 --pcd PcdUefiShellDefaultBootEnable=1
+            - truncate -s 256M ${param:builddir}/Build/SbsaQemu/${btvar:EDK2_BUILD}_GCC/FV/SBSA_FLASH0.fd
+            - truncate -s 256M ${param:builddir}/Build/SbsaQemu/${btvar:EDK2_BUILD}_GCC/FV/SBSA_FLASH1.fd
+
+        artifacts:
+          replace: true
+          EDK2_FLASH0: ${param:builddir}/Build/SbsaQemu/${btvar:EDK2_BUILD}_GCC/FV/SBSA_FLASH0.fd
+          EDK2_FLASH1: ${param:builddir}/Build/SbsaQemu/${btvar:EDK2_BUILD}_GCC/FV/SBSA_FLASH1.fd
+
+run:
+  runners:
+    QEMU:
+      prerun:
+        # Create the virtual boot disk containing the EFI shell. Wrap this up
+        # as a command in the startup.nsh along with the command line. UEFI
+        # will execute this when entering its shell. Using a unique temp
+        # directory means we can run multiple instances in parallel.
+        - BOOT_DISK=`mktemp -d`
+        - function finish { rm -rf $$BOOT_DISK; }
+        - trap finish EXIT
+        - mkdir -p $$BOOT_DISK/
+        - cp ${rtvar:KERNEL} $$BOOT_DISK/Image
+        - cat << EOF > $$BOOT_DISK/startup.nsh
+        - fs0:\Image ${rtvar:CMDLINE}
+        - reset -c
+        - EOF
+
+      params:
+        - -drive file=${artifact:EDK2_FLASH0},format=raw,if=pflash
+        - -drive file=${artifact:EDK2_FLASH1},format=raw,if=pflash
+        - -drive file=fat:rw:$$BOOT_DISK,format=raw
+

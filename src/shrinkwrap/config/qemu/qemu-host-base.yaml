@@ -1,0 +1,26 @@
+# Copyright (c) 2024-2026, Linaro Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Select QEMU as the runner, and set some basic default parameters.
+
+run:
+  runner: QEMU
+  runners:
+    QEMU:
+      name: qemu-system-aarch64
+      rtvars:
+        MEM_SIZE:
+          value: 4G
+          type: string
+
+        # Number of vCPUs
+        SMP:
+          value: 8
+          type: string
+
+      params:
+        - -m ${rtvar:MEM_SIZE}
+        - -smp ${rtvar:SMP}

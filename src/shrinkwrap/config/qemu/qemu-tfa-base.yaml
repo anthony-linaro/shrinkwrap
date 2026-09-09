@@ -1,0 +1,32 @@
+# Copyright (c) 2024-2026, Linaro Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Trusted Firmware for QEMU virt. This provides a baseline configuration that
+  can be customized by higher layers.
+
+layers:
+  - ../tfa-base.yaml
+
+buildex:
+  runners:
+    QEMU:
+      tfa:
+        params:
+          PLAT: qemu_sbsa
+
+        artifacts:
+          replace: true
+          TFA_OUT:
+            path: ${param:builddir}/fvp/${btvar:TFA_BUILD}
+            export: false
+          BL1: ${param:builddir}/qemu_sbsa/release/bl1.bin
+          FIP: ${param:builddir}/qemu_sbsa/release/fip.bin
+
+      # Replace armdbg-script with an empty config, as we don't support it here.
+      # This is to avoid the default armdbg-script config from tfa-base.yaml being
+      # used, which would add symbol files for the BL1/BL2/BL31 binaries.
+      armdbg-script:
+        replace: true
