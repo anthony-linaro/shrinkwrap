@@ -25,4 +25,5 @@ out-of-the-box:
    ns-edk2-optee.rst
    ns-edk2.rst
    ns-preload.rst
+   qemu-ns-edk2.rst
    rfa.rst

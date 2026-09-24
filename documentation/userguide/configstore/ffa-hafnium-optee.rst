@@ -52,6 +52,6 @@ edk2           https://github.com/tianocore/edk2.git                            
 edk2-platforms https://github.com/tianocore/edk2-platforms.git                                    d672a812054e9d4fe5868a1ee65f438c10710535
 hafnium        https://git.trustedfirmware.org/hafnium/hafnium.git                                v2.15.0
 optee          https://github.com/OP-TEE/optee_os.git                                             4.9.0
-tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.15.0
+tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        5c33fafcddc09543dbfff97cac991847e8e4fda9
 ============== ================================================================================== ========================================
 
