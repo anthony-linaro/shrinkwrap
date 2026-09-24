@@ -1,0 +1,31 @@
+# Copyright (c) 2024-2026, Linaro Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Build QEMU instead of using the one available in the container.
+
+build:
+  qemu:
+    repo:
+      remote: https://gitlab.com/qemu-project/qemu.git
+      revision: v11.0.3
+
+    build:
+      - cd ${param:builddir}
+      - ${param:sourcedir}/configure --target-list=aarch64-softmmu --prefix=${param:builddir}/install
+      - make -j${param:jobs} install
+
+    artifacts:
+      QEMU: ${param:builddir}/install/bin/qemu-system-aarch64
+      # The SBSA machine needs a ROM for bochs-display. virtio-net-pci needs
+      # one too.
+      QEMU_ROMS: ${param:builddir}/install/share/qemu
+
+run:
+  runners:
+    QEMU:
+      name: ${artifact:QEMU}
+      params:
+        - -L ${artifact:QEMU_ROMS}

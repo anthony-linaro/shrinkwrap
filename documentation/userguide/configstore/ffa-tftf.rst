@@ -54,7 +54,7 @@ dt             https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/device
 edk2           https://github.com/tianocore/edk2.git                                              edk2-stable202608
 edk2-platforms https://github.com/tianocore/edk2-platforms.git                                    d672a812054e9d4fe5868a1ee65f438c10710535
 hafnium        https://git.trustedfirmware.org/hafnium/hafnium.git                                v2.15.0
-tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.15.0
+tfa            https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        5c33fafcddc09543dbfff97cac991847e8e4fda9
 tftf           https://git.trustedfirmware.org/TF-A/tf-a-tests.git                                v2.15.0
 ============== ================================================================================== ========================================
 

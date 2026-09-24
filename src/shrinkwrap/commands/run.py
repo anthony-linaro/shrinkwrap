@@ -23,7 +23,7 @@ def add_parser(parser, formatter):
 	"""
 	cmdp = parser.add_parser(cmd_name,
 		formatter_class=formatter,
-		help="""Boot and run the FVP for the specified config.""",
+		help="""Boot and run the specified config.""",
 		epilog="""FW is accessed from <SHRINKWRAP_PACKAGE>.
 		     <SHRINKWRAP_PACKAGE> defaults to '~/.shrinkwrap/package',
 		     but the user can override it by setting the environment
@@ -87,20 +87,28 @@ def dispatch(args):
 	resolveb = config.load(filename, overlays)
 	rtvars_dict = vars.parse(args.rtvar, type='rt')
 	resolver = config.resolver(resolveb, rtvars_dict)
-	cmds = _pretty_print_sh(resolver['run'])
 
-	# If dry run, just output the FVP command that we would have run. We
+	runner_name = resolver['run']['runner']
+	if runner_name == 'FVP':
+		runner = resolver['run']
+	else:
+		runner = resolver['run']['runners'].get(runner_name)
+		if runner is None:
+			raise Exception(f'invalid runner `{runner_name}`')
+	cmds = _pretty_print_sh(runner_name, runner)
+
+	# If dry run, just output the command that we would have run. We
 	# don't include the netcat magic to access the fvp terminals.
 	if args.dry_run:
 		print(cmds)
 		return
 
-	# The FVP and any associated uart terminals are output to our terminal
+	# The runner and any associated uart terminals are output to our terminal
 	# with a tag to indicate where each line originated. Figure out how big
 	# that tag field needs to be so that everything remains aligned.
 	max_name_field = 10
 	name_field = 0
-	terminals = resolver['run']['terminals']
+	terminals = runner['terminals']
 	terminals = dict(sorted(terminals.items()))
 	for t in terminals.values():
 		t['port'] = None
@@ -159,12 +167,11 @@ def dispatch(args):
 
 	def _find_term_ports(pm, proc, data, streamid):
 		"""
-		Initial handler function called by ProcessManager. When the fvp
-		starts, we must parse the output to determine the port numbers
-		to connect to with netcat to access the fvp uart terminals. We
-		look for all the ports, start the netcat instances, add them to
-		the process manager and finally switch the handler to the
-		standard logger.
+		Initial handler function called by ProcessManager. When the runner
+		starts, we must parse the output to determine the port numbers to
+		connect to with netcat to access the uart terminals. We	look for all
+		the ports, start the netcat instances, add them to the process manager
+		and finally switch the handler to the standard logger.
 		"""
 		# First, forward to the standard log handler.
 		_logwrap(pm, proc, data, streamid)
@@ -238,10 +245,10 @@ def dispatch(args):
 	def _complete(pm, proc, retcode):
 		log.free_data(proc.data[0])
 
-		# If the FVP exits with non-zero exit code, we propagate that
+		# If the runner exits with non-zero exit code, we propagate that
 		# error so that shrinkwrap also exits with non-zero exit code.
 		if retcode not in [0, None] and proc.run_to_end:
-			raise Exception(f'FVP failed with {retcode}')
+			raise Exception(f'run command failed with {retcode}')
 
 	# Run under a runtime environment, which may just run commands natively
 	# on the host or may execute commands in a container, depending on what
@@ -249,7 +256,7 @@ def dispatch(args):
 	with runtime.Runtime(name=args.runtime, image=config.get_image([resolveb], args),
 		       		ssh_agent_keys=args.ssh_agent_keys,
 				timeout=args.timeout) as rt:
-		for rtvar in resolver['run']['rtvars'].values():
+		for rtvar in runner['rtvars'].values():
 			if rtvar['type'] == 'path':
 				rt.add_volume(rtvar['value'])
 		for t in terminals.values():
@@ -270,16 +277,16 @@ def dispatch(args):
 			with open(tmpfilename, 'w') as tmpfile:
 				tmpfile.write(cmds)
 
-			# Create a process manager with 1 process; the fvp. As
+			# Create a process manager with 1 process; the runner. As
 			# it boots _find_term_ports() will add the netcat
 			# processes in parallel. It will exit once all processes
-			# have terminated. The fvp will terminate when its told
+			# have terminated. The runner will terminate when its told
 			# to `poweroff` and netcat will terminate when it sees
-			# the fvp has gone.
+			# the runner has gone.
 			pm = process.ProcessManager(_find_term_ports, _complete)
 			pm.add(process.Process(f'bash {tmpfilename}',
 				False,
-				(log.alloc_data('fvp', not args.no_color),),
+				(log.alloc_data(runner_name, not args.no_color),),
 				True))
 
 			rt_ip = runtime.get().ip_address()
@@ -293,21 +300,18 @@ def dispatch(args):
 			pm.run(forward_stdin=True)
 
 
-def _pretty_print_sh(run):
-	prerun = run['prerun']
-	run = run['run']
+def _pretty_print_sh(runner_name, runner):
+	prerun = runner['prerun']
+	run = runner['run']
 
 	# This is a hack to improve the way the FVP arguments look. It tends to
 	# be huge so attempt to make it more readable by putting each option on
-	# a separate line and sorting alphabetically. Only likely to work for
-	# FVP so try to infer its definitely the FVP.
-	if len(run) == 1:
-		prog = run[0].split(' ')[0].lower()
-		if prog.find('isim') >= 0 or prog.find('fvp') >= 0:
-			parts = run[0].split(' -')
-			prog = parts[0]
-			args = sorted(parts[1:])
-			run = [' \\\n    -'.join([prog] + args)]
+	# a separate line and sorting alphabetically.
+	if runner_name == 'FVP':
+		parts = run[0].split(' -')
+		prog = parts[0]
+		args = sorted(parts[1:])
+		run = [' \\\n    -'.join([prog] + args)]
 
 	pre = config.script_preamble(False)
 	script = config.Script('run model', preamble=pre)

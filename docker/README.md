@@ -1,9 +1,9 @@
 # Shrinkwrap
 
 Shrinkwrap is a tool to simplify the process of building and running firmware on
-Arm Fixed Virtual Platforms (FVP). Users simply invoke the tool to build the
-required config, then pass their own kernel and rootfs to the tool to boot the
-full system on FVP.
+Arm Fixed Virtual Platforms (FVP) and QEMU. Users simply invoke the tool to build
+the required config, then pass their own kernel and rootfs to the tool to boot the
+full system on FVP or QEMU.
 
 - Documentation is available at: [ReadTheDocs](https://shrinkwrap.docs.arm.com)
 - Source Code is available at: [GitLab](https://gitlab.arm.com/tooling/shrinkwrap)

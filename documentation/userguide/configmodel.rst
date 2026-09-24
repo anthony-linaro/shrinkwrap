@@ -47,6 +47,66 @@ For each leaf key in the union of the hierarchical dictionaries:
 
 - In all other cases the upper value is taken
 
+The merge can be overridden explicitly when a config wants to replace an entire
+lower value instead of appending to or merging it.
+
+-------------------
+Replace Overrides
+-------------------
+
+A dictionary can request a full replacement by setting ``replace: true``. In
+that case, the upper dictionary replaces the lower dictionary entirely instead of
+being merged recursively.
+
+.. code-block:: yaml
+	:caption: lower config
+
+	params:
+	  A: 1
+	  B: 2
+	  C: 3
+
+.. code-block:: yaml
+	:caption: upper config
+
+	params:
+	  replace: true
+	  B: 4
+
+.. code-block:: yaml
+	:caption: merged result
+
+	params:
+	  B: 4
+
+A list can also be replaced entirely by setting ``replace`` to a list value in a
+mapping that is overriding a lower list.
+
+.. code-block:: yaml
+	:caption: lower config
+
+	features:
+	  - a
+	  - b
+
+.. code-block:: yaml
+	:caption: upper config
+
+	features:
+	  replace:
+	    - c
+	    - d
+
+.. code-block:: yaml
+	:caption: merged result
+
+	features:
+	  - c
+	  - d
+
+When ``replace`` is omitted or set to ``false`` the normal merge rules continue
+to apply.
+
 You can use the ``process`` command to merge configs and see the resulting
 output to get a better feel for how it works. See
 :ref:`userguide/commands:Commands`.
@@ -183,6 +243,7 @@ created.
 key         type        description
 =========== =========== ===========
 btvars      dictionary  Build-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string'), 'value' (which takes the default value), and 'options' (which is the list of allowed values, and can include 'null' which makes the variable optional). Build-Time variables can be overridden by the user at the command line.
+runners     dictionary  Components built per runner. If a given runner is selected in the run section, components in its buildex section are built, and replace ones with the same name in the build section.
 =========== =========== ===========
 
 ~~~~~~~~~~~~~~~~~
@@ -235,6 +296,8 @@ rtvars      dictionary  Run-Time variables. Keys are the variable names and valu
 params      dictionary  Dictionary of parameters to be passed to the FVP. Similar to the component's params, laying these out in a dictionary makes it easy for higher layers to override and add parameters.
 prerun      list        List of shell commands to be executed before the FVP is started.
 terminals   dictionary  Describes the set of UART terminals available for the FVP. key is the terminal parameter name known to the FVP (e.g. ``bp.terminal_0``) See below for format of the value.
+runner      string      Type of runner to use, by default FVP.
+runners     dictionary  Dictionary of runners other than the FVP, with their variables. See below for the format of the runners.
 =========== =========== ===========
 
 ~~~~~~~~~~~~~~~~
@@ -259,3 +322,21 @@ Terminal types:
 - **stdinout**: Mux output to stdout. Forward stdin to its input. Max of 1 of these types allowed.
 - **telnet**: Shrinkwrap will print out a telnet command to run in a separate terminal to get a unique interactive terminal.
 - **xterm**: Shrinkwrap will automatically launch xterm to provide a unique interactive terminal. Only works when runtime=null.
+
+~~~~~~~~~~~~~~~
+runners section
+~~~~~~~~~~~~~~~
+
+The *run* section contains parameters for the FVP. A *runners* subsection
+allows specifying parameters for other runners. The format of each value is the
+same as in the *run* section, except for *params*.
+
+=========== =========== ===========
+key         type        description
+=========== =========== ===========
+name        string      Name or path to the runner binary
+rtvars      dictionary  Run-Time variables.
+params      dictionary  Parameters to be passed to the runner. Unlike the `params` value in the run section, this is a list of parameters, which gets joined by spaces.
+prerun      list        List of shell commands to be executed before the runner is started.
+terminals   dictionary  Describes the set of UART terminals available for the runner.
+=========== =========== ===========

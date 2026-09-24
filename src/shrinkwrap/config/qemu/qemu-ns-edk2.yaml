@@ -1,0 +1,63 @@
+# Copyright (c) 2026, Linaro Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Best choice for: I want to run Linux on QEMU SBSA, booting with EDK2,
+  and have easy control over its command line.
+
+  Brings together TF-A and EDK2 to provide a simple non-secure world
+  environment running on QEMU. Allows easy specification of the kernel
+  image and command line, and rootfs at runtime (see rtvars).
+
+  By default a sensible command line is used that will set up the console
+  for logging and attempt to mount the rootfs image from QEMU's virtio
+  block device. No default kernel image is supplied and the config will
+  refuse to run unless it is explicitly specified.
+
+concrete: true
+
+layers:
+  - qemu/qemu-host-base.yaml
+  - qemu/qemu-tfa-base.yaml
+  - qemu/qemu-edk2-base.yaml
+  # After host-base.yaml, because it overrides the runner name
+  - qemu/qemu-host-build.yaml
+
+run:
+  runners:
+    QEMU:
+      rtvars:
+        KERNEL:
+          type: path
+          value: null
+
+        ROOTFS:
+          type: path
+          value: null
+
+        CMDLINE:
+          type: string
+          value: root=/dev/vda console=ttyAMA0
+
+      params:
+        - -nographic
+        - -nodefaults
+        - -M sbsa-ref
+        - -cpu neoverse-n2
+        - -blockdev driver=raw,file.driver=file,file.filename='${rtvar:ROOTFS}',node-name=hd0
+        - -device virtio-blk-pci,drive=hd0
+        - -chardev socket,id=chr0,port=13557,host=127.0.0.1,server=on,wait=on,telnet=on,mux=on
+        - -serial chardev:chr0
+        - -mon chr0
+        - -device virtio-net-pci,netdev=net0
+        - -netdev user,id=net0
+
+      terminals:
+        serial0:
+          friendly: ''
+          type: stdinout
+          no_color: true
+          port_regex: '-chardev socket,id=chr0.*QEMU waiting for connection on: disconnected:telnet:127.0.0.1:(\d+),server=on'
+          no_escapes: 'EFI stub: Booting Linux Kernel...'

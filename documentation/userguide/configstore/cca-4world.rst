@@ -79,9 +79,9 @@ SHARE          <empty>                                                         <
 Components
 ##########
 
-================= ================================================================================== =================
+================= ================================================================================== ========================================
 component         repository                                                                         revision
-================= ================================================================================== =================
+================= ================================================================================== ========================================
 acpica            https://github.com/acpica/acpica.git                                               20260408
 dt                https://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git v7.1-rc7-dts
 edk2              https://git.gitlab.arm.com/linux-arm/edk2-cca.git                                  3223_arm_cca_v4
@@ -93,7 +93,7 @@ kvmtool (dtc)     https://git.kernel.org/pub/scm/utils/dtc/dtc.git              
 kvmtool (kvmtool) https://gitlab.arm.com/linux-arm/kvmtool-cca                                       cca/v11
 linux             https://git.gitlab.arm.com/linux-arm/linux-cca.git                                 cca-host/v13
 rmm               https://git.trustedfirmware.org/TF-RMM/tf-rmm.git                                  tf-rmm-v0.9.0
-tfa               https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        v2.15.0
+tfa               https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git                        5c33fafcddc09543dbfff97cac991847e8e4fda9
 tftf              https://git.trustedfirmware.org/TF-A/tf-a-tests.git                                v2.15.0
-================= ================================================================================== =================
+================= ================================================================================== ========================================
 

@@ -149,6 +149,18 @@ def _buildex_normalize(buildex):
 	"""
 	_vars_normalize(buildex.setdefault('btvars', {}))
 
+	for build in buildex.setdefault('runners', {}).values():
+		for name, component in build.items():
+			_component_normalize(component, name)
+
+def _runners_normalize(runners):
+	for runner in runners.values():
+		runner.setdefault('name', None)
+		runner.setdefault('rtvars', {})
+		runner.setdefault('params', [])
+		runner.setdefault('prerun', [])
+		runner.setdefault('run', [])
+		runner.setdefault('terminals', {})
 
 def _run_normalize(run):
 	"""
@@ -160,6 +172,9 @@ def _run_normalize(run):
 	run.setdefault('prerun', [])
 	run.setdefault('run', [])
 	run.setdefault('terminals', {})
+	run.setdefault('runner', None)
+	run.setdefault('runners', {})
+	_runners_normalize(run['runners'])
 
 
 def _config_normalize(config):
@@ -232,7 +247,7 @@ def _run_sort(run):
 	Sort the run section so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['name', 'rtvars', 'params', 'prerun', 'run', 'terminals']
+	lut = ['name', 'rtvars', 'params', 'prerun', 'run', 'terminals', 'runners', 'runner']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(run.items(), key=lambda x: lut[x[0]]))
 
@@ -251,33 +266,49 @@ def _config_sort(config):
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))
 
 
+def _merge(base, new, level=0):
+	"""
+	Recursively merges new into base.
+	- Lists are concatenated.
+	- Sets are unioned.
+	- Dicts are merged recursively (unless new contains 'replace: true',
+	  in which case new replaces base entirely at that level).
+	- If new is a dict with a 'replace' key whose value is a list, and base
+	  is a list, the replacement list replaces base entirely.
+	- Scalars: new wins (None is treated as "not set", so base wins).
+	"""
+	if new is None:
+		return base
+
+	if isinstance(base, list) and isinstance(new, list):
+		return base + new
+
+	if isinstance(base, set) and isinstance(new, set):
+		return base | new
+
+	elif isinstance(base, dict) and isinstance(new, dict):
+		if new.pop('replace', False):
+			return new
+		d = {}
+		for k in list(set(list(base.keys()) + list(new.keys()))):
+			d[k] = _merge(base.get(k), new.get(k), level+1)
+		return d
+
+	elif isinstance(base, list) and isinstance(new, dict) and 'replace' in new:
+		return new.pop('replace')
+
+	elif isinstance(base, str) and isinstance(new, str):
+		return new
+
+	return new
+
+
 def _config_merge(base, new):
 	"""
 	Merges new config into the base config.
 	"""
 	_config_validate(base)
 	_config_validate(new)
-
-	def _merge(base, new, level=0):
-		if new is None:
-			return base
-
-		if isinstance(base, list) and isinstance(new, list):
-			return base + new
-
-		if isinstance(base, set) and isinstance(new, set):
-			return base | new
-
-		elif isinstance(base, dict) and isinstance(new, dict):
-			d = {}
-			for k in list(set(list(base.keys()) + list(new.keys()))):
-				d[k] = _merge(base.get(k), new.get(k), level+1)
-			return d
-
-		elif isinstance(base, str) and isinstance(new, str):
-			return new
-
-		return new
 
 	config = _merge(base, new)
 
@@ -627,6 +658,17 @@ def resolveb(config, btvars={}, clivars={}):
 			v['value'] = _string_substitute(v['value'], lut, final)
 			v['options'] = { _string_substitute(o, lut, final) for o in v['options'] }
 
+	# If the runner is different from the default, override some of the
+	# components by those defined in buildex for this runner.
+	runner = config['run']['runner']
+	build_components_override = config['buildex']['runners'].get(runner, {})
+
+	for name, component in build_components_override.items():
+		if name in config['build']:
+			config['build'][name] = _merge(config['build'][name], component)
+		else:
+			config['build'][name] = component
+
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply
 	# their own source and build tree locations.
@@ -703,6 +745,17 @@ def resolveb(config, btvars={}, clivars={}):
 
 	return _config_sort(config)
 
+def _resolve_run(run, lut):
+	# Now create a lookup table with all the rtvars and resolve all the
+	# parameters. An exception will be thrown if there are any macros that
+	# we don't have values for.
+	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
+
+	for i, s, in enumerate(run['run']):
+		run['run'][i] = _string_substitute(s, lut)
+
+	for i, s in enumerate(run['prerun']):
+		run['prerun'][i] = _string_substitute(s, lut)
 
 def resolver(config, rtvars={}, clivars={}):
 	"""
@@ -712,21 +765,25 @@ def resolver(config, rtvars={}, clivars={}):
 	clivars = uclivars.get(**clivars)
 	run = config['run']
 
-	# Find the list of imported artifacts before any processing passes
 	artifacts_imp = set()
-	_string_extract_artifacts(artifacts_imp, run['params'].values())
-	_string_extract_artifacts(artifacts_imp, run['prerun'])
-	_string_extract_artifacts(artifacts_imp, run['run'])
-	_string_extract_artifacts(artifacts_imp, run['rtvars'].values())
+	all_runners = [run] + list(run['runners'].values())
 
-	#Override the rtvars with any values supplied by the user and check that
-	#all rtvars are defined.
-	for k, v in run['rtvars'].items():
-		if k in rtvars:
-			v['value'] = rtvars[k]
-		if v['value'] is None:
-			raise Exception(f'{k} run-time variable not ' \
-					'set by user and no default available.')
+	for runner in all_runners:
+		params = runner['params'].values() if type(runner['params']) == dict else runner['params']
+		# Find the list of imported artifacts before any processing passes
+		_string_extract_artifacts(artifacts_imp, params)
+		_string_extract_artifacts(artifacts_imp, runner['prerun'])
+		_string_extract_artifacts(artifacts_imp, runner['run'])
+		_string_extract_artifacts(artifacts_imp, runner['rtvars'].values())
+
+		# Override the rtvars with any values supplied by the user and check
+		# that all rtvars are defined.
+		for k, v in runner['rtvars'].items():
+			if k in rtvars:
+				v['value'] = rtvars[k]
+			if v['value'] is None:
+				raise Exception(f'{k} run-time variable not ' \
+						'set by user and no default available.')
 
 	# Update the artifacts so that the destination now points to an absolute
 	# path rather than one that is implictly relative to SHRINKWRAP_PACKAGE.
@@ -753,66 +810,58 @@ def resolver(config, rtvars={}, clivars={}):
 		'btvar': {k: v['value']
 				for k, v in config['buildex']['btvars'].items()},
 	}
-	for k, v in run['rtvars'].items():
-		v['value'] = _string_substitute(str(v['value']), lut)
-		if v['type'] == 'path' and v['value']:
-			v['value'] = os.path.expanduser(v['value'])
-			v['value'] = os.path.abspath(v['value'])
-		v['options'] = { _string_substitute(o, lut) for o in v['options'] }
-		if not _var_validate(v):
-			raise ValueError(f"{k} run-time variable " \
-				f"must take one of the following values: { _var_options(v) }")
+	for runner in all_runners:
+		for v in runner['rtvars'].values():
+			v['value'] = _string_substitute(str(v['value']), lut)
+			if v['type'] == 'path' and v['value']:
+				v['value'] = os.path.expanduser(v['value'])
+				v['value'] = os.path.abspath(v['value'])
 
-	# Now create a lookup table with all the rtvars and resolve all the
-	# parameters. An exception will be thrown if there are any macros that
-	# we don't have values for.
-	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
+			# Also check that the rtvar is well formed
+			t = v.get('type')
+			if t not in ('path', 'string'):
+				raise Exception(f'invalid type `{t}` for run-time variable {k}')
 
-	run['params'] = { k: _string_substitute(v, lut) for k, v in run['params'].items() }
-
-	# Assemble the final runtime command and stuff it into the config.
-	params = _mk_params(run['params'], '=')
-
-	terms = []
-	for param, terminal in run['terminals'].items():
-		# port_regex is deprecated; when not provided, we add an echo to
-		# terminal_command then construct the regex to find it. This is
-		# guarranteed to be a unique string, whereas the string output
-		# by the FVP may be ambiguous for some models that have lots of
-		# terminals.
-		if 'port_regex' not in terminal or terminal['port_regex'] is None:
-			terminal['port_regex'] = f'{param}: port (\\d+)'
-			terms.append(f'-C {param}.start_telnet=1')
-
-			cmd = f'-C {param}.terminal_command="echo {param}: port %port"'
-			if terminal['type'] == 'xterm':
-				cmd += '; xterm -e telnet localhost %port'
-			terms.append(cmd)
-
-			if terminal['type'] in ['telnet', 'stdinout', 'xterm']:
-				terms.append(f'-C {param}.mode=telnet')
-			else:
-				terms.append(f'-C {param}.mode=raw')
-			continue
-
-		# port_regex was provided so fallback to old behaviour for
-		# compatibility.
-		if terminal['type'] in ['stdout']:
-			terms.append(f'-C {param}.start_telnet=0')
-			terms.append(f'-C {param}.mode=raw')
-		if terminal['type'] in ['xterm']:
-			terms.append(f'-C {param}.start_telnet=1')
-			terms.append(f'-C {param}.mode=telnet')
-		if terminal['type'] in ['telnet', 'stdinout']:
-			terms.append(f'-C {param}.start_telnet=0')
-			terms.append(f'-C {param}.mode=telnet')
-	terms = ' '.join(terms)
-
+	if run['runner'] is None:
+		run['runner'] = 'FVP'
+ 
+	# Assemble the final runtime commands and stuff them into the config.
+	# For backward compatibility, run['run'] will contain the FVP command-line,
+	# and run['runners'][r]['run'] contain the command-line of each of the
+	# other runners.
 	if run["name"]:
-		run['run'] = [' '.join([run["name"], params, terms])]
+		terms = []
+		params = _mk_params(run['params'], '=')
+		for param, terminal in run['terminals'].items():
+			# port_regex is deprecated; when not provided, we add an echo to
+			# terminal_command then construct the regex to find it. This is
+			# guarranteed to be a unique string, whereas the string output
+			# by the FVP may be ambiguous for some models that have lots of
+			# terminals.
+			if 'port_regex' not in terminal or terminal['port_regex'] is None:
+				terminal['port_regex'] = f'{param}: port (\\d+)'
+				terms.append(f'-C {param}.start_telnet=1')
 
-	for i, s in enumerate(run['prerun']):
-		run['prerun'][i] = _string_substitute(s, lut)
+				cmd = f'-C {param}.terminal_command="echo {param}: port %port"'
+				if terminal['type'] == 'xterm':
+					cmd += '; xterm -e telnet localhost %port'
+				terms.append(cmd)
+
+				if terminal['type'] in ['telnet', 'stdinout', 'xterm']:
+					terms.append(f'-C {param}.mode=telnet')
+				else:
+					terms.append(f'-C {param}.mode=raw')
+				continue
+
+		run['run'] = [' '.join([run["name"], params] + terms)]
+	_resolve_run(run, lut)
+
+	# Additional runners use a list of params rather than a dict
+	for runner in run['runners'].values():
+		if runner['name']:
+			params = ' '.join(runner['params'])
+			runner['run'] = [' '.join([runner['name'], params])]
+		_resolve_run(runner, lut)
 
 	return _config_sort(config)
 
